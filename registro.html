@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Auto-Registro de Personal Policial - REGPOL Huánuco</title>
+  <style>
+    :root {
+      --primary: #0b5a3c;
+      --primary-dark: #063d28;
+      --primary-light: #e8f2ec;
+      --gold: #d8b23f;
+      --gold-dark: #b89224;
+      --gold-light: #fff8e7;
+      --bg: #f4f7f4;
+      --card: #ffffff;
+      --text: #193226;
+      --muted: #5e7166;
+      --border: #d4ded7;
+      --danger: #b94a48;
+      --success: #1f8b4d;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(11, 90, 60, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top center, #e8f2ec 0%, #f4f7f4 40%, #edf1ee 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 16px 12px 40px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Header PNP */
+    .header-banner {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: white;
+      padding: 22px 18px;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(7, 82, 58, 0.2);
+      text-align: center;
+      position: relative;
+      border-bottom: 4px solid var(--gold);
+      margin-bottom: 18px;
+    }
+
+    .badge-icon {
+      width: 52px;
+      height: 52px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .header-banner h1 {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .header-banner h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gold-light);
+      letter-spacing: 0.02em;
+    }
+
+    .header-banner p {
+      font-size: 12px;
+      opacity: 0.85;
+      margin-top: 6px;
+    }
+
+    /* Card Form */
+    .form-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 20px 18px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+
+    .section-title span.sec-icon {
+      font-size: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 14px;
+    }
+
+    @media (max-width: 540px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
+
+    .col-span-2 {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 540px) {
+      .col-span-2 {
+        grid-column: span 1;
+      }
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .form-group label span.req {
+      color: var(--danger);
+      margin-left: 2px;
+    }
+
+    .form-control {
+      width: 100%;
+      height: 42px;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: #fafbfa;
+      color: var(--text);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(11, 90, 60, 0.15);
+    }
+
+    .form-control[readonly] {
+      background: #eef2ef;
+      color: #3b5045;
+      font-weight: 600;
+      cursor: not-allowed;
+    }
+
+    .form-control.uppercase {
+      text-transform: uppercase;
+    }
+
+    .field-hint {
+      font-size: 10.5px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .field-error {
+      font-size: 11px;
+      color: var(--danger);
+      font-weight: 600;
+      display: none;
+      margin-top: 2px;
+    }
+
+    .form-control.invalid {
+      border-color: var(--danger);
+      background: #fff8f8;
+    }
+
+    .form-control.invalid + .field-error {
+      display: block;
+    }
+
+    /* Notice box */
+    .info-box {
+      background: var(--gold-light);
+      border: 1px solid #fae19c;
+      border-left: 4px solid var(--gold-dark);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #614805;
+      margin-bottom: 16px;
+      line-height: 1.45;
+    }
+
+    /* Actions */
+    .actions-bar {
+      margin-top: 18px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary) 0%, #0d6e49 100%);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(11, 90, 60, 0.3);
+      transition: all 0.2s ease;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #094a31 0%, #0b5a3c 100%);
+      box-shadow: 0 6px 18px rgba(11, 90, 60, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+
+    .btn-submit:disabled {
+      background: #a3b8ad;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Success Screen */
+    .success-card {
+      display: none;
+      text-align: center;
+      padding: 36px 20px;
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 2px solid #bce2cb;
+    }
+
+    .success-icon {
+      width: 70px;
+      height: 70px;
+      background: #e3f6ea;
+      color: var(--success);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      margin-bottom: 16px;
+      border: 3px solid #94d8b0;
+    }
+
+    .success-card h2 {
+      color: var(--primary);
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .success-card p {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .summary-box {
+      background: #f8faf8;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: left;
+      font-size: 12.5px;
+      margin-bottom: 20px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      border-bottom: 1px dashed #e2e9e4;
+    }
+
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .summary-val {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .btn-new {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      height: 42px;
+      padding: 0 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13.5px;
+      transition: all 0.2s;
+    }
+
+    .btn-new:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Footer */
+    .app-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header-banner">
+      <div class="badge-icon">👮</div>
+      <h1>Policía Nacional del Perú</h1>
+      <h2>REGPOL Huánuco · Auto-Registro de Personal</h2>
+      <p>Complete sus datos personales para la verificación y registro en el sistema</p>
+    </header>
+
+    <!-- Info Notice -->
+    <div class="info-box">
+      <strong>📌 Estimado Efectivo Policial:</strong> Ingrese sus datos con exactitud. El CIP y DNI deben tener estrictamente 8 dígitos, y el número de celular 9 dígitos. Una vez enviado, el Administrador verificará y procesará su registro.
+    </div>
+
+    <!-- Main Registration Form -->
+    <form id="autoRegistroForm" onsubmit="handleFormSubmit(event)" novalidate>
+      
+      <!-- Sección 1: Identificación y Datos Básicos -->
+      <div class="form-card">
+        <div class="section-title">
+          <span class="sec-icon">🪪</span>
+          <span>1. Identificación Policial y Personal</span>
+        </div>
+        
+        <div class="form-grid">
+          <!-- CIP (8 dígitos) -->
+          <div class="form-group">
+            <label for="cip">CIP (8 dígitos)<span class="req">*</span></label>
+            <input id="cip" name="cip" type="text" inputmode="numeric" class="form-control" maxlength="8" placeholder="Ej. 31245678" required autocomplete="off" oninput="this.value = this.value.replace(/\\D/g, '')" />
+            <div class="field-error">El CIP debe tener exactamente 8 dígitos numéricos.</div>
+          </div>
+
+          <!-- DNI (8 dígitos) -->
+          <div class="form-group">
+            <label for="dni">DNI (8 dígitos)<span class="req">*</span></label>
+            <input id="dni" name="dni" type="text" inputmode="numeric" class="form-control" maxlength="8" placeholder="Ej. 45678901" required autocomplete="off" oninput="this.value = this.value.replace(/\\D/g, '')" />
+            <div class="field-error">El DNI debe tener exactamente 8 dígitos numéricos.</div>
+          </div>
+
+          <!-- TIPO DNI (Electrónico o Clásico) -->
+          <div class="form-group">
+            <label for="tipo_dni">Tipo de DNI<span class="req">*</span></label>
+            <select id="tipo_dni" name="tipo_dni" class="form-control" required>
+              <option value="">-- Seleccionar --</option>
+              <option value="ELECTRONICO">ELECTRONICO</option>
+              <option value="CLASICO">CLASICO</option>
+            </select>
+            <div class="field-error">Seleccione el tipo de DNI.</div>
+          </div>
+
+          <!-- GRADO -->
+          <div class="form-group">
+            <label for="grado">Grado Policial<span class="req">*</span></label>
+            <select id="grado" name="grado" class="form-control" required>
+              <option value="">Cargando grados...</option>
+            </select>
+            <div class="field-error">Seleccione su grado policial.</div>
+          </div>
+
+          <!-- APELLIDOS Y NOMBRES -->
+          <div class="form-group col-span-2">
+            <label for="apellidos_y_nombres">Apellidos y Nombres Completos<span class="req">*</span></label>
+            <input id="apellidos_y_nombres" name="apellidos_y_nombres" type="text" class="form-control uppercase" placeholder="Ej. PEREZ LOPEZ JUAN CARLOS" required autocomplete="name" oninput="this.value = this.value.toUpperCase()" />
+            <div class="field-error">Ingrese sus apellidos y nombres completos.</div>
+          </div>
+
+          <!-- JERARQUÍA -->
+          <div class="form-group">
+            <label for="jerarquia">Jerarquía<span class="req">*</span></label>
+            <select id="jerarquia" name="jerarquia" class="form-control" required>
+              <option value="">Cargando jerarquías...</option>
+            </select>
+            <div class="field-error">Seleccione la jerarquía correspondiente.</div>
+          </div>
+
+          <!-- ESPECIALIDAD -->
+          <div class="form-group">
+            <label for="especialidad">Especialidad<span class="req">*</span></label>
+            <select id="especialidad" name="especialidad" class="form-control" required>
+              <option value="">Cargando especialidades...</option>
+            </select>
+            <div class="field-error">Seleccione la especialidad policial.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 2: Asignación y Situación -->
+      <div class="form-card">
+        <div class="section-title">
+          <span class="sec-icon">🏢</span>
+          <span>2. Unidad y Asignación Operativa</span>
+        </div>
+
+        <div class="form-grid">
+          <!-- UNIDAD DE ORIGEN -->
+          <div class="form-group col-span-2">
+            <label for="unidad_de_origen">Unidad de Origen<span class="req">*</span></label>
+            <select id="unidad_de_origen" name="unidad_de_origen" class="form-control" required onchange="handleUnidadChange(this.value)">
+              <option value="">Cargando unidades...</option>
+            </select>
+            <div class="field-error">Seleccione su unidad de origen.</div>
+          </div>
+
+          <!-- LISTA DE REVISTA -->
+          <div class="form-group col-span-2">
+            <label for="lista_de_revista">Lista de Revista<span class="req">*</span></label>
+            <select id="lista_de_revista" name="lista_de_revista" class="form-control" required>
+              <option value="">-- Primero seleccione Unidad de Origen --</option>
+            </select>
+            <div class="field-error">Seleccione la lista de revista correspondiente.</div>
+          </div>
+
+          <!-- FECHA DE INCORPORACIÓN -->
+          <div class="form-group">
+            <label for="fecha_de_incorporacion">Fecha de Incorporación<span class="req">*</span></label>
+            <input id="fecha_de_incorporacion" name="fecha_de_incorporacion" type="date" class="form-control" required />
+            <div class="field-error">Seleccione la fecha de incorporación.</div>
+          </div>
+
+          <!-- CONDICIÓN (NATO / DESTACADO) -->
+          <div class="form-group">
+            <label for="condicion">Condición<span class="req">*</span></label>
+            <select id="condicion" name="condicion" class="form-control" required>
+              <option value="">-- Seleccionar --</option>
+              <option value="NATO">NATO</option>
+              <option value="DESTACADO">DESTACADO</option>
+            </select>
+            <div class="field-error">Seleccione la condición (NATO o DESTACADO).</div>
+          </div>
+
+          <!-- SITUACIÓN ACTUAL (Fijo PRESENTE) -->
+          <div class="form-group">
+            <label for="situacion_actual">Situación Actual</label>
+            <input id="situacion_actual" name="situacion_actual" type="text" class="form-control" value="PRESENTE" readonly />
+            <div class="field-hint">Predeterminado: PRESENTE</div>
+          </div>
+
+          <!-- CARGO (Fijo OPERATIVO) -->
+          <div class="form-group">
+            <label for="cargo">Cargo</label>
+            <input id="cargo" name="cargo" type="text" class="form-control" value="OPERATIVO" readonly />
+            <div class="field-hint">Predeterminado: OPERATIVO</div>
+          </div>
+
+          <!-- APTITUD PSICOSOMÁTICO -->
+          <div class="form-group col-span-2">
+            <label for="aptitud_psicosomatico">Aptitud Psicosomática<span class="req">*</span></label>
+            <select id="aptitud_psicosomatico" name="aptitud_psicosomatico" class="form-control" required>
+              <option value="">Cargando aptitudes...</option>
+            </select>
+            <div class="field-error">Seleccione su aptitud psicosomática.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 3: Datos Personales y Contacto -->
+      <div class="form-card">
+        <div class="section-title">
+          <span class="sec-icon">📱</span>
+          <span>3. Datos Personales y Contacto</span>
+        </div>
+
+        <div class="form-grid">
+          <!-- SEXO -->
+          <div class="form-group">
+            <label for="sexo">Sexo<span class="req">*</span></label>
+            <select id="sexo" name="sexo" class="form-control" required>
+              <option value="">-- Seleccionar --</option>
+              <option value="M">MASCULINO (M)</option>
+              <option value="F">FEMENINO (F)</option>
+            </select>
+            <div class="field-error">Seleccione el sexo.</div>
+          </div>
+
+          <!-- FECHA DE NACIMIENTO -->
+          <div class="form-group">
+            <label for="fecha_de_nacimiento">Fecha de Nacimiento<span class="req">*</span></label>
+            <input id="fecha_de_nacimiento" name="fecha_de_nacimiento" type="date" class="form-control" required />
+            <div class="field-error">Ingrese su fecha de nacimiento.</div>
+          </div>
+
+          <!-- CELULAR (9 dígitos) -->
+          <div class="form-group">
+            <label for="celular">Celular (9 dígitos)<span class="req">*</span></label>
+            <input id="celular" name="celular" type="tel" inputmode="numeric" class="form-control" maxlength="9" placeholder="Ej. 987654321" required autocomplete="tel" oninput="this.value = this.value.replace(/\\D/g, '')" />
+            <div class="field-error">Ingrese un número celular válido de 9 dígitos.</div>
+          </div>
+
+          <!-- HIJOS (0 - 10) -->
+          <div class="form-group">
+            <label for="hijos">N° de Hijos<span class="req">*</span></label>
+            <select id="hijos" name="hijos" class="form-control" required>
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10 o más</option>
+            </select>
+          </div>
+
+          <!-- ESTADO CIVIL -->
+          <div class="form-group">
+            <label for="estado_civil">Estado Civil<span class="req">*</span></label>
+            <select id="estado_civil" name="estado_civil" class="form-control" required>
+              <option value="">Cargando estados...</option>
+            </select>
+            <div class="field-error">Seleccione su estado civil.</div>
+          </div>
+
+          <!-- CORREO PERSONAL -->
+          <div class="form-group">
+            <label for="correo_personal">Correo Electrónico Personal<span class="req">*</span></label>
+            <input id="correo_personal" name="correo_personal" type="email" class="form-control" placeholder="ejemplo@gmail.com" required autocomplete="email" />
+            <div class="field-error">Ingrese un correo electrónico válido.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Action -->
+      <div class="actions-bar">
+        <button id="submitBtn" type="submit" class="btn-submit">
+          <span>📨</span>
+          <span>Enviar Registro a Verificación</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Success View -->
+    <div id="successCard" class="success-card">
+      <div class="success-icon">✓</div>
+      <h2>¡Solicitud de Registro Enviada con Éxito!</h2>
+      <p>Sus datos han sido transmitidos satisfactoriamente. El Administrador verificará su información en la bandeja de solicitudes para formalizar su incorporación en la base de datos oficial.</p>
+      
+      <div class="summary-box" id="submissionSummary">
+        <!-- Rellenado dinámicamente con JS -->
+      </div>
+
+      <button type="button" class="btn-new" onclick="closeRegistrationPage()">Cerrar</button>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>© REGPOL Huánuco · Sistema de Gestión de Personal Policial 2.0</p>
+    </footer>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cmbjqttrwdphrirerzyx.supabase.co';
+    const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtYmpxdHRyd2RwaHJpcmVyenl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDM1OTMsImV4cCI6MjA5NjYxOTU5M30.JVCjFMNiv7NMjrwKpmbpXz-3HNgda6gWR_TSUJ3pHds';
+
+    const STORAGE_KEY = 'pnp_qr_solicitudes';
+    let unidadesRaw = [];
+
+    // Fallbacks locales en caso de desconexión
+    const fallbackCatalogs = {
+      tipo_dni: ['ELECTRONICO', 'CLASICO'],
+      grados: ['CRNL. PNP', 'CMDT. PNP', 'MAY. PNP', 'CAP. PNP', 'TNTE. PNP', 'ALFZ. PNP', 'SS PNP', 'SB PNP', 'ST1 PNP', 'ST2 PNP', 'ST3 PNP', 'S1 PNP', 'S2 PNP', 'S3 PNP'],
+      jerarquia: ['OFICIAL SUPERIOR', 'OFICIAL SUBALTERNO', 'SUBOFICIAL SUPERIOR', 'SUBOFICIAL'],
+      especialidad: ['DE ARMAS', 'DE SERVICIOS'],
+      condicion: ['NATO', 'DESTACADO'],
+      aptitud_psicosomatico: ['APTO', 'APTO CON RESTRICCIONES', 'NO APTO', 'INAPTO'],
+      estado_civil: ['SOLTERO(A)', 'CASADO(A)', 'CONVIVIENTE', 'DIVORCIADO(A)', 'VIUDO(A)']
+    };
+
+    // Helper HTTP Supabase
+    async function fetchSupabase(endpoint) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
+        headers: {
+          'apikey': KEY,
+          'Authorization': `Bearer ${KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    }
+
+    // Cargar catálogos dinámicamente
+    async function initCatalogs() {
+      // Set fecha hoy por defecto en fecha_de_incorporacion
+      const todayStr = new Date().toISOString().split('T')[0];
+      const elFechaIncorp = document.getElementById('fecha_de_incorporacion');
+      if (elFechaIncorp && !elFechaIncorp.value) elFechaIncorp.value = todayStr;
+
+      // 1. Grados
+      try {
+        const rawGrados = await fetchSupabase('grados?select=*');
+        const list = (rawGrados || []).map(g => g.GRADO || g.grado).filter(Boolean);
+        populateSelect('grado', list.length ? list : fallbackCatalogs.grados);
+      } catch (_) {
+        populateSelect('grado', fallbackCatalogs.grados);
+      }
+
+      // 2. Jerarquías
+      try {
+        const rawJer = await fetchSupabase('jerarqu%C3%ADa?select=*');
+        const list = (rawJer || []).map(j => j['JERARQUÍA'] || j.jerarquia || j.JERARQUIA).filter(Boolean);
+        populateSelect('jerarquia', list.length ? list : fallbackCatalogs.jerarquia);
+      } catch (_) {
+        populateSelect('jerarquia', fallbackCatalogs.jerarquia);
+      }
+
+      // 3. Especialidad
+      try {
+        const rawEsp = await fetchSupabase('especialidad?select=*');
+        const list = (rawEsp || []).map(e => e['ESPECIALIDAD'] || e.especialidad).filter(Boolean);
+        populateSelect('especialidad', list.length ? list : fallbackCatalogs.especialidad);
+      } catch (_) {
+        populateSelect('especialidad', fallbackCatalogs.especialidad);
+      }
+
+      // 4. Aptitud Psicosomática
+      try {
+        const rawApt = await fetchSupabase('aptitud_psicosom%C3%A1tico?select=*');
+        const list = (rawApt || []).map(a => a['APTITUD PSICOSOMÁTICO'] || a.aptitud_psicosomatico || a.APTITUD).filter(Boolean);
+        populateSelect('aptitud_psicosomatico', list.length ? list : fallbackCatalogs.aptitud_psicosomatico);
+      } catch (_) {
+        populateSelect('aptitud_psicosomatico', fallbackCatalogs.aptitud_psicosomatico);
+      }
+
+      // 5. Estado Civil
+      try {
+        const rawCiv = await fetchSupabase('estado_civil?select=*');
+        const list = (rawCiv || []).map(c => c['ESTADO CIVIL'] || c.estado_civil).filter(Boolean);
+        populateSelect('estado_civil', list.length ? list : fallbackCatalogs.estado_civil);
+      } catch (_) {
+        populateSelect('estado_civil', fallbackCatalogs.estado_civil);
+      }
+
+      // 6. Unidades y Lista de Revista
+      try {
+        const rawUni = await fetchSupabase('unidades?select=*&order=id.asc');
+        unidadesRaw = rawUni || [];
+        populateUnidades();
+      } catch (e) {
+        console.warn('Error cargando unidades:', e);
+      }
+    }
+
+    function populateSelect(selectId, items) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      const cleanItems = [...new Set(items.map(s => String(s).trim()).filter(Boolean))];
+      select.innerHTML = '<option value="">-- Seleccionar --</option>' + 
+        cleanItems.map(val => `<option value="${escapeHtml(val)}">${escapeHtml(val)}</option>`).join('');
+    }
+
+    function populateUnidades() {
+      const uSelect = document.getElementById('unidad_de_origen');
+      if (!uSelect) return;
+      const uNames = [...new Set(unidadesRaw.map(u => String(u.NIVEL1 || u.nivel_1 || '').trim()).filter(Boolean))];
+      const filtered = uNames.filter(u => u.toUpperCase() !== 'TODOS');
+      uSelect.innerHTML = '<option value="">-- Seleccionar Unidad --</option>' + 
+        filtered.map(val => `<option value="${escapeHtml(val)}">${escapeHtml(val)}</option>`).join('');
+    }
+
+    function unidadNombreFinal(u) {
+      return String(u.EXACTO4 || u.nivel_4_nombre || u.NIVEL4 || u.nivel_4 ||
+                    u.EXACTO3 || u.nivel_3_nombre || u.NIVEL3 || u.nivel_3 ||
+                    u.EXACTO2 || u.nivel_2_nombre || u.NIVEL2 || u.nivel_2 ||
+                    u.EXACTO1 || u.nivel_1_nombre || u.NIVEL1 || u.nivel_1 || '').trim();
+    }
+
+    function handleUnidadChange(selectedUnidad) {
+      const rSelect = document.getElementById('lista_de_revista');
+      if (!rSelect) return;
+      if (!selectedUnidad) {
+        rSelect.innerHTML = '<option value="">-- Primero seleccione Unidad de Origen --</option>';
+        return;
+      }
+
+      // Filtrar sub-unidades / revistas correspondientes a esa unidad mayor
+      const matching = unidadesRaw.filter(u => (u.NIVEL1 || u.nivel_1) === selectedUnidad);
+      let revistas = [...new Set(matching.map(unidadNombreFinal).filter(Boolean))];
+      if (!revistas.length) {
+        revistas = [selectedUnidad];
+      }
+
+      rSelect.innerHTML = '<option value="">-- Seleccionar Lista de Revista --</option>' +
+        revistas.map(val => `<option value="${escapeHtml(val)}">${escapeHtml(val)}</option>`).join('');
+      
+      // Auto-seleccionar si solo hay una opción
+      if (revistas.length === 1) {
+        rSelect.value = revistas[0];
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[m]));
+    }
+
+    // Validación del formulario
+    function validateForm(data) {
+      let isValid = true;
+
+      // Helper para marcar error
+      const check = (fieldId, condition) => {
+        const el = document.getElementById(fieldId);
+        if (!condition) {
+          if (el) el.classList.add('invalid');
+          isValid = false;
+        } else {
+          if (el) el.classList.remove('invalid');
+        }
+      };
+
+      // CIP: 8 dígitos exactos
+      check('cip', /^\d{8}$/.test(data.cip));
+
+      // DNI: 8 dígitos exactos
+      check('dni', /^\d{8}$/.test(data.dni));
+
+      // Tipo DNI: ELECTRONICO o CLASICO
+      check('tipo_dni', data.tipo_dni === 'ELECTRONICO' || data.tipo_dni === 'CLASICO');
+
+      // Grado
+      check('grado', Boolean(data.grado));
+
+      // Apellidos y Nombres
+      check('apellidos_y_nombres', Boolean(data.apellidos_y_nombres && data.apellidos_y_nombres.trim().length >= 3));
+
+      // Jerarquía
+      check('jerarquia', Boolean(data.jerarquia));
+
+      // Especialidad
+      check('especialidad', Boolean(data.especialidad));
+
+      // Unidad de Origen
+      check('unidad_de_origen', Boolean(data.unidad_de_origen));
+
+      // Lista de Revista
+      check('lista_de_revista', Boolean(data.lista_de_revista));
+
+      // Fecha Incorporación
+      check('fecha_de_incorporacion', Boolean(data.fecha_de_incorporacion));
+
+      // Condición (NATO o DESTACADO)
+      check('condicion', data.condicion === 'NATO' || data.condicion === 'DESTACADO');
+
+      // Aptitud
+      check('aptitud_psicosomatico', Boolean(data.aptitud_psicosomatico));
+
+      // Sexo
+      check('sexo', data.sexo === 'M' || data.sexo === 'F');
+
+      // Fecha Nacimiento
+      check('fecha_de_nacimiento', Boolean(data.fecha_de_nacimiento));
+
+      // Celular: 9 dígitos exactos
+      check('celular', /^\d{9}$/.test(data.celular));
+
+      // Estado Civil
+      check('estado_civil', Boolean(data.estado_civil));
+
+      // Correo Personal
+      check('correo_personal', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.correo_personal));
+
+      return isValid;
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const form = document.getElementById('autoRegistroForm');
+      const submitBtn = document.getElementById('submitBtn');
+
+      const formData = {
+        id: 'REQ-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        fecha_solicitud: new Date().toISOString(),
+        estado_solicitud: 'PENDIENTE',
+        // 20 campos solicitados
+        cip: document.getElementById('cip').value.trim(),
+        dni: document.getElementById('dni').value.trim(),
+        tipo_dni: document.getElementById('tipo_dni').value.trim(),
+        grado: document.getElementById('grado').value.trim(),
+        apellidos_y_nombres: document.getElementById('apellidos_y_nombres').value.trim().toUpperCase(),
+        unidad_de_origen: document.getElementById('unidad_de_origen').value.trim(),
+        lista_de_revista: document.getElementById('lista_de_revista').value.trim(),
+        fecha_de_incorporacion: document.getElementById('fecha_de_incorporacion').value.trim(),
+        condicion: document.getElementById('condicion').value.trim(),
+        situacion_actual: 'PRESENTE',
+        cargo: 'OPERATIVO',
+        jerarquia: document.getElementById('jerarquia').value.trim(),
+        especialidad: document.getElementById('especialidad').value.trim(),
+        aptitud_psicosomatico: document.getElementById('aptitud_psicosomatico').value.trim(),
+        sexo: document.getElementById('sexo').value.trim(),
+        fecha_de_nacimiento: document.getElementById('fecha_de_nacimiento').value.trim(),
+        correo_personal: document.getElementById('correo_personal').value.trim(),
+        celular: document.getElementById('celular').value.trim(),
+        hijos: document.getElementById('hijos').value.trim(),
+        estado_civil: document.getElementById('estado_civil').value.trim()
+      };
+
+      if (!validateForm(formData)) {
+        // Scroll al primer campo inválido
+        const firstInvalid = document.querySelector('.form-control.invalid');
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          firstInvalid.focus();
+        }
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>⏳</span><span>Procesando solicitud...</span>';
+
+      try {
+        // 1. Enviar directamente a Supabase Cloud (Accesible desde cualquier celular con 4G / 5G / Wi-Fi)
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/solicitudes_registro`, {
+            method: 'POST',
+            headers: {
+              'apikey': KEY,
+              'Authorization': `Bearer ${KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(formData)
+          });
+        } catch (cloudErr) {
+          console.warn('Supabase cloud fallback:', cloudErr);
+        }
+
+        // 2. Enviar también a la API local si está disponible
+        try {
+          await fetch('/api/solicitudes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+        } catch (apiErr) {
+          console.warn('API local fallback:', apiErr);
+        }
+
+        // 3. Guardar en localStorage para respaldo
+        saveToLocalStorage(formData);
+
+        // 4. Notificar mediante BroadcastChannel si está en la misma máquina
+        try {
+          if (window.BroadcastChannel) {
+            const bc = new BroadcastChannel('pnp_qr_channel');
+            bc.postMessage({ type: 'NUEVA_SOLICITUD', data: formData });
+          }
+        } catch (_) {}
+
+        // Mostrar pantalla de éxito
+        showSuccessView(formData);
+      } catch (err) {
+        alert('Ocurrió un error al enviar el registro: ' + err.message);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>📨</span><span>Enviar Registro a Verificación</span>';
+      }
+    }
+
+    function saveToLocalStorage(data) {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const filtered = stored.filter(item => item.cip !== data.cip);
+        filtered.unshift(data);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {
+        console.error('Error al guardar en localStorage:', e);
+      }
+    }
+
+    function showSuccessView(data) {
+      document.getElementById('autoRegistroForm').style.display = 'none';
+      const successCard = document.getElementById('successCard');
+      const summaryBox = document.getElementById('submissionSummary');
+
+      summaryBox.innerHTML = `
+        <div class="summary-row"><span class="summary-label">CIP:</span><span class="summary-val">${escapeHtml(data.cip)}</span></div>
+        <div class="summary-row"><span class="summary-label">DNI (${escapeHtml(data.tipo_dni)}):</span><span class="summary-val">${escapeHtml(data.dni)}</span></div>
+        <div class="summary-row"><span class="summary-label">Grado:</span><span class="summary-val">${escapeHtml(data.grado)}</span></div>
+        <div class="summary-row"><span class="summary-label">Apellidos y Nombres:</span><span class="summary-val">${escapeHtml(data.apellidos_y_nombres)}</span></div>
+        <div class="summary-row"><span class="summary-label">Unidad de Origen:</span><span class="summary-val">${escapeHtml(data.unidad_de_origen)}</span></div>
+        <div class="summary-row"><span class="summary-label">Lista de Revista:</span><span class="summary-val">${escapeHtml(data.lista_de_revista)}</span></div>
+        <div class="summary-row"><span class="summary-label">Condición:</span><span class="summary-val">${escapeHtml(data.condicion)}</span></div>
+        <div class="summary-row"><span class="summary-label">Situación Actual:</span><span class="summary-val">${escapeHtml(data.situacion_actual)}</span></div>
+        <div class="summary-row"><span class="summary-label">Cargo:</span><span class="summary-val">${escapeHtml(data.cargo)}</span></div>
+        <div class="summary-row"><span class="summary-label">Celular:</span><span class="summary-val">${escapeHtml(data.celular)}</span></div>
+        <div class="summary-row"><span class="summary-label">Correo Personal:</span><span class="summary-val">${escapeHtml(data.correo_personal)}</span></div>
+        <div class="summary-row"><span class="summary-label">Fecha Solicitud:</span><span class="summary-val">${new Date(data.fecha_solicitud).toLocaleString()}</span></div>
+      `;
+
+      successCard.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeRegistrationPage() {
+      // Intentar cerrar la pestaña
+      window.close();
+      // Si el navegador móvil bloquea window.close(), mostrar mensaje final
+      document.getElementById('successCard').innerHTML = `
+        <div class="success-icon" style="background:#e8f2ec; color:#0b5a3c; border-color:#0b5a3c;">✓</div>
+        <h2 style="color:#0b5a3c; margin-bottom:8px;">¡Registro Completado!</h2>
+        <p style="font-size:15px; color:#2c4c3b; margin-top:12px;">Su solicitud ha sido registrada exitosamente.<br>Ya puede cerrar esta pestaña o salir del navegador.</p>
+      `;
+    }
+
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', initCatalogs);
+  </script>
+</body>
+</html>
