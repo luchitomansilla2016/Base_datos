@@ -947,16 +947,91 @@
   </style>
 </head>
 <body>
-  <!-- Modal de Autenticación -->
+  <!-- Modal de Autenticación y Recuperación -->
   <div id="loginOverlay" class="login-overlay">
-    <div class="login-card">
-      <h2>Acceso al sistema</h2>
-      <p>Ingrese su CIP y contraseña institucional.</p>
-      <input id="loginUser" placeholder="CIP (8 dígitos)" autocomplete="username" inputmode="numeric" maxlength="8" />
-      <br><br>
-      <input id="loginPass" type="password" placeholder="Contraseña" autocomplete="current-password" />
-      <button class="primary" onclick="login()" style="width:100%;margin-top:14px">Ingresar</button>
+    <!-- Tarjeta Principal: Iniciar Sesión -->
+    <div class="login-card" id="loginCardMain">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <div style="font-size:28px;">👮‍♂️</div>
+        <div>
+          <h2 style="margin:0; font-size:20px; color:#06351f;">Acceso al sistema</h2>
+          <div style="font-size:12px; color:var(--muted);">REGPOL Huánuco · Personal 2.0</div>
+        </div>
+      </div>
+      <p style="margin:0 0 16px; color:var(--muted); font-size:13.5px;">Ingrese su CIP y contraseña institucional.</p>
+      
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">CIP Institucional</label>
+          <input id="loginUser" placeholder="CIP (8 dígitos)" autocomplete="username" inputmode="numeric" maxlength="8" style="width:100%;" />
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">Contraseña</label>
+          <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" style="width:100%;" onkeydown="if(event.key==='Enter') login();" />
+        </div>
+      </div>
+
+      <button class="primary" onclick="login()" style="width:100%; margin-top:16px; padding:12px; font-weight:800; font-size:14px; border-radius:10px;">Ingresar</button>
+      
+      <div style="margin-top:16px; text-align:center;">
+        <a href="javascript:void(0)" onclick="toggleForgotPassword(true)" style="color:#0b5a3c; font-size:12.5px; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:5px;">
+          <span>🔑</span> ¿Olvidó su contraseña?
+        </a>
+      </div>
       <div id="loginError" class="login-error"></div>
+    </div>
+
+    <!-- Tarjeta Secundaria: Restablecer Contraseña -->
+    <div class="login-card" id="forgotPassCard" style="display:none;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <div style="font-size:28px;">🔐</div>
+        <div>
+          <h2 style="margin:0; font-size:19px; color:#06351f;">Restablecer Contraseña</h2>
+          <div style="font-size:12px; color:var(--muted);">Validación por Correo Personal</div>
+        </div>
+      </div>
+
+      <!-- Paso 1: Validar CIP y Correo Personal -->
+      <div id="forgotStep1">
+        <p style="margin:0 0 14px; color:var(--muted); font-size:13px; line-height:1.4;">
+          Ingrese su <b>CIP</b> y el <b>correo personal</b> registrado en su cuenta de usuario para verificar su identidad.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">CIP (8 dígitos)</label>
+            <input id="recoverCip" placeholder="Ej. 31390176" inputmode="numeric" maxlength="8" style="width:100%;" />
+          </div>
+          <div>
+            <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">Correo Personal Registrado</label>
+            <input id="recoverEmail" type="email" placeholder="ejemplo@gmail.com" style="width:100%;" onkeydown="if(event.key==='Enter') validateUserForReset();" />
+          </div>
+        </div>
+        <button class="primary" onclick="validateUserForReset()" style="width:100%; margin-top:16px; padding:12px; font-weight:800; border-radius:10px;">🔍 Validar Identidad</button>
+      </div>
+
+      <!-- Paso 2: Ingresar Nueva Contraseña -->
+      <div id="forgotStep2" style="display:none;">
+        <div id="recoverUserInfo" style="background:#eef6f0; border:1.5px solid #c8e2d0; padding:12px; border-radius:10px; margin-bottom:14px; font-size:12px; color:#0b5a3c; line-height:1.5;"></div>
+        
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">Nueva Contraseña</label>
+            <input id="recoverNewPass" type="password" placeholder="Nueva contraseña" style="width:100%;" />
+          </div>
+          <div>
+            <label style="display:block; font-size:11px; font-weight:800; color:var(--muted); margin-bottom:4px; text-transform:uppercase;">Confirmar Contraseña</label>
+            <input id="recoverConfirmPass" type="password" placeholder="Repita la nueva contraseña" style="width:100%;" onkeydown="if(event.key==='Enter') saveNewPassword();" />
+          </div>
+        </div>
+        <button class="primary" onclick="saveNewPassword()" style="width:100%; margin-top:16px; padding:12px; font-weight:800; border-radius:10px;">💾 Guardar Nueva Contraseña</button>
+      </div>
+
+      <div style="margin-top:16px; text-align:center;">
+        <a href="javascript:void(0)" onclick="toggleForgotPassword(false)" style="color:var(--muted); font-size:12.5px; text-decoration:none; font-weight:700;">
+          ← Volver al inicio de sesión
+        </a>
+      </div>
+      <div id="forgotMsg" class="login-error" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -1938,25 +2013,25 @@
       fecha_inclusion: { label: 'Fecha inclusión', type: 'date' },
       doc_retorno: { label: 'Doc. Retorno', type: 'text', cls: 'wide' },
       exclusion_inclusion: { label: 'Exclusión / Inclusión', type: 'text' },
-      incorp_situacion: { label: 'Situación', type: 'text' },
-      incorp_tipo_incorporacion: { label: 'Tipo de incorporación', type: 'text' },
-      incorp_motivo: { label: 'Motivo', type: 'text', cls: 'wide' },
-      incorp_a_merito: { label: 'A mérito', type: 'text', cls: 'wide' },
-      incorp_numero_inclusion: { label: 'N° Inclusión', type: 'text' },
-      incorp_fecha_inclusion: { label: 'Fecha inclusión', type: 'date' },
-      incorp_documento_pone_disposicion: { label: 'Doc. pone a disposición', type: 'text', cls: 'wide' },
-      incorp_fecha_documento: { label: 'Fecha documento', type: 'date' },
-      incorp_observacion: { label: 'Observación', type: 'textarea', cls: 'full' },
-      dest_incorp_motivo: { label: 'Motivo', type: 'text', cls: 'wide' },
-      dest_incorp_documento_referencia: { label: 'Doc. Referencia', type: 'text', cls: 'wide' },
-      dest_incorp_lista_revista_anterior: { label: 'Lista revista anterior', type: 'text', cls: 'wide' },
-      dest_incorp_numero_inclusion: { label: 'N° Inclusión', type: 'text' },
-      dest_incorp_fecha_inclusion: { label: 'Fecha inclusión', type: 'date' },
-      dest_incorp_documento_pone_disposicion: { label: 'Doc. pone a disposición', type: 'text', cls: 'wide' },
-      dest_incorp_fecha_documento: { label: 'Fecha documento', type: 'date' },
-      dest_incorp_observacion: { label: 'Observación', type: 'textarea', cls: 'full' },
-      observacion: { label: 'Observación', type: 'textarea', cls: 'full' },
-      observaciones: { label: 'Observaciones', type: 'textarea', cls: 'full' }
+      incorp_situacion: { label: 'SITUACIÓN', type: 'text' },
+      incorp_tipo_incorporacion: { label: 'TIPO DE INCORPORACIÓN', type: 'text' },
+      incorp_motivo: { label: 'MOTIVO', type: 'text', cls: 'wide' },
+      incorp_a_merito: { label: 'A MÉRITO', type: 'text', cls: 'wide' },
+      incorp_numero_inclusion: { label: 'N° INCLUSIÓN', type: 'text' },
+      incorp_fecha_inclusion: { label: 'FECHA INCLUSIÓN', type: 'date' },
+      incorp_documento_pone_disposicion: { label: 'DOC. PONE A DISPOSICIÓN', type: 'text', cls: 'wide' },
+      incorp_fecha_documento: { label: 'FECHA DOCUMENTO', type: 'date' },
+      incorp_observacion: { label: 'OBSERVACIÓN', type: 'textarea', cls: 'full' },
+      dest_incorp_motivo: { label: 'MOTIVO', type: 'text', cls: 'wide' },
+      dest_incorp_documento_referencia: { label: 'DOC. REFERENCIA', type: 'text', cls: 'wide' },
+      dest_incorp_lista_revista_anterior: { label: 'LISTA REVISTA ANTERIOR', type: 'text', cls: 'wide' },
+      dest_incorp_numero_inclusion: { label: 'N° INCLUSIÓN', type: 'text' },
+      dest_incorp_fecha_inclusion: { label: 'FECHA INCLUSIÓN', type: 'date' },
+      dest_incorp_documento_pone_disposicion: { label: 'DOC. PONE A DISPOSICIÓN', type: 'text', cls: 'wide' },
+      dest_incorp_fecha_documento: { label: 'FECHA DOCUMENTO', type: 'date' },
+      dest_incorp_observacion: { label: 'OBSERVACIÓN', type: 'textarea', cls: 'full' },
+      observacion: { label: 'OBSERVACIÓN', type: 'textarea', cls: 'full' },
+      observaciones: { label: 'OBSERVACIONES', type: 'textarea', cls: 'full' }
     };
 
     const personalDbColumnMap = {
@@ -1997,21 +2072,21 @@
       cip: 'CIP',
       grado: 'GRADO',
       apellidos_y_nombres: 'APELLIDOS Y NOMBRES',
+      apellidos_nombre: 'APELLIDOS Y NOMBRES',
       apellidos_nombres: 'APELLIDOS Y NOMBRES',
       unidad_de_origen: 'UNIDAD DE ORIGEN',
       unidad_origen: 'UNIDAD DE ORIGEN',
       lista_de_revista: 'LISTA DE REVISTA',
       lista_revista: 'LISTA DE REVISTA',
-      fecha_de_incorporacion: 'FECHA INCORPORACIÓN',
-      situacion_actual: 'SITUACION ACTUAL',
       condicion: 'CONDICION',
+      situacion_actual: 'SITUACION ACTUAL',
       documento_referencia: 'DOCUMENTO DE REFERENCIA',
       diagnostico: 'DIAGNOSTICO',
       numero_oficio_pone_disposición: 'DOC PONE A DISPOSICION',
       fecha_de_oficio: 'FECHA DOC',
       constancia_exclusion: 'NRO EXCLUSION',
       fecha_de_exclusion: 'FECHA EXCLUSION',
-      fecha_de_retorno: 'FECHA RETORNO',
+      fecha_de_retorno: 'FECHA DOC RETORNO',
       documento_de_retorno: 'DOC RETORNO',
       constancia_de_inclusion: 'NRO INCLUSION',
       fecha_de_inclusion: 'FECHA INCLUSION',
@@ -2022,9 +2097,13 @@
       observacion: 'OBSERVACION'
     };
 
-    function formatDateForInput(dateVal) {
-      if (!dateVal) return '';
-      const str = String(dateVal).trim().split('T')[0];
+    function formatDateForInput(val) {
+      if (!val) return '';
+      const str = String(val).trim();
+      const mISO = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if (mISO) {
+        return `${mISO[1]}-${String(mISO[2]).padStart(2, '0')}-${String(mISO[3]).padStart(2, '0')}`;
+      }
       const mYMD = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
       if (mYMD) {
         return `${mYMD[1]}-${String(mYMD[2]).padStart(2, '0')}-${String(mYMD[3]).padStart(2, '0')}`;
@@ -2038,17 +2117,17 @@
 
     const moduloFormFields = {
       personal: [
-        { title: 'Identificación', fields: ['cip','dni','tipo_dni','codofin'] },
-        { title: 'Datos policiales', fields: ['grado','apellidos_y_nombres','jerarquia','especialidad','unidad_de_origen','lista_de_revista','subunidad_donde_se_encuentra_por_curso_o_apoyo'] },
-        { title: 'Situación y cargo', fields: ['fecha_de_incorporacion','documento_que_sustenta','unidad_anterior','condicion','situacion_actual','cargo','aptitud_psicosomatico','f_inicio','f_termino'] },
-        { title: 'Fechas de carrera', fields: ['fecha_de_nacimiento','f_ingreso_al_estado','f_ingreso_a_la_escuela','f_egreso_de_la_escuela','f_ultimo_ascenso'] },
-        { title: 'Contacto y familia', fields: ['correo_institucional','correo_personal','celular','sexo','hijos','estado_civil'] },
-        { title: 'Datos adicionales de incorporación (Reasignación)', id: 'sec_datos_incorporacion', fields: ['incorp_situacion','incorp_tipo_incorporacion','incorp_motivo','incorp_a_merito','incorp_numero_inclusion','incorp_fecha_inclusion','incorp_documento_pone_disposicion','incorp_fecha_documento','incorp_observacion'] },
-        { title: 'Datos adicionales de incorporación (Destaque)', id: 'sec_datos_destaque', fields: ['dest_incorp_motivo','dest_incorp_documento_referencia','dest_incorp_lista_revista_anterior','dest_incorp_numero_inclusion','dest_incorp_fecha_inclusion','dest_incorp_documento_pone_disposicion','dest_incorp_fecha_documento','dest_incorp_observacion'] }
+        { title: 'IDENTIFICACIÓN', fields: ['cip','dni','tipo_dni','codofin'] },
+        { title: 'DATOS POLICIALES', fields: ['grado','apellidos_y_nombres','jerarquia','especialidad','unidad_de_origen','lista_de_revista','subunidad_donde_se_encuentra_por_curso_o_apoyo'] },
+        { title: 'SITUACIÓN Y CARGO', fields: ['fecha_de_incorporacion','documento_que_sustenta','unidad_anterior','condicion','situacion_actual','cargo','aptitud_psicosomatico','f_inicio','f_termino'] },
+        { title: 'FECHAS DE CARRERA', fields: ['fecha_de_nacimiento','f_ingreso_al_estado','f_ingreso_a_la_escuela','f_egreso_de_la_escuela','f_ultimo_ascenso'] },
+        { title: 'CONTACTO Y FAMILIA', fields: ['correo_institucional','correo_personal','celular','sexo','hijos','estado_civil'] },
+        { title: 'DATOS ADICIONALES DE INCORPORACIÓN (REASIGNACIÓN)', id: 'sec_datos_incorporacion', fields: ['incorp_situacion','incorp_tipo_incorporacion','incorp_motivo','incorp_a_merito','incorp_numero_inclusion','incorp_fecha_inclusion','incorp_documento_pone_disposicion','incorp_fecha_documento','incorp_observacion'] },
+        { title: 'DATOS ADICIONALES DE INCORPORACIÓN (DESTAQUE)', id: 'sec_datos_destaque', fields: ['dest_incorp_motivo','dest_incorp_documento_referencia','dest_incorp_lista_revista_anterior','dest_incorp_numero_inclusion','dest_incorp_fecha_inclusion','dest_incorp_documento_pone_disposicion','dest_incorp_fecha_documento','dest_incorp_observacion'] }
       ],
       referidos: [
         { title: 'Datos del Efectivo', fields: ['cip','grado','apellidos_y_nombres'] },
-        { title: 'Unidad y Situación', fields: ['unidad_de_origen','lista_de_revista','fecha_de_incorporacion','situacion_actual','condicion'] },
+        { title: 'Unidad y Situación', fields: ['unidad_de_origen','lista_de_revista','condicion','situacion_actual'] },
         { title: 'Documentos de Referencia', fields: ['documento_referencia','diagnostico'] },
         { title: 'Historial de Exclusión', fields: ['numero_oficio_pone_disposición','fecha_de_oficio','constancia_exclusion','fecha_de_exclusion'] },
         { title: 'Observaciones', fields: ['observaciones'] }
@@ -3256,8 +3335,18 @@
       retornoModalFields.forEach(k => {
         const mainEl = document.getElementById(k);
         const floatEl = document.getElementById('f_' + k);
-        if (mainEl && floatEl) floatEl.value = mainEl.value || '';
+        if (mainEl && floatEl) {
+          if (floatEl.type === 'date') {
+            floatEl.value = formatDateForInput(mainEl.value);
+          } else {
+            floatEl.value = mainEl.value || '';
+          }
+        }
       });
+      const fRetorno = document.getElementById('f_fecha_de_retorno');
+      if (fRetorno && !fRetorno.value) {
+        fRetorno.value = new Date().toISOString().slice(0, 10);
+      }
       document.getElementById('retornoFloatingModal').classList.add('open');
     }
 
@@ -3281,7 +3370,7 @@
       const sitEl = document.getElementById('situacion_actual');
       const sitVal = (sitEl?.value || '').toUpperCase().trim();
       const btn = document.getElementById('btnOpenRetornoModal');
-      const isPresente = sitVal.includes('PRESENTE') || sitVal.includes('RETORNO');
+      const isPresente = (sitVal === 'PRESENTE' || sitVal === 'RETORNO');
 
       if (btn) {
         btn.style.display = isPresente ? 'inline-flex' : 'none';
@@ -3289,6 +3378,21 @@
 
       if (isPresente && autoOpen) {
         openRetornoFloatingModal();
+      }
+    }
+
+    function updateCondicionVisibility() {
+      if (currentTable !== 'personal') return;
+      const condEl = document.getElementById('condicion');
+      const condVal = String(condEl?.value || '').trim().toUpperCase();
+      const secIncorp = document.getElementById('sec_datos_incorporacion');
+      const secDestaque = document.getElementById('sec_datos_destaque');
+
+      if (secIncorp) {
+        secIncorp.style.display = (condVal === 'NATO') ? 'contents' : 'none';
+      }
+      if (secDestaque) {
+        secDestaque.style.display = (condVal === 'DESTACADO') ? 'contents' : 'none';
       }
     }
 
@@ -3309,14 +3413,12 @@
 
           if (k === 'situacion_actual') {
             if (currentTable === 'referidos') {
-              const selectOptions = (opts && opts.length)
-                ? opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')
-                : '<option value="REFERIDO">REFERIDO</option><option value="PRESENTE">PRESENTE</option><option value="RETORNO">RETORNO</option>';
+              const selectOptions = '<option value="REFERIDO">REFERIDO</option><option value="PRESENTE">PRESENTE</option>';
 
               return `
                 <div class="field ${meta.cls || ''}">
                   <label for="${k}">${meta.label}</label>
-                  <select id="${k}"><option value="">Seleccione...</option>${selectOptions}</select>
+                  <select id="${k}">${selectOptions}</select>
                   <button id="btnOpenRetornoModal" type="button" class="primary" style="display:none; margin-top:6px; font-size:11px; padding:6px 8px; min-height:30px; border-radius:8px; align-items:center; gap:4px;" onclick="openRetornoFloatingModal(event)">
                     📋 Abrir Formulario Retorno
                   </button>
@@ -3386,27 +3488,12 @@
         form.innerHTML += retornoModalFields.map(k => `<input type="hidden" id="${k}" />`).join('');
       }
 
-      function updateCondicionVisibility() {
-        if (currentTable !== 'personal') return;
-        const condEl = document.getElementById('condicion');
-        const condVal = String(condEl?.value || '').trim().toUpperCase();
-        const secIncorp = document.getElementById('sec_datos_incorporacion');
-        const secDestaque = document.getElementById('sec_datos_destaque');
-
-        if (secIncorp) {
-          secIncorp.style.display = (condVal === 'NATO') ? 'contents' : 'none';
-        }
-        if (secDestaque) {
-          secDestaque.style.display = (condVal === 'DESTACADO') ? 'contents' : 'none';
-        }
-      }
-
       const condEl = document.getElementById('condicion');
       if (condEl && currentTable === 'personal') {
         condEl.addEventListener('change', updateCondicionVisibility);
         condEl.addEventListener('input', updateCondicionVisibility);
-        updateCondicionVisibility();
       }
+      updateCondicionVisibility();
 
       const sitEl = document.getElementById('situacion_actual');
       if (sitEl) {
@@ -4194,6 +4281,11 @@
         });
 
         if (currentTable === 'referidos') {
+          const sitEl = document.getElementById('situacion_actual');
+          if (sitEl) {
+            const rawSit = firstValue(current, ['SITUACIÓN ACTUAL', 'situacion_actual', 'SITUACION ACTUAL', 'situacion']);
+            sitEl.value = (rawSit && String(rawSit).trim().toUpperCase() === 'PRESENTE') ? 'PRESENTE' : 'REFERIDO';
+          }
           retornoModalFields.forEach(k => {
             const el = document.getElementById(k);
             if (el) el.value = firstValue(current, [referidosDbColumnMap[k] || k, k]) ?? '';
@@ -4281,6 +4373,33 @@
         if (obj['HIJOS'] === null || obj['HIJOS'] === undefined) obj['HIJOS'] = 0;
       }
 
+      // Sanitización contra PGRST204: solo enviar columnas reales de la tabla correspondiente
+      if (currentTable === 'referidos') {
+        const validReferidosCols = new Set([
+          'CIP', 'GRADO', 'APELLIDOS Y NOMBRES', 'UNIDAD DE ORIGEN', 'LISTA DE REVISTA',
+          'CONDICION', 'SITUACION ACTUAL', 'DOCUMENTO DE REFERENCIA', 'DIAGNOSTICO',
+          'DOC PONE A DISPOSICION', 'FECHA DOC', 'NRO EXCLUSION', 'FECHA EXCLUSION',
+          'DOC RETORNO', 'NRO INCLUSION', 'FECHA INCLUSION', 'TIPO DOC', 'NRO DOC',
+          'FECHA DOC RETORNO', 'OBSERVACION'
+        ]);
+        Object.keys(obj).forEach(key => {
+          if (!validReferidosCols.has(key)) delete obj[key];
+        });
+      } else if (currentTable === 'personal') {
+        const validPersonalCols = new Set([
+          'id', 'CIP', 'TIPO DNI', 'CODOFIN', 'GRADO', 'APELLIDOS Y NOMBRES', 'DNI',
+          'UNIDAD DE ORIGEN', 'LISTA DE REVISTA', 'SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO',
+          'FECHA INCORPORACIÓN', 'DOCUMENTO QUE SUSTENTA', 'UNIDAD ANTERIOR', 'CONDICIÓN',
+          'SITUACIÓN ACTUAL', 'CARGO', 'JERARQUÍA', 'ESPECIALIDAD', 'APTITUD PSICOSOMÁTICO',
+          'F. INICIO', 'F. TERMINO', 'SEXO', 'FECHA DE NACIMIENTO', 'FECHA ING. ESTADO',
+          'FECHA ING. ESCUELA', 'FECHA EGR. ESCUELA', 'FECHA ULT. ASCENSO',
+          'CORREO INSTITUCIONAL', 'CORREO PERSONAL', 'HIJOS', 'ESTADO CIVIL', 'CELULAR'
+        ]);
+        Object.keys(obj).forEach(key => {
+          if (!validPersonalCols.has(key)) delete obj[key];
+        });
+      }
+
       try {
         if (current) {
           if (current.id !== undefined && current.id !== null && current.id !== '') {
@@ -4366,6 +4485,22 @@
             }
           }
         }
+
+        // Sincronización automática de SITUACIÓN ACTUAL en personal_policial cuando se actualiza en referidos
+        if (currentTable === 'referidos') {
+          const nuevaSit = String(obj['SITUACION ACTUAL'] || document.getElementById('situacion_actual')?.value || 'PRESENTE').trim().toUpperCase();
+          try {
+            await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipVal), {
+              method: 'PATCH',
+              body: JSON.stringify({
+                "SITUACIÓN ACTUAL": nuevaSit
+              })
+            });
+          } catch (errSync) {
+            console.warn('Advertencia al sincronizar situación en personal_policial:', errSync);
+          }
+        }
+
         toast('Registro guardado exitosamente', 'success');
         closeForm();
         await loadData();
@@ -4657,6 +4792,151 @@
       toast('Panel de auditoría no disponible', 'info');
     }
 
+    let userVerifiedForReset = null;
+
+    function toggleForgotPassword(show) {
+      const loginCard = document.getElementById('loginCardMain');
+      const forgotCard = document.getElementById('forgotPassCard');
+      const err = document.getElementById('loginError');
+      const forgotMsg = document.getElementById('forgotMsg');
+      if (err) err.textContent = '';
+      if (forgotMsg) forgotMsg.textContent = '';
+
+      if (show) {
+        loginCard.style.display = 'none';
+        forgotCard.style.display = 'block';
+        document.getElementById('forgotStep1').style.display = 'block';
+        document.getElementById('forgotStep2').style.display = 'none';
+        const currentCip = document.getElementById('loginUser')?.value || '';
+        const recCip = document.getElementById('recoverCip');
+        if (recCip) recCip.value = currentCip;
+        userVerifiedForReset = null;
+      } else {
+        loginCard.style.display = 'block';
+        forgotCard.style.display = 'none';
+      }
+    }
+
+    async function validateUserForReset() {
+      const cip = onlyDigits(document.getElementById('recoverCip')?.value || '');
+      const email = String(document.getElementById('recoverEmail')?.value || '').trim().toLowerCase();
+      const msg = document.getElementById('forgotMsg');
+      msg.textContent = '';
+      msg.style.color = 'var(--red)';
+
+      if (!cip || cip.length < 6) {
+        msg.textContent = 'Ingrese un número de CIP válido (8 dígitos)';
+        return;
+      }
+      if (!email || !email.includes('@')) {
+        msg.textContent = 'Ingrese un correo personal válido';
+        return;
+      }
+
+      try {
+        msg.style.color = '#0b5a3c';
+        msg.textContent = 'Verificando en usuario_oficina...';
+
+        const users = await req(SUPABASE_URL + '/rest/v1/usuario_oficina?CIP=eq.' + encodeURIComponent(cip));
+        const user = users?.[0];
+
+        if (!user) {
+          msg.style.color = 'var(--red)';
+          msg.textContent = 'No existe ningún usuario registrado con el CIP ' + cip;
+          return;
+        }
+
+        const registeredEmail = String(user['CORREO_PERSONAL'] || user['correo_personal'] || '').trim().toLowerCase();
+        if (!registeredEmail) {
+          msg.style.color = 'var(--red)';
+          msg.textContent = 'El usuario no tiene un correo personal registrado en usuario_oficina. Contacte al Administrador.';
+          return;
+        }
+
+        if (registeredEmail !== email) {
+          msg.style.color = 'var(--red)';
+          msg.textContent = 'El correo personal ingresado no coincide con el registrado en usuario_oficina.';
+          return;
+        }
+
+        // Usuario validado exitosamente
+        userVerifiedForReset = user;
+        msg.textContent = '';
+
+        const userInfo = document.getElementById('recoverUserInfo');
+        if (userInfo) {
+          userInfo.innerHTML = `
+            <div style="font-weight:bold; font-size:13px; margin-bottom:3px;">
+              ✅ ${esc(user['GRADO'] || '')} ${esc(user['APELLIDOS Y NOMBRES'] || '')}
+            </div>
+            <div><b>CIP:</b> ${esc(user['CIP'])} · <b>Rol:</b> ${esc(user['NIVEL'] || 'USUARIO')}</div>
+            <div style="font-size:11px; color:#2e694f; margin-top:2px;">Correo verificado: ${esc(email)}</div>
+          `;
+        }
+
+        document.getElementById('forgotStep1').style.display = 'none';
+        document.getElementById('forgotStep2').style.display = 'block';
+        document.getElementById('recoverNewPass').value = '';
+        document.getElementById('recoverConfirmPass').value = '';
+        document.getElementById('recoverNewPass').focus();
+        toast('Identidad validada. Ingrese su nueva contraseña', 'success');
+      } catch (err) {
+        msg.style.color = 'var(--red)';
+        msg.textContent = 'Error al validar usuario: ' + err.message;
+      }
+    }
+
+    async function saveNewPassword() {
+      const newPass = String(document.getElementById('recoverNewPass')?.value || '').trim();
+      const confirmPass = String(document.getElementById('recoverConfirmPass')?.value || '').trim();
+      const msg = document.getElementById('forgotMsg');
+      msg.textContent = '';
+      msg.style.color = 'var(--red)';
+
+      if (!userVerifiedForReset || !userVerifiedForReset.CIP) {
+        msg.textContent = 'Sesión de validación expirada. Por favor vuelva a validar su CIP.';
+        toggleForgotPassword(true);
+        return;
+      }
+
+      if (!newPass || newPass.length < 4) {
+        msg.textContent = 'La nueva contraseña debe tener al menos 4 caracteres';
+        return;
+      }
+
+      if (newPass !== confirmPass) {
+        msg.textContent = 'Las contraseñas no coinciden. Verifique e intente nuevamente.';
+        return;
+      }
+
+      try {
+        msg.style.color = '#0b5a3c';
+        msg.textContent = 'Actualizando contraseña en usuario_oficina...';
+
+        await req(SUPABASE_URL + '/rest/v1/usuario_oficina?CIP=eq.' + encodeURIComponent(userVerifiedForReset.CIP), {
+          method: 'PATCH',
+          body: JSON.stringify({
+            "CONTRASEÑA": newPass
+          })
+        });
+
+        msg.style.color = '#1f8b4d';
+        msg.textContent = '✅ ¡Contraseña restablecida con éxito!';
+        toast('Contraseña restablecida con éxito', 'success');
+
+        // Pre-cargar en el login y volver
+        setTimeout(() => {
+          document.getElementById('loginUser').value = userVerifiedForReset.CIP;
+          document.getElementById('loginPass').value = newPass;
+          toggleForgotPassword(false);
+          userVerifiedForReset = null;
+        }, 1200);
+      } catch (err) {
+        msg.style.color = 'var(--red)';
+        msg.textContent = 'Error al guardar la nueva contraseña: ' + err.message;
+      }
+    }
+
     // Autenticación
     async function login() {
       const cip = onlyDigits(document.getElementById('loginUser').value.trim());
@@ -4702,7 +4982,7 @@
     }
 
     function attachNumericInputMasks() {
-      ['cip', 'dni', 'loginUser', 'celular'].forEach(id => {
+      ['cip', 'dni', 'loginUser', 'recoverCip', 'celular'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', function() { this.value = onlyDigits(this.value); });
       });
@@ -5055,6 +5335,9 @@
       // Personalizar el encabezado del formulario
       document.getElementById('modalTitle').textContent = 'Validar y Registrar Solicitud QR';
       document.getElementById('modalSub').textContent = `CIP: ${sol.cip} · ${sol.grado} ${sol.apellidos_y_nombres}`;
+
+      // Actualizar dinámicamente las secciones según CONDICIÓN (NATO o DESTACADO)
+      updateCondicionVisibility();
 
       // Marcar como procesado en la lista local
       sol.estado_solicitud = 'PROCESADO';
