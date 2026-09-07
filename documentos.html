@@ -1,0 +1,1677 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>REGPOL Hu&aacute;nuco - Sistema de Registro Documentario</title>
+  <style>
+    :root {
+      --bg: #f4f6f3;
+      --card: #ffffff;
+      --text: #18372b;
+      --muted: #5e6d64;
+      --line: #d8e2d6;
+      --primary: #0b5a3c;
+      --primary-dark: #06351f;
+      --primary-light: #e8f3ec;
+      --accent: #d8b23f;
+      --accent-soft: #fff6dc;
+      --red: #c0392b;
+      --red-soft: #fde8e7;
+      --blue: #2980b9;
+      --blue-soft: #ebf5fb;
+      --shadow: 0 4px 20px rgba(11, 90, 60, 0.08);
+      --shadow-lg: 0 12px 36px rgba(11, 90, 60, 0.14);
+      --radius: 12px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* PANTALLA DE LOGIN */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #1b4931 0%, #072818 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 20px;
+      backdrop-filter: blur(8px);
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .login-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      0% { transform: scale(0.92) translateY(20px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, #0b5a3c 0%, #06351f 100%);
+      color: #ffffff;
+      padding: 30px 24px 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    .login-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #d8b23f, #f5d77f, #d8b23f);
+    }
+
+    .login-badge {
+      width: 64px;
+      height: 64px;
+      background: #ffffff;
+      color: #0b5a3c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+      border: 3px solid #d8b23f;
+    }
+
+    .login-header h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .login-header p {
+      margin: 0;
+      font-size: 13px;
+      color: #c9ded3;
+      font-weight: 500;
+    }
+
+    .login-body {
+      padding: 28px 24px 24px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #2c493a;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      font-size: 16px;
+      color: #6a8274;
+      pointer-events: none;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #18372b;
+      background: #f8faf8;
+      border: 1.5px solid #d5ded7;
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+      background: #ffffff;
+      border-color: #0b5a3c;
+      box-shadow: 0 0 0 3px rgba(11, 90, 60, 0.15);
+    }
+
+    .toggle-pass {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: #6a8274;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .toggle-pass:hover {
+      color: #0b5a3c;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #0b5a3c 0%, #08432d 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(11, 90, 60, 0.35);
+      transition: all 0.2s ease;
+      margin-top: 22px;
+    }
+
+    .btn-login:hover {
+      background: linear-gradient(135deg, #0d6d49 0%, #0a5237 100%);
+      box-shadow: 0 6px 18px rgba(11, 90, 60, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .login-error {
+      background: var(--red-soft);
+      border: 1px solid #f5b7b1;
+      color: var(--red);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 14px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    .login-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 18px;
+      font-size: 13px;
+    }
+
+    .login-links a {
+      color: #0b5a3c;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .login-links a:hover {
+      text-decoration: underline;
+      color: #06351f;
+    }
+
+    .login-footer {
+      background: #f7faf8;
+      border-top: 1px solid var(--line);
+      padding: 14px 20px;
+      text-align: center;
+      font-size: 11.5px;
+      color: #6a7c71;
+    }
+
+    /* ESTRUCTURA PRINCIPAL */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      background: #083c28;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #062f20;
+      overflow-y: auto;
+    }
+
+    .side-brand {
+      padding: 20px 16px;
+      background: #062f20;
+      border-bottom: 2px solid #d8b23f;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .side-logo {
+      width: 36px;
+      height: 36px;
+      background: #ffffff;
+      color: #0b5a3c;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      border: 1.5px solid #d8b23f;
+    }
+
+    .side-title h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .side-title p {
+      margin: 2px 0 0;
+      font-size: 11px;
+      color: #d8b23f;
+      font-weight: 600;
+    }
+
+    .side-section {
+      padding: 14px 16px 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #79a68c;
+    }
+
+    .side-nav {
+      list-style: none;
+      margin: 0;
+      padding: 0 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      color: #c4dcd0;
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 9px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    .nav-btn.active {
+      background: #0b5a3c;
+      color: #ffffff;
+      font-weight: 700;
+      border-left: 4px solid #d8b23f;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .nav-btn .nav-icon {
+      font-size: 15px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.15);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .nav-btn.active .nav-badge {
+      background: #d8b23f;
+      color: #083c28;
+    }
+
+    .side-user {
+      margin-top: auto;
+      padding: 16px;
+      background: #062f20;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .user-info h4 {
+      margin: 0;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px;
+    }
+
+    .user-info p {
+      margin: 2px 0 0;
+      font-size: 11px;
+      color: #d8b23f;
+      font-weight: 700;
+    }
+
+    .btn-logout {
+      background: rgba(192, 57, 43, 0.2);
+      border: 1px solid rgba(192, 57, 43, 0.4);
+      color: #f1948a;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: #c0392b;
+      color: #ffffff;
+    }
+
+    /* AREA PRINCIPAL */
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #f4f7f4;
+    }
+
+    .topbar {
+      height: 64px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+
+    .topbar-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-title h1 {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: #0b5a3c;
+      letter-spacing: 0.01em;
+    }
+
+    .topbar-tag {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #cce2d4;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-primary-action {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(11, 90, 60, 0.2);
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary-action:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary-action {
+      background: #ffffff;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary-action:hover {
+      background: var(--primary-light);
+    }
+
+    .content-body {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .toolbar-card {
+      background: #ffffff;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+      max-width: 460px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      font-size: 13.5px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      outline: none;
+      background: #f8faf8;
+    }
+
+    .search-box input:focus {
+      background: #fff;
+      border-color: var(--primary);
+    }
+
+    .search-box .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .table-container {
+      background: #ffffff;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      flex: 1;
+      overflow: auto;
+      position: relative;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    table.data-table th {
+      background: #f4f8f5;
+      color: #1f3f30;
+      font-weight: 700;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      text-transform: uppercase;
+      font-size: 11.5px;
+      letter-spacing: 0.03em;
+    }
+
+    table.data-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #eef2ed;
+      color: #2c3e35;
+      vertical-align: middle;
+    }
+
+    table.data-table tbody tr:hover {
+      background: #f8fbf9;
+    }
+
+    .badge-doc {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 12.5px;
+      background: #edf6ef;
+      color: #0b5a3c;
+      border: 1px solid #c2e2cb;
+      letter-spacing: 0.02em;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .action-btn:hover {
+      background: var(--primary-light);
+    }
+
+    .action-btn.btn-del {
+      color: var(--red);
+    }
+
+    .action-btn.btn-del:hover {
+      background: var(--red-soft);
+    }
+
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.6;
+    }
+
+    /* MODAL DE REGISTRO */
+    .doc-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+      backdrop-filter: blur(4px);
+    }
+
+    .doc-modal.active {
+      display: flex;
+    }
+
+    .doc-dialog {
+      width: 100%;
+      max-width: 600px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+      animation: modalPop 0.25s ease;
+    }
+
+    .doc-modal-header {
+      background: var(--primary);
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    .doc-modal-header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .doc-modal-close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .doc-modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .doc-modal-footer {
+      background: #f8faf8;
+      border-top: 1px solid var(--line);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .recover-box {
+      display: none;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <!-- PANTALLA DE ACCESO (LOGIN) -->
+  <div id="loginOverlay" class="login-overlay">
+    
+    <!-- Tarjeta de Login Principal -->
+    <div id="loginCardMain" class="login-box">
+      <div class="login-header">
+        <div class="login-badge">&#128203;</div>
+        <h2>REGISTRO DOCUMENTARIO</h2>
+        <p>Regi&oacute;n Policial Hu&aacute;nuco &middot; OFAD - AREREHUM</p>
+      </div>
+
+      <div class="login-body">
+        <form id="loginForm" onsubmit="event.preventDefault(); doLogin();">
+          <div class="form-group">
+            <label for="loginCip">CIP del Usuario</label>
+            <div class="input-wrap">
+              <span class="input-icon">&#128110;</span>
+              <input id="loginCip" class="form-control" type="text" placeholder="CIP (8 d&iacute;gitos)" maxlength="8" autocomplete="username" inputmode="numeric" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="loginPass">Contrase&ntilde;a de Acceso</label>
+            <div class="input-wrap">
+              <span class="input-icon">&#128274;</span>
+              <input id="loginPass" class="form-control" type="password" placeholder="********" autocomplete="current-password" required />
+              <button type="button" class="toggle-pass" onclick="togglePassVisibility('loginPass')" title="Mostrar / Ocultar">&#128065;</button>
+            </div>
+          </div>
+
+          <button type="submit" id="btnLoginSubmit" class="btn-login">
+            <span>INGRESAR AL SISTEMA</span>
+            <span>&rarr;</span>
+          </button>
+
+          <div id="loginErrorMsg" class="login-error"></div>
+
+          <div class="login-links" style="justify-content:center;">
+            <a onclick="showRecoverCard()">&iquest;Olvid&oacute; su contrase&ntilde;a?</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        Acceso restringido &middot; Polic&iacute;a Nacional del Per&uacute;
+      </div>
+    </div>
+
+    <!-- Tarjeta de Recuperar Contrase??a -->
+    <div id="recoverCard" class="login-box recover-box">
+      <div class="login-header">
+        <div class="login-badge">&#128273;</div>
+        <h2>RECUPERAR ACCESO</h2>
+        <p>Verificaci&oacute;n por CIP Registrado</p>
+      </div>
+
+      <div class="login-body">
+        <div class="form-group">
+          <label for="recoverCip">Ingrese su CIP</label>
+          <div class="input-wrap">
+            <span class="input-icon">&#128110;</span>
+            <input id="recoverCip" class="form-control" type="text" placeholder="CIP (8 d&iacute;gitos)" maxlength="8" />
+          </div>
+        </div>
+
+        <button type="button" class="btn-login" onclick="verifyCipForReset()">VERIFICAR DATOS</button>
+
+        <div id="recoverStep2" style="display:none; margin-top:16px;">
+          <div class="form-group">
+            <label for="newPass">Nueva Contrase&ntilde;a</label>
+            <div class="input-wrap">
+              <span class="input-icon">&#128274;</span>
+              <input id="newPass" class="form-control" type="password" placeholder="M&iacute;nimo 4 caracteres" />
+            </div>
+          </div>
+          <button type="button" class="btn-login" onclick="saveNewPassword()">GUARDAR NUEVA CONTRASE&Ntilde;A</button>
+        </div>
+
+        <div id="recoverMsg" class="login-error"></div>
+
+        <div class="login-links" style="justify-content:center; margin-top:20px;">
+          <a onclick="showLoginCard()">&larr; Volver a Ingresar</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- SISTEMA PRINCIPAL -->
+  <div class="app-layout">
+    
+    <!-- Sidebar de Navegaci??n -->
+    <aside class="sidebar">
+      <div class="side-brand">
+        <div class="side-logo">RP</div>
+        <div class="side-title">
+          <h3>REGISTRO DOCUMENTOS</h3>
+          <p>REGPOL HU&Aacute;NUCO</p>
+        </div>
+      </div>
+
+      <!-- Men??: Documentos Generales -->
+      <div class="side-section">Documentos Oficiales</div>
+      <ul class="side-nav">
+        <li><button class="nav-btn active" onclick="switchDocTable('oficios')"><span class="nav-icon">&#128196;</span><span>Oficios</span><span class="nav-badge" id="badge_oficios">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('informes')"><span class="nav-icon">&#128195;</span><span>Informes</span><span class="nav-badge" id="badge_informes">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('memorandum')"><span class="nav-icon">&#128221;</span><span>Memor&aacute;ndum</span><span class="nav-badge" id="badge_memorandum">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('informe_administrativo')"><span class="nav-icon">&#128203;</span><span>Inf. Administrativos</span><span class="nav-badge" id="badge_informe_administrativo">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('decreto')"><span class="nav-icon">&#128220;</span><span>Decretos</span><span class="nav-badge" id="badge_decreto">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('carta_informativa')"><span class="nav-icon">&#9993;</span><span>Cartas Informativas</span><span class="nav-badge" id="badge_carta_informativa">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('devolucion')"><span class="nav-icon">&#128257;</span><span>Devoluciones</span><span class="nav-badge" id="badge_devolucion">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('resolucion')"><span class="nav-icon">&#9878;</span><span>Resoluciones</span><span class="nav-badge" id="badge_resolucion">0</span></button></li>
+      </ul>
+
+      <!-- Men??: ??rdenes y Tr??mites -->
+      <div class="side-section">&Oacute;rdenes y Tr&aacute;mites</div>
+      <ul class="side-nav">
+        <li><button class="nav-btn" onclick="switchDocTable('orden_incorporacion')"><span class="nav-icon">&#129706;</span><span>Ord. Incorporaci&oacute;n</span><span class="nav-badge" id="badge_orden_incorporacion">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('orden_reincorporacion')"><span class="nav-icon">&#128259;</span><span>Ord. Reincorporaci&oacute;n</span><span class="nav-badge" id="badge_orden_reincorporacion">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('comunicacion_telefonica')"><span class="nav-icon">&#128222;</span><span>Com. Telef&oacute;nica</span><span class="nav-badge" id="badge_comunicacion_telefonica">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('orden_telefonica')"><span class="nav-icon">&#9742;</span><span>Ord. Telef&oacute;nica</span><span class="nav-badge" id="badge_orden_telefonica">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('orden_lactancia')"><span class="nav-icon">&#127868;</span><span>Ord. Lactancia</span><span class="nav-badge" id="badge_orden_lactancia">0</span></button></li>
+        <li><button class="nav-btn" onclick="switchDocTable('orden_gravidez')"><span class="nav-icon">&#129304;</span><span>Ord. Gravidez</span><span class="nav-badge" id="badge_orden_gravidez">0</span></button></li>
+      </ul>
+
+      <!-- Men??: Administraci??n (Solo ADMIN) y Enlace -->
+      <div class="side-section">Sistema</div>
+      <ul class="side-nav">
+        <li id="navLiUsuarios" style="display:none;"><button class="nav-btn" onclick="switchDocTable('usuarios')"><span class="nav-icon">&#128101;</span><span>Gesti&oacute;n Usuarios</span><span class="nav-badge" id="badge_usuarios">0</span></button></li>
+        <li id="navLiPersonal" style="display:none;"><a href="index.html" target="_blank" rel="noopener noreferrer" class="nav-btn" style="text-decoration:none;"><span class="nav-icon">&#128110;</span><span>Sistema Personal</span></a></li>
+      </ul>
+
+      <!-- Usuario Conectado -->
+      <div class="side-user">
+        <div class="user-info">
+          <h4 id="userDisplayName">Usuario</h4>
+          <p id="userDisplayRole">USUARIO</p>
+        </div>
+        <button class="btn-logout" onclick="logout()" title="Cerrar Sesi&oacute;n">Salir</button>
+      </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+      
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-title">
+          <h1 id="currentTableTitle">OFICIOS</h1>
+          <span id="currentTableCount" class="topbar-tag">0 registros</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn-secondary-action" onclick="loadCurrentTableData()">&#128259; Actualizar</button>
+          <button class="btn-primary-action" onclick="openNewDocModal()">&#10010; Nuevo Registro</button>
+        </div>
+      </header>
+
+      <!-- Cuerpo -->
+      <div class="content-body">
+        
+        <!-- Barra de herramientas y b??squeda -->
+        <div class="toolbar-card">
+          <div class="search-box">
+            <span class="search-icon">&#128269;</span>
+            <input type="text" id="searchInput" placeholder="Buscar por n&uacute;mero, destino, asunto o usuario..." oninput="filterData()" />
+          </div>
+          <div>
+            <button class="btn-secondary-action" onclick="exportToExcel()">&#128190; Exportar Excel (.xlsx)</button>
+          </div>
+        </div>
+
+        <!-- Tabla de datos -->
+        <div class="table-container">
+          <table class="data-table" id="dataTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state" style="display:none;">
+            <div class="empty-icon">&#128193;</div>
+            <p>No se encontraron registros en esta tabla.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <!-- MODAL DE NUEVO DOCUMENTO / EDICI??N -->
+  <div id="docModal" class="doc-modal">
+    <div class="doc-dialog">
+      <div class="doc-modal-header">
+        <h3 id="docModalTitle">Registrar Nuevo Documento</h3>
+        <button class="doc-modal-close" onclick="closeDocModal()">&times;</button>
+      </div>
+      <form id="docForm" onsubmit="event.preventDefault(); saveDocRecord();">
+        <div class="doc-modal-body" id="docModalFields">
+          <!-- Campos din??micos -->
+        </div>
+        <div class="doc-modal-footer">
+          <button type="button" class="btn-secondary-action" onclick="closeDocModal()">Cancelar</button>
+          <button type="submit" class="btn-primary-action" id="btnSaveDoc">&#128190; Guardar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- SCRIPTS Y L??GICA DE CONEXI??N CON REGLAS DE SEGURIDAD (RBAC) -->
+  <script>
+    const SUPABASE_URL = 'https://ngsujkfmkgofngqwuqnf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nc3Vqa2Zta2dvZm5ncXd1cW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDk2MzQsImV4cCI6MjEwNDIyNTYzNH0.KL1YmWPLSkMHs9LCf4TC8quqo2G4cd8K0zaGxvoU3Vg';
+
+    const TABLES_CONFIG = {
+      oficios: { title: 'OFICIOS', icon: '&#128196;', hasDestino: true, hasQuienOrdena: false, hasFechasRango: false },
+      informes: { title: 'INFORMES', icon: '&#128195;', hasDestino: true, hasQuienOrdena: false, hasFechasRango: false },
+      memorandum: { title: 'MEMOR\u00c1NDUM', icon: '&#128221;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      informe_administrativo: { title: 'INFORMES ADMINISTRATIVOS', icon: '&#128203;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      decreto: { title: 'DECRETOS', icon: '&#128220;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      carta_informativa: { title: 'CARTAS INFORMATIVAS', icon: '&#9993;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      devolucion: { title: 'DEVOLUCIONES', icon: '&#128257;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      resolucion: { title: 'RESOLUCIONES', icon: '&#9878;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      orden_incorporacion: { title: '\u00d3RDENES DE INCORPORACI\u00d3N', icon: '&#129706;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      orden_reincorporacion: { title: '\u00d3RDENES DE REINCORPORACI\u00d3N', icon: '&#128259;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      comunicacion_telefonica: { title: 'COMUNICACIONES TELEF\u00d3NICAS', icon: '&#128222;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      orden_telefonica: { title: '\u00d3RDENES TELEF\u00d3NICAS', icon: '&#9742;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      orden_lactancia: { title: '\u00d3RDENES DE LACTANCIA', icon: '&#127868;', hasDestino: false, hasQuienOrdena: true, hasFechasRango: true },
+      orden_gravidez: { title: '\u00d3RDENES DE GRAVIDEZ', icon: '&#129304;', hasDestino: false, hasQuienOrdena: true, hasFechasRango: true },
+      usuarios: { title: 'USUARIOS DEL SISTEMA', icon: '&#128101;', isUserTable: true }
+    };
+
+    let currentTable = 'oficios';
+    let currentData = [];
+    let currentUser = null;
+    let editingId = null;
+
+    // Validaci??n de Rol Administrador
+    function isUserAdmin() {
+      if (!currentUser) return false;
+      const nivel = String(currentUser.nivel || '').toUpperCase().trim();
+      return nivel === 'ADMIN' || nivel === 'ADMINISTRADOR' || nivel === 'ADMINI';
+    }
+
+    async function apiRequest(endpoint, options = {}) {
+      const headers = Object.assign({
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      }, options.headers || {});
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, Object.assign({}, options, { headers }));
+      if (!res.ok) {
+        let msg = `Error ${res.status}`;
+        try {
+          const err = await res.json();
+          msg = err.message || err.hint || msg;
+        } catch (_) {}
+        throw new Error(msg);
+      }
+      const type = res.headers.get('content-type');
+      if (type && type.includes('application/json')) {
+        return await res.json();
+      }
+      return null;
+    }
+
+    function checkAuth() {
+      const session = localStorage.getItem('regpol_docs_user');
+      if (session) {
+        try {
+          currentUser = JSON.parse(session);
+          updateUserInterface();
+          document.getElementById('loginOverlay').classList.add('hidden');
+          loadAllBadges();
+          loadCurrentTableData();
+          return;
+        } catch (_) {}
+      }
+      document.getElementById('loginOverlay').classList.remove('hidden');
+    }
+
+    function updateUserInterface() {
+      if (!currentUser) return;
+      document.getElementById('userDisplayName').textContent = `${currentUser.grado || ''} ${currentUser.apellidos_nombres || currentUser.cip}`;
+      document.getElementById('userDisplayRole').textContent = isUserAdmin() ? 'ADMINISTRADOR' : 'USUARIO';
+      
+      // Control de visibilidad del men?? de Usuarios
+      const navLi = document.getElementById('navLiUsuarios');
+      if (navLi) {
+        navLi.style.display = isUserAdmin() ? 'block' : 'none';
+      }
+      const navPersonal = document.getElementById('navLiPersonal');
+      if (navPersonal) {
+        navPersonal.style.display = isUserAdmin() ? 'block' : 'none';
+      }
+    }
+
+    async function doLogin() {
+      const cip = document.getElementById('loginCip').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      const errEl = document.getElementById('loginErrorMsg');
+      const submitBtn = document.getElementById('btnLoginSubmit');
+
+      errEl.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Verificando...</span>';
+
+      try {
+        const users = await apiRequest(`usuarios?cip=eq.${encodeURIComponent(cip)}&select=*`);
+        if (!users || users.length === 0) {
+          throw new Error('El CIP ingresado no est\u00e1 registrado en el sistema.');
+        }
+
+        const user = users[0];
+        if (user.activo === false) {
+          throw new Error('Esta cuenta de usuario se encuentra inactiva.');
+        }
+
+        const passKey = Object.keys(user).find(k => k.toUpperCase().includes('CONTRA') || k.toUpperCase().includes('PASS')) || 'contraseña';
+        if (String(user[passKey] ?? '').trim() !== pass) {
+          throw new Error('Contraseña incorrecta. Verifique sus datos.');
+        }
+
+        currentUser = user;
+        localStorage.setItem('regpol_docs_user', JSON.stringify(user));
+        updateUserInterface();
+        document.getElementById('loginOverlay').classList.add('hidden');
+
+        loadAllBadges();
+        loadCurrentTableData();
+      } catch (err) {
+        errEl.textContent = err.message || 'Error al intentar iniciar sesi\u00f3n.';
+        errEl.style.display = 'flex';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>INGRESAR AL SISTEMA</span><span>&rarr;</span>';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('regpol_docs_user');
+      currentUser = null;
+      document.getElementById('loginOverlay').classList.remove('hidden');
+      document.getElementById('loginPass').value = '';
+    }
+
+    function togglePassVisibility(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function showRecoverCard() {
+      document.getElementById('loginCardMain').style.display = 'none';
+      document.getElementById('recoverCard').style.display = 'block';
+    }
+
+    function showLoginCard() {
+      document.getElementById('recoverCard').style.display = 'none';
+      document.getElementById('loginCardMain').style.display = 'block';
+    }
+
+    let verifiedUserForReset = null;
+
+    async function verifyCipForReset() {
+      const cip = document.getElementById('recoverCip').value.trim();
+      const msg = document.getElementById('recoverMsg');
+      msg.style.display = 'none';
+
+      if (!cip) {
+        msg.textContent = 'Ingrese su n\u00famero de CIP.';
+        msg.style.display = 'flex';
+        return;
+      }
+
+      try {
+        const users = await apiRequest(`usuarios?cip=eq.${encodeURIComponent(cip)}&select=*`);
+        if (!users || users.length === 0) {
+          throw new Error('CIP no encontrado en la base de datos.');
+        }
+        verifiedUserForReset = users[0];
+        document.getElementById('recoverStep2').style.display = 'block';
+        msg.style.display = 'flex';
+        msg.style.background = '#e8f6ec';
+        msg.style.color = '#0b5a3c';
+        msg.style.borderColor = '#b7e2c4';
+        msg.textContent = `Usuario verificado: ${verifiedUserForReset.grado || ''} ${verifiedUserForReset.apellidos_nombres}`;
+      } catch (err) {
+        msg.style.background = 'var(--red-soft)';
+        msg.style.color = 'var(--red)';
+        msg.style.borderColor = '#f5b7b1';
+        msg.textContent = err.message;
+        msg.style.display = 'flex';
+      }
+    }
+
+    async function saveNewPassword() {
+      const newPass = document.getElementById('newPass').value.trim();
+      const msg = document.getElementById('recoverMsg');
+
+      if (!newPass || newPass.length < 4) {
+        msg.textContent = 'La contrase\u00f1a debe tener al menos 4 caracteres.';
+        msg.style.display = 'flex';
+        return;
+      }
+
+      try {
+        await apiRequest(`usuarios?cip=eq.${encodeURIComponent(verifiedUserForReset.cip)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ 'contrase\u00f1a': newPass })
+        });
+        alert('Contrase\u00f1a actualizada correctamente. Ahora puede iniciar sesi\u00f3n.');
+        document.getElementById('loginCip').value = verifiedUserForReset.cip;
+        document.getElementById('loginPass').value = newPass;
+        showLoginCard();
+      } catch (err) {
+        msg.textContent = err.message || 'Error al actualizar la contrase\u00f1a.';
+        msg.style.display = 'flex';
+      }
+    }
+
+    async function loadAllBadges() {
+      for (const tableKey of Object.keys(TABLES_CONFIG)) {
+        if (tableKey === 'usuarios' && !isUserAdmin()) continue;
+        try {
+          const list = await apiRequest(`${tableKey}?select=id`);
+          const count = Array.isArray(list) ? list.length : 0;
+          const badge = document.getElementById(`badge_${tableKey}`);
+          if (badge) badge.textContent = count;
+        } catch (_) {}
+      }
+    }
+
+    function switchDocTable(tableKey) {
+      if (tableKey === 'usuarios' && !isUserAdmin()) {
+        alert('Acceso denegado: Solo el nivel ADMINISTRADOR puede acceder a la gesti\u00f3n de usuarios.');
+        return;
+      }
+
+      currentTable = tableKey;
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(tableKey));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const conf = TABLES_CONFIG[tableKey];
+      document.getElementById('currentTableTitle').textContent = conf.title;
+      loadCurrentTableData();
+    }
+
+    async function loadCurrentTableData() {
+      const tbody = document.getElementById('tableBody');
+      const empty = document.getElementById('emptyState');
+      const countEl = document.getElementById('currentTableCount');
+
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">Cargando datos...</td></tr>';
+
+      try {
+        const data = await apiRequest(`${currentTable}?select=*&order=id.desc`);
+        currentData = Array.isArray(data) ? data : [];
+        countEl.textContent = `${currentData.length} registros`;
+        const badge = document.getElementById(`badge_${currentTable}`);
+        if (badge) badge.textContent = currentData.length;
+
+        renderTableStructure();
+        renderTableRows(currentData);
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--red); padding:30px;">Error al cargar datos: ${err.message}</td></tr>`;
+      }
+    }
+
+    function renderTableStructure() {
+      const thead = document.getElementById('tableHead');
+      const conf = TABLES_CONFIG[currentTable];
+      const admin = isUserAdmin();
+
+      if (conf.isUserTable) {
+        thead.innerHTML = `
+          <tr>
+            <th style="width:60px;">ID</th>
+            <th>CIP</th>
+            <th>Grado</th>
+            <th>Apellidos y Nombres</th>
+            <th>Correo Personal</th>
+            <th>Nivel</th>
+            <th>Estado</th>
+            ${admin ? '<th style="width:100px; text-align:center;">Acciones</th>' : ''}
+          </tr>
+        `;
+        return;
+      }
+
+      if (conf.hasFechasRango) {
+        thead.innerHTML = `
+          <tr>
+            <th style="width:60px;">ID</th>
+            <th>N&deg; Documento</th>
+            <th>Fecha Doc.</th>
+            <th>Descripci&oacute;n / Asunto</th>
+            <th>F. Inicio</th>
+            <th>F. T&eacute;rmino</th>
+            <th>Quien Ordena</th>
+            <th>Usuario Registra</th>
+            ${admin ? '<th style="width:100px; text-align:center;">Acciones</th>' : ''}
+          </tr>
+        `;
+        return;
+      }
+
+      thead.innerHTML = `
+        <tr>
+          <th style="width:60px;">ID</th>
+          <th>N&deg; Documento</th>
+          <th>Fecha Doc.</th>
+          <th>Destino</th>
+          <th>Descripci&oacute;n / Asunto</th>
+          ${conf.hasQuienOrdena ? '<th>Quien Ordena</th>' : ''}
+          <th>Usuario Registra</th>
+          ${admin ? '<th style="width:100px; text-align:center;">Acciones</th>' : ''}
+        </tr>
+      `;
+    }
+
+    function renderTableRows(items) {
+      const tbody = document.getElementById('tableBody');
+      const empty = document.getElementById('emptyState');
+      const conf = TABLES_CONFIG[currentTable];
+      const admin = isUserAdmin();
+
+      if (items.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+
+      if (conf.isUserTable) {
+        tbody.innerHTML = items.map(item => `
+          <tr>
+            <td>${item.id}</td>
+            <td><b>${item.cip || '---'}</b></td>
+            <td>${item.grado || '---'}</td>
+            <td><b>${item.apellidos_nombres || '---'}</b></td>
+            <td>${item.correo_personal || '---'}</td>
+            <td><span class="badge-doc">${item.nivel || 'USUARIO'}</span></td>
+            <td>${item.activo ? '<span style="color:#0b5a3c; font-weight:700;">ACTIVO</span>' : '<span style="color:#c0392b; font-weight:700;">INACTIVO</span>'}</td>
+            ${admin ? `
+            <td style="text-align:center;">
+              <button class="action-btn" onclick="editRecord(${item.id})" title="Editar">&#9999;</button>
+              <button class="action-btn btn-del" onclick="deleteRecord(${item.id})" title="Eliminar">&#128465;</button>
+            </td>` : ''}
+          </tr>
+        `).join('');
+        return;
+      }
+
+      if (conf.hasFechasRango) {
+        tbody.innerHTML = items.map(item => `
+          <tr>
+            <td>${item.id}</td>
+            <td><span class="badge-doc">${item.numero_documento || '---'}</span></td>
+            <td>${item.fecha_documento || '---'}</td>
+            <td>${item.descripcion || '---'}</td>
+            <td><b>${item.fecha_inicio || '---'}</b></td>
+            <td><b>${item.fecha_termino || '---'}</b></td>
+            <td>${item.quien_ordena || '---'}</td>
+            <td><small>${item.usuario_registra || '---'}</small></td>
+            ${admin ? `
+            <td style="text-align:center;">
+              <button class="action-btn" onclick="editRecord(${item.id})" title="Editar">&#9999;</button>
+              <button class="action-btn btn-del" onclick="deleteRecord(${item.id})" title="Eliminar">&#128465;</button>
+            </td>` : ''}
+          </tr>
+        `).join('');
+        return;
+      }
+
+      tbody.innerHTML = items.map(item => `
+        <tr>
+          <td>${item.id}</td>
+          <td><span class="badge-doc">${item.numero_documento || '---'}</span></td>
+          <td>${item.fecha_documento || '---'}</td>
+          <td><b>${item.destino || '---'}</b></td>
+          <td>${item.descripcion || '---'}</td>
+          ${conf.hasQuienOrdena ? `<td>${item.quien_ordena || '---'}</td>` : ''}
+          <td><small>${item.usuario_registra || '---'}</small></td>
+          ${admin ? `
+          <td style="text-align:center;">
+            <button class="action-btn" onclick="editRecord(${item.id})" title="Editar">&#9999;</button>
+            <button class="action-btn btn-del" onclick="deleteRecord(${item.id})" title="Eliminar">&#128465;</button>
+          </td>` : ''}
+        </tr>
+      `).join('');
+    }
+
+    function filterData() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!q) {
+        renderTableRows(currentData);
+        return;
+      }
+      const filtered = currentData.filter(item => {
+        return Object.values(item).some(val => String(val || '').toLowerCase().includes(q));
+      });
+      renderTableRows(filtered);
+    }
+
+    function openNewDocModal() {
+      if (currentTable === 'usuarios' && !isUserAdmin()) {
+        alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede crear nuevos usuarios.');
+        return;
+      }
+
+      editingId = null;
+      const conf = TABLES_CONFIG[currentTable];
+      document.getElementById('docModalTitle').textContent = `Registrar en ${conf.title}`;
+      buildModalForm();
+      document.getElementById('docModal').classList.add('active');
+    }
+
+    function closeDocModal() {
+      document.getElementById('docModal').classList.remove('active');
+      editingId = null;
+    }
+
+    function buildModalForm(existing = {}) {
+      const container = document.getElementById('docModalFields');
+      const conf = TABLES_CONFIG[currentTable];
+      const today = new Date().toISOString().split('T')[0];
+
+      if (conf.isUserTable) {
+        container.innerHTML = `
+          <div class="form-group">
+            <label>CIP (8 d&iacute;gitos)</label>
+            <input id="f_cip" class="form-control" type="text" maxlength="8" value="${existing.cip || ''}" required />
+          </div>
+          <div class="form-group">
+            <label>Grado</label>
+            <input id="f_grado" class="form-control" type="text" placeholder="Ej. ST2 PNP / CAP PNP" value="${existing.grado || ''}" required />
+          </div>
+          <div class="form-group">
+            <label>Apellidos y Nombres</label>
+            <input id="f_apellidos_nombres" class="form-control" type="text" value="${existing.apellidos_nombres || ''}" required />
+          </div>
+          <div class="form-group">
+            <label>Correo Personal</label>
+            <input id="f_correo_personal" class="form-control" type="email" value="${existing.correo_personal || ''}" />
+          </div>
+          <div class="form-group">
+            <label>Nivel de Acceso</label>
+            <select id="f_nivel" class="form-control">
+              <option value="USUARIO" ${existing.nivel === 'USUARIO' ? 'selected' : ''}>USUARIO (Solo Registrar Documentos)</option>
+              <option value="ADMIN" ${existing.nivel === 'ADMIN' || existing.nivel === 'ADMINISTRADOR' ? 'selected' : ''}>ADMINISTRADOR (Total Acceso)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Contrase&ntilde;a</label>
+            <input id="f_pass" class="form-control" type="text" value="${existing['contrase??a'] || existing['contrase\u00f1a'] || existing.contrasena || '123456'}" required />
+          </div>
+        `;
+        return;
+      }
+
+      let numSugerido = existing.numero_documento || '';
+      if (!numSugerido && currentData.length > 0) {
+        const nextNum = String(currentData.length + 1).padStart(3, '0');
+        const year = new Date().getFullYear();
+        numSugerido = `${nextNum}-${year}`;
+      } else if (!numSugerido) {
+        numSugerido = `001-${new Date().getFullYear()}`;
+      }
+
+      let html = `
+        <div class="form-group">
+          <label>N&uacute;mero de Documento</label>
+          <input id="f_numero_documento" class="form-control" type="text" value="${numSugerido}" placeholder="Ej. 001-2026" required />
+        </div>
+        <div class="form-group">
+          <label>Fecha del Documento</label>
+          <input id="f_fecha_documento" class="form-control" type="date" value="${existing.fecha_documento || today}" required />
+        </div>
+      `;
+
+      if (conf.hasDestino) {
+        html += `
+          <div class="form-group">
+            <label>Destino / Destinatario</label>
+            <input id="f_destino" class="form-control" type="text" placeholder="Ej. JEFE OFAD / COMISAR\u00cdA HU\u00c1NUCO" value="${existing.destino || ''}" required />
+          </div>
+        `;
+      }
+
+      if (conf.hasFechasRango) {
+        html += `
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div class="form-group">
+              <label>Fecha Inicio</label>
+              <input id="f_fecha_inicio" class="form-control" type="date" value="${existing.fecha_inicio || today}" required />
+            </div>
+            <div class="form-group">
+              <label>Fecha T&eacute;rmino</label>
+              <input id="f_fecha_termino" class="form-control" type="date" value="${existing.fecha_termino || today}" required />
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="form-group">
+          <label>Descripci&oacute;n / Asunto</label>
+          <textarea id="f_descripcion" class="form-control" rows="3" placeholder="Detalle o asunto del documento..." style="resize:vertical;" required>${existing.descripcion || ''}</textarea>
+        </div>
+      `;
+
+      if (conf.hasQuienOrdena) {
+        html += `
+          <div class="form-group">
+            <label>Quien Ordena / Dispone</label>
+            <input id="f_quien_ordena" class="form-control" type="text" placeholder="Ej. JEFE REGPOL HU\u00c1NUCO" value="${existing.quien_ordena || ''}" />
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function getUsuarioRegistraNombre() {
+      if (!currentUser) return 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      const grado = String(currentUser.grado || currentUser.GRADO || '').trim();
+      const nombres = String(currentUser.apellidos_nombres || currentUser['APELLIDOS Y NOMBRES'] || currentUser.nombre || '').trim();
+      if (grado && nombres) return grado + ' ' + nombres;
+      if (nombres) return nombres;
+      if (currentUser.cip || currentUser.CIP) return 'CIP ' + (currentUser.cip || currentUser.CIP);
+      return 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+    }
+
+    async function saveDocRecord() {
+      const conf = TABLES_CONFIG[currentTable];
+      const payload = {};
+
+      if (editingId && !isUserAdmin()) {
+        alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede modificar registros existentes.');
+        return;
+      }
+
+      if (conf.isUserTable) {
+        if (!isUserAdmin()) {
+          alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede gestionar usuarios.');
+          return;
+        }
+        payload.cip = document.getElementById('f_cip').value.trim();
+        payload.grado = document.getElementById('f_grado').value.trim();
+        payload.apellidos_nombres = document.getElementById('f_apellidos_nombres').value.trim();
+        payload.correo_personal = document.getElementById('f_correo_personal').value.trim();
+        payload.nivel = document.getElementById('f_nivel').value;
+        payload['contrase\u00f1a'] = document.getElementById('f_pass').value.trim();
+      } else {
+        payload.numero_documento = document.getElementById('f_numero_documento').value.trim();
+        payload.fecha_documento = document.getElementById('f_fecha_documento').value;
+        payload.descripcion = document.getElementById('f_descripcion').value.trim();
+        payload.usuario_registra = getUsuarioRegistraNombre();
+
+        if (conf.hasDestino) payload.destino = document.getElementById('f_destino').value.trim();
+        if (conf.hasQuienOrdena) payload.quien_ordena = document.getElementById('f_quien_ordena').value.trim();
+        if (conf.hasFechasRango) {
+          payload.fecha_inicio = document.getElementById('f_fecha_inicio').value;
+          payload.fecha_termino = document.getElementById('f_fecha_termino').value;
+        }
+      }
+
+      const saveBtn = document.getElementById('btnSaveDoc');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Guardando...';
+
+      try {
+        if (editingId) {
+          await apiRequest(`${currentTable}?id=eq.${editingId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload)
+          });
+        } else {
+          await apiRequest(currentTable, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+        }
+        closeDocModal();
+        await loadCurrentTableData();
+      } catch (err) {
+        alert('Error al guardar: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '&#128190; Guardar Registro';
+      }
+    }
+
+    async function editRecord(id) {
+      if (!isUserAdmin()) {
+        alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede modificar registros.');
+        return;
+      }
+      const found = currentData.find(d => d.id === id);
+      if (!found) return;
+      editingId = id;
+      const conf = TABLES_CONFIG[currentTable];
+      document.getElementById('docModalTitle').textContent = `Editar Registro #${id} - ${conf.title}`;
+      buildModalForm(found);
+      document.getElementById('docModal').classList.add('active');
+    }
+
+    async function deleteRecord(id) {
+      if (!isUserAdmin()) {
+        alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede eliminar registros.');
+        return;
+      }
+      if (!confirm(`\u00bfEst\u00e1 seguro de eliminar el registro #${id}? Esta acci\u00f3n no se puede deshacer.`)) return;
+      try {
+        await apiRequest(`${currentTable}?id=eq.${id}`, { method: 'DELETE' });
+        await loadCurrentTableData();
+      } catch (err) {
+        alert('Error al eliminar: ' + err.message);
+      }
+    }
+
+    function exportToExcel() {
+      if (!currentData || currentData.length === 0) {
+        alert('No hay datos para exportar en esta tabla.');
+        return;
+      }
+
+      const conf = TABLES_CONFIG[currentTable];
+      
+      const exportRows = currentData.map((item, idx) => {
+        if (conf.isUserTable) {
+          return {
+            'N??': idx + 1,
+            'CIP': item.cip || '',
+            'GRADO': item.grado || '',
+            'APELLIDOS Y NOMBRES': item.apellidos_nombres || '',
+            'CORREO PERSONAL': item.correo_personal || '',
+            'NIVEL': item.nivel || 'USUARIO',
+            'ESTADO': item.activo ? 'ACTIVO' : 'INACTIVO'
+          };
+        }
+
+        if (conf.hasFechasRango) {
+          return {
+            'N??': idx + 1,
+            'N?? DOCUMENTO': item.numero_documento || '',
+            'FECHA DOCUMENTO': item.fecha_documento || '',
+            'DESCRIPCI??N / ASUNTO': item.descripcion || '',
+            'FECHA INICIO': item.fecha_inicio || '',
+            'FECHA T??RMINO': item.fecha_termino || '',
+            'QUIEN ORDENA': item.quien_ordena || '',
+            'USUARIO REGISTRA': item.usuario_registra || ''
+          };
+        }
+
+        const row = {
+          'N??': idx + 1,
+          'N?? DOCUMENTO': item.numero_documento || '',
+          'FECHA DOCUMENTO': item.fecha_documento || '',
+          'DESTINO': item.destino || '',
+          'DESCRIPCI??N / ASUNTO': item.descripcion || ''
+        };
+        if (conf.hasQuienOrdena) row['QUIEN ORDENA'] = item.quien_ordena || '';
+        row['USUARIO REGISTRA'] = item.usuario_registra || '';
+        return row;
+      });
+
+      const fileName = `${currentTable.toUpperCase()}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      // Si SheetJS (XLSX) est?? disponible, generar XLSX nativo
+      if (typeof XLSX !== 'undefined') {
+        const ws = XLSX.utils.json_to_sheet(exportRows);
+        
+        // Auto-ajustar ancho de columnas
+        const colWidths = Object.keys(exportRows[0] || {}).map(key => {
+          const maxLen = Math.max(
+            key.length,
+            ...exportRows.map(r => String(r[key] || '').length)
+          );
+          return { wch: Math.min(Math.max(maxLen + 4, 12), 70) };
+        });
+        ws['!cols'] = colWidths;
+
+        const wb = XLSX.utils.book_new();
+        const sheetName = (conf.title || currentTable).substring(0, 30);
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        XLSX.writeFile(wb, fileName);
+      } else {
+        // Fallback: Excel XML Spreadsheet compatible directo con Excel
+        let xml = '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>' +
+          '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' +
+          '<Worksheet ss:Name="' + (conf.title || currentTable).substring(0, 30) + '"><Table>';
+        
+        const headers = Object.keys(exportRows[0] || {});
+        xml += '<Row ss:StyleID="Header">';
+        headers.forEach(h => { xml += '<Cell><Data ss:Type="String">' + h + '</Data></Cell>'; });
+        xml += '</Row>';
+
+        exportRows.forEach(r => {
+          xml += '<Row>';
+          headers.forEach(h => {
+            const val = String(r[h] || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            xml += '<Cell><Data ss:Type="String">' + val + '</Data></Cell>';
+          });
+          xml += '</Row>';
+        });
+
+        xml += '</Table></Worksheet></Workbook>';
+        const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+</body>
+</html>
