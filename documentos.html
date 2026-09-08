@@ -743,6 +743,126 @@
     .recover-box {
       display: none;
     }
+
+    /* RESPONSIVE MOBILE STYLES */
+    .mobile-menu-btn {
+      display: none;
+      background: #0b5a3c;
+      color: #ffffff;
+      border: 1.5px solid #d8b23f;
+      border-radius: 8px;
+      width: 38px;
+      height: 38px;
+      font-size: 20px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+    .mobile-menu-btn:hover {
+      background: #0d6d49;
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 85;
+      backdrop-filter: blur(2px);
+    }
+    .sidebar-backdrop.open {
+      display: block;
+    }
+
+    @media (max-width: 860px) {
+      .mobile-menu-btn {
+        display: inline-flex !important;
+      }
+      .app-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+      }
+      .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: min(85vw, 300px) !important;
+        z-index: 100 !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.4) !important;
+      }
+      .sidebar.open {
+        transform: translateX(0) !important;
+      }
+      .main-content {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        width: 100% !important;
+      }
+      .topbar {
+        padding: 10px 14px !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid var(--line) !important;
+      }
+      .topbar-actions {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: stretch !important;
+        gap: 8px !important;
+      }
+      .topbar-actions button {
+        flex: 1 !important;
+        font-size: 13px !important;
+        padding: 9px 8px !important;
+        justify-content: center !important;
+      }
+      .content-body {
+        padding: 10px !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+      .toolbar-card {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        padding: 10px !important;
+      }
+      .toolbar-card .search-box {
+        width: 100% !important;
+        max-width: none !important;
+      }
+      .toolbar-card button {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 10px !important;
+      }
+      .table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        background: #ffffff !important;
+        border-radius: 10px !important;
+        border: 1px solid var(--line) !important;
+      }
+      .doc-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 10px auto !important;
+      }
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -837,6 +957,9 @@
   </div>
 
 
+  <!-- BACKDROP PARA MOVIL -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
+
   <!-- SISTEMA PRINCIPAL -->
   <div class="app-layout">
     
@@ -896,9 +1019,12 @@
       
       <!-- Topbar -->
       <header class="topbar">
-        <div class="topbar-title">
-          <h1 id="currentTableTitle">OFICIOS</h1>
-          <span id="currentTableCount" class="topbar-tag">0 registros</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" title="Abrir Menú" type="button">&#9776;</button>
+          <div class="topbar-title">
+            <h1 id="currentTableTitle">OFICIOS</h1>
+            <span id="currentTableCount" class="topbar-tag">0 registros</span>
+          </div>
         </div>
         <div class="topbar-actions">
           <button class="btn-secondary-action" onclick="loadCurrentTableData()">&#128259; Actualizar</button>
@@ -1184,6 +1310,21 @@
       }
     }
 
+    function toggleMobileSidebar(force) {
+      const sidebar = document.querySelector('.sidebar');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (!sidebar) return;
+      const isOpen = sidebar.classList.contains('open');
+      const nextState = (typeof force === 'boolean') ? force : !isOpen;
+      if (nextState) {
+        sidebar.classList.add('open');
+        if (backdrop) backdrop.classList.add('open');
+      } else {
+        sidebar.classList.remove('open');
+        if (backdrop) backdrop.classList.remove('open');
+      }
+    }
+
     function switchDocTable(tableKey) {
       if (tableKey === 'usuarios' && !isUserAdmin()) {
         alert('Acceso denegado: Solo el nivel ADMINISTRADOR puede acceder a la gesti\u00f3n de usuarios.');
@@ -1197,6 +1338,10 @@
 
       const conf = TABLES_CONFIG[tableKey];
       document.getElementById('currentTableTitle').textContent = conf.title;
+      
+      // En dispositivos móviles, cerrar el menú lateral automáticamente al elegir una opción
+      toggleMobileSidebar(false);
+
       loadCurrentTableData();
     }
 
