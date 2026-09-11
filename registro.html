@@ -458,13 +458,6 @@
         </div>
 
         <div class="form-grid">
-          <!-- UNIDAD ANTERIOR -->
-          <div class="form-group col-span-2">
-            <label for="unidad_anterior">Unidad Anterior<span class="req">*</span></label>
-            <input id="unidad_anterior" name="unidad_anterior" type="text" class="form-control uppercase" placeholder="Ej. DIVREINT LIMA, DIRANDRO, SEC DIRTEPOL, etc." required autocomplete="off" oninput="this.value = this.value.toUpperCase()" />
-            <div class="field-error">Ingrese su unidad anterior / procedencia.</div>
-          </div>
-
           <!-- UNIDAD DE ORIGEN -->
           <div class="form-group col-span-2">
             <label for="unidad_de_origen">Unidad de Origen<span class="req">*</span></label>
@@ -806,9 +799,6 @@
       // Especialidad
       check('especialidad', Boolean(data.especialidad));
 
-      // Unidad Anterior
-      check('unidad_anterior', Boolean(data.unidad_anterior && data.unidad_anterior.trim().length >= 2));
-
       // Unidad de Origen
       check('unidad_de_origen', Boolean(data.unidad_de_origen));
 
@@ -851,12 +841,12 @@
         id: 'REQ-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         fecha_solicitud: new Date().toISOString(),
         estado_solicitud: 'PENDIENTE',
+        // 20 campos solicitados
         cip: document.getElementById('cip').value.trim(),
         dni: document.getElementById('dni').value.trim(),
         tipo_dni: document.getElementById('tipo_dni').value.trim(),
         grado: document.getElementById('grado').value.trim(),
         apellidos_y_nombres: document.getElementById('apellidos_y_nombres').value.trim().toUpperCase(),
-        unidad_anterior: document.getElementById('unidad_anterior').value.trim().toUpperCase(),
         unidad_de_origen: document.getElementById('unidad_de_origen').value.trim(),
         lista_de_revista: document.getElementById('lista_de_revista').value.trim(),
         fecha_de_incorporacion: document.getElementById('fecha_de_incorporacion').value.trim(),
@@ -890,7 +880,7 @@
       try {
         // 1. Enviar directamente a Supabase Cloud (Accesible desde cualquier celular con 4G / 5G / Wi-Fi)
         try {
-          const cloudRes = await fetch(`${SUPABASE_URL}/rest/v1/solicitudes_registro`, {
+          await fetch(`${SUPABASE_URL}/rest/v1/solicitudes_registro`, {
             method: 'POST',
             headers: {
               'apikey': KEY,
@@ -900,19 +890,6 @@
             },
             body: JSON.stringify(formData)
           });
-          if (!cloudRes.ok) {
-            const { unidad_anterior, ...compatData } = formData;
-            await fetch(`${SUPABASE_URL}/rest/v1/solicitudes_registro`, {
-              method: 'POST',
-              headers: {
-                'apikey': KEY,
-                'Authorization': `Bearer ${KEY}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation'
-              },
-              body: JSON.stringify(compatData)
-            });
-          }
         } catch (cloudErr) {
           console.warn('Supabase cloud fallback:', cloudErr);
         }
@@ -970,7 +947,6 @@
         <div class="summary-row"><span class="summary-label">DNI (${escapeHtml(data.tipo_dni)}):</span><span class="summary-val">${escapeHtml(data.dni)}</span></div>
         <div class="summary-row"><span class="summary-label">Grado:</span><span class="summary-val">${escapeHtml(data.grado)}</span></div>
         <div class="summary-row"><span class="summary-label">Apellidos y Nombres:</span><span class="summary-val">${escapeHtml(data.apellidos_y_nombres)}</span></div>
-        <div class="summary-row"><span class="summary-label">Unidad Anterior:</span><span class="summary-val">${escapeHtml(data.unidad_anterior || '—')}</span></div>
         <div class="summary-row"><span class="summary-label">Unidad de Origen:</span><span class="summary-val">${escapeHtml(data.unidad_de_origen)}</span></div>
         <div class="summary-row"><span class="summary-label">Lista de Revista:</span><span class="summary-val">${escapeHtml(data.lista_de_revista)}</span></div>
         <div class="summary-row"><span class="summary-label">Condición:</span><span class="summary-val">${escapeHtml(data.condicion)}</span></div>
