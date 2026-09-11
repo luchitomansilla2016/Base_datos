@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>REGPOL Hu&aacute;nuco - Sistema de Registro Documentario</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.6/pizzip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
     :root {
       --bg: #f4f6f3;
@@ -671,13 +673,14 @@
     .doc-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.65);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 9999;
       padding: 16px;
       backdrop-filter: blur(4px);
+      overflow-y: auto;
     }
 
     .doc-modal.active {
@@ -686,15 +689,26 @@
 
     .doc-dialog {
       width: 100%;
-      max-width: 600px;
+      max-width: 640px;
       background: #ffffff;
       border-radius: 16px;
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       max-height: 90vh;
+      max-height: 90dvh;
+      margin: auto;
       animation: modalPop 0.25s ease;
+    }
+
+    #docForm {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+      margin: 0;
     }
 
     .doc-modal-header {
@@ -705,6 +719,7 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 3px solid var(--accent);
+      flex-shrink: 0;
     }
 
     .doc-modal-header h3 {
@@ -725,7 +740,10 @@
 
     .doc-modal-body {
       padding: 20px;
-      overflow-y: auto;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      flex: 1 1 auto;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -738,6 +756,185 @@
       display: flex;
       justify-content: flex-end;
       gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .chip-btn {
+      background: #f0f7f3;
+      color: #0b5a3c;
+      border: 1px solid #c2e2cb;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip-btn:hover {
+      background: #0b5a3c;
+      color: #ffffff;
+      border-color: #0b5a3c;
+      transform: translateY(-1px);
+    }
+
+    .cat-chip-btn {
+      background: #f0f7f3;
+      color: #0b5a3c;
+      border: 1.5px solid #a7d7b5;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .cat-chip-btn:hover, .cat-chip-btn.active-cat {
+      background: #0b5a3c;
+      color: #ffffff;
+      border-color: #0b5a3c;
+    }
+
+    .sub-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 8px 10px;
+      background: #f4f8f5;
+      border-radius: 8px;
+      border: 1px solid #d0e7d7;
+      margin-bottom: 6px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .sub-chip-btn {
+      background: #ffffff;
+      color: #1f3f30;
+      border: 1px solid #c2e2cb;
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.12s ease;
+    }
+
+    .sub-chip-btn:hover {
+      background: #e8f4ec;
+      color: #0b5a3c;
+      border-color: #0b5a3c;
+    }
+
+    .sub-chip-btn.active-sub {
+      background: #0b5a3c !important;
+      color: #ffffff !important;
+      border-color: #0b5a3c !important;
+    }
+
+    .btn-ref-assistant {
+      background: #e8f4ec;
+      color: #0b5a3c;
+      border: 1px solid #a7d7b5;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-ref-assistant:hover {
+      background: #0b5a3c;
+      color: #ffffff;
+      border-color: #0b5a3c;
+    }
+
+    /* TARJETA TOPBAR FIRMANTE DEL DÍA */
+    .topbar-firmante-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #f0f7f3;
+      border: 1.5px solid #a7d7b5;
+      padding: 5px 12px;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      max-width: 480px;
+      user-select: none;
+    }
+
+    .topbar-firmante-card:hover {
+      background: #e1f2e6;
+      border-color: #0b5a3c;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(11, 90, 60, 0.14);
+    }
+
+    .firmante-icon {
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      background: #ffffff;
+      border-radius: 7px;
+      border: 1px solid #c2e2cb;
+      flex-shrink: 0;
+    }
+
+    .firmante-content {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .firmante-header-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.1;
+      margin-bottom: 2px;
+    }
+
+    .firmante-label {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #0b5a3c;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .firmante-badge-edit {
+      font-size: 9px;
+      background: #0b5a3c;
+      color: #ffffff;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .firmante-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1f3f30;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 380px;
     }
 
     .recover-box {
@@ -874,6 +1071,708 @@
         max-width: 95vw !important;
         margin: 10px auto !important;
       }
+    }
+
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1.5px solid #0b5a3c;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      z-index: 1050;
+      margin-top: 2px;
+    }
+
+    .autocomplete-item {
+      padding: 7px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #1e3a2b;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f4f1;
+      transition: background 0.12s, color 0.12s;
+      text-align: left;
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-item:hover, .autocomplete-item.active {
+      background: #0b5a3c !important;
+      color: #ffffff !important;
+    }
+
+    .autocomplete-item mark {
+      background: #ffeaa7;
+      color: #0b5a3c;
+      font-weight: 800;
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+
+    .autocomplete-item:hover mark, .autocomplete-item.active mark {
+      background: #d8b23f;
+      color: #06351f;
+    }
+
+    .autocomplete-empty {
+      padding: 10px 12px;
+      font-size: 11.5px;
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* ==========================================================================
+       ESTILOS PARA VISTA PREVIA E IMPRESIÓN DE ORDEN DE INCORPORACIÓN (A5 x 2 en A4)
+       ========================================================================== */
+    .modal-preview-orden {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10005;
+      overflow-y: auto;
+    }
+    .modal-preview-orden.active {
+      display: flex !important;
+    }
+    .dialog-preview-orden {
+      width: min(980px, 98vw);
+      max-height: 94vh;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-top: 5px solid #0b5a3c;
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-preview-controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      background: #f7faf7;
+      border-bottom: 1px solid var(--line);
+    }
+    .orden-sheet-container {
+      background: #4a524d;
+      padding: 16px;
+      overflow-y: auto;
+      max-height: calc(90vh - 120px);
+      display: flex;
+      justify-content: center;
+    }
+    .orden-a4-sheet {
+      background: #ffffff;
+      width: 100%;
+      max-width: 210mm;
+      min-height: 297mm;
+      height: 297mm;
+      padding: 3.5mm 8mm 3.5mm 22mm; /* Margen izquierdo 22mm, derecho 8mm */
+      box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+      color: #000000;
+      box-sizing: border-box;
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+      gap: 0;
+    }
+    .orden-a5-card {
+      background: #ffffff;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 1.5mm 0 1mm 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+      overflow: visible;
+    }
+    .orden-cut-guide {
+      border-top: 1.5px dashed #777;
+      position: relative;
+      margin: 1mm 0;
+      text-align: center;
+    }
+    .orden-cut-label {
+      position: absolute;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      padding: 0 10px;
+      font-family: Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #666;
+    }
+    .orden-header-grid {
+      display: grid;
+      grid-template-columns: 165px 1fr;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+    .orden-left-brand {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .orden-header-stamp-img {
+      width: 100%;
+      max-width: 155px;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .orden-center-title {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .orden-doc-number-title {
+      font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', Arial, sans-serif;
+      font-size: 11.5pt;
+      font-weight: normal;
+      text-transform: uppercase;
+      line-height: 1.15;
+      color: #000;
+      letter-spacing: 0.01em;
+      text-align: center;
+      width: 100%;
+    }
+    .orden-doc-number-title div {
+      white-space: nowrap;
+      text-decoration: underline;
+    }
+    .orden-data-block {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 7.8pt;
+      line-height: 1.15;
+      color: #000;
+      margin: 0 0 1.5px 0;
+    }
+    .orden-data-row {
+      display: grid;
+      grid-template-columns: 215px 10px 1fr;
+      align-items: baseline;
+      padding: 0.2px 0;
+    }
+    .orden-data-label {
+      font-weight: bold;
+      font-size: 7.8pt;
+      letter-spacing: -0.01em;
+    }
+    .orden-data-sep {
+      font-weight: bold;
+      font-size: 7.8pt;
+    }
+    .orden-data-val {
+      font-size: 7.8pt;
+      word-break: break-word;
+    }
+    .orden-obs-text {
+      font-size: 7pt !important;
+      line-height: 1.10;
+      text-align: justify;
+    }
+    .orden-footer-bottom-block {
+      margin-top: 2px;
+      width: 100%;
+    }
+    .orden-divider-line {
+      border-top: 1.2px solid #000;
+      margin: 2px 0 1px;
+    }
+    .orden-date-row {
+      text-align: right;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 7.8pt;
+      font-weight: bold;
+      margin-top: 1px;
+      margin-bottom: 1px;
+    }
+    .orden-footer-signature-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      margin-top: 24px;
+      position: relative;
+    }
+    #ordenCardTop .orden-footer-signature-row {
+      margin-top: 50px !important;
+    }
+    #ordenCardBottom .orden-footer-signature-row {
+      margin-top: 24px !important;
+    }
+    .orden-footer-signature-row.has-cargo {
+      justify-content: space-between !important;
+      align-items: flex-end !important;
+    }
+    .orden-cargo-recepcion-box {
+      width: 230px;
+      max-width: 230px;
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 0px;
+    }
+    .orden-cargo-recepcion-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .orden-seal-container {
+      position: relative;
+      display: inline-flex;
+      align-items: flex-start;
+      justify-content: flex-end;
+      margin-right: 15px;
+    }
+    .orden-round-seal-img {
+      position: absolute;
+      right: 100%;
+      top: 24px;
+      transform: translateY(-50%) translateX(2px);
+      width: 92px;
+      height: 92px;
+      object-fit: contain;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .orden-sign-box {
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 7.2pt;
+      line-height: 1.12;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      width: max-content;
+      min-width: 170px;
+      max-width: 330px;
+      position: relative;
+      z-index: 1;
+    }
+    .orden-sign-line {
+      border-top: 1.5px solid #000;
+      margin-top: 24px;
+      margin-bottom: 1px;
+      width: 100%;
+    }
+    .orden-sign-cip {
+      font-size: 6.8pt;
+      color: #222;
+    }
+    .orden-sign-name {
+      font-weight: bold;
+      font-size: 7.5pt;
+      text-transform: uppercase;
+    }
+    .orden-sign-grade {
+      font-size: 7.2pt;
+      text-transform: uppercase;
+    }
+    .orden-sign-cargo {
+      font-size: 6.8pt;
+      text-transform: uppercase;
+      font-weight: bold;
+      color: #111;
+    }
+
+    /* Print Styles */
+    @media print {
+      body.printing-orden,
+      body.printing-orden html {
+        overflow: hidden !important;
+        height: 100% !important;
+      }
+      body.printing-orden * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+      }
+      body.printing-orden *::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+    }
+    body.printing-orden,
+    body.printing-orden html {
+      overflow: hidden !important;
+      background: #ffffff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    body.printing-orden * {
+      visibility: hidden !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    body.printing-orden *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    body.printing-orden #modalPreviewOrdenIncorp,
+    body.printing-orden #modalPreviewOrdenIncorp .dialog-preview-orden,
+    body.printing-orden #modalPreviewOrdenIncorp .orden-sheet-container,
+    body.printing-orden #modalPreviewOrdenIncorp .orden-a4-sheet,
+    body.printing-orden #modalPreviewOrdenIncorp .orden-a4-sheet * {
+      visibility: visible !important;
+    }
+    body.printing-orden #modalPreviewOrdenIncorp {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+      overflow: hidden !important;
+    }
+    body.printing-orden .doc-modal-header,
+    body.printing-orden .modal-preview-controls-bar {
+      display: none !important;
+    }
+    body.printing-orden .dialog-preview-orden {
+      width: 100% !important;
+      max-width: none !important;
+      height: auto !important;
+      max-height: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      overflow: hidden !important;
+      background: transparent !important;
+    }
+    body.printing-orden .orden-sheet-container {
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      max-height: none !important;
+      display: block !important;
+      overflow: hidden !important;
+    }
+      body.printing-orden .orden-a4-sheet {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 3.5mm 8mm 3.5mm 22mm !important;
+        margin: 0 auto !important;
+        width: 210mm !important;
+        max-width: 210mm !important;
+        height: 297mm !important;
+        max-height: 297mm !important;
+        min-height: 297mm !important;
+        box-sizing: border-box !important;
+        display: grid !important;
+        grid-template-rows: 1fr auto 1fr !important;
+        page-break-after: avoid !important;
+        break-inside: avoid !important;
+      }
+      body.printing-orden .orden-a5-card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 1.5mm 0 1mm 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+    /* MODAL PREVIEW OFICIO (A4 COMPLETO) */
+    .modal-preview-oficio {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 40, 24, 0.85);
+      backdrop-filter: blur(5px);
+      z-index: 100000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      overflow-y: auto;
+    }
+    .modal-preview-oficio.active {
+      display: flex;
+    }
+    .dialog-preview-oficio {
+      background: #ffffff;
+      width: 100%;
+      max-width: 950px;
+      max-height: 96vh;
+      border-radius: 16px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalPop 0.25s ease-out;
+    }
+    .oficio-sheet-container {
+      background: #475569;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+      flex: 1;
+    }
+    .oficio-a4-sheet {
+      background: #ffffff;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 10mm 15mm 12mm 32mm; /* Margen derecho a 1.5cm (15mm) */
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #000;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .oficio-header-brand {
+      width: 100%;
+      margin-bottom: 4px;
+    }
+    .oficio-header-banner-img {
+      width: 100%;
+      height: auto;
+      max-height: none;
+      display: block;
+      object-fit: fill;
+    }
+    .oficio-lema-text {
+      text-align: center;
+      font-size: 8pt;
+      font-style: italic;
+      color: #333;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 3px;
+    }
+    .oficio-date-place {
+      text-align: right;
+      font-size: 10pt;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+    .oficio-title-num {
+      text-align: left;
+      font-family: 'Impact', 'Arial Black', Impact, sans-serif;
+      font-size: 16pt;
+      font-weight: normal;
+      letter-spacing: 0.5px;
+      text-decoration: underline;
+      margin-bottom: 12px;
+      line-height: 1.25;
+      color: #000;
+    }
+    .oficio-dest-block, .oficio-asunto-block {
+      font-size: 9.8pt;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+    .oficio-dest-row, .oficio-asunto-row {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+    .oficio-field-label {
+      width: 75px;
+      min-width: 75px;
+      font-weight: bold;
+      color: #000;
+      font-size: 9.8pt;
+    }
+    .oficio-field-sep {
+      width: 12px;
+      font-weight: bold;
+      color: #000;
+      font-size: 9.8pt;
+    }
+    .oficio-field-val {
+      flex: 1;
+      padding-left: 28px; /* UN TAB MÁS DESPUÉS DE LOS DOS PUNTOS */
+      font-size: 9.8pt;
+      line-height: 1.35;
+    }
+    .oficio-body-text {
+      font-size: 9.8pt;
+      line-height: 1.45;
+      text-align: justify;
+      margin-bottom: 10px;
+      text-indent: 115px; /* ALINEADO CON EL TEXTO DE MEMORANDUM */
+    }
+    .oficio-detail-box {
+      border: 1px solid #111;
+      border-radius: 4px;
+      padding: 9px 14px;
+      margin: 9px 0 12px 0;
+      font-size: 9.2pt;
+      background: #fafafa;
+    }
+    .oficio-detail-row {
+      display: flex;
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+    .oficio-detail-row:last-child {
+      margin-bottom: 0;
+    }
+    .oficio-detail-label {
+      width: 175px;
+      font-weight: bold;
+      color: #111;
+    }
+    .oficio-detail-sep {
+      width: 14px;
+      font-weight: bold;
+    }
+    .oficio-detail-val {
+      flex: 1;
+      font-weight: bold;
+    }
+    .oficio-closing-text {
+      font-size: 9.8pt;
+      line-height: 1.45;
+      text-align: justify;
+      margin-bottom: 10px;
+      text-indent: 115px; /* ALINEADO CON EL TEXTO DE MEMORANDUM */
+    }
+    .oficio-dios-guarde {
+      font-size: 10pt;
+      font-weight: bold;
+      margin: 12px 60px 16px 0;
+      text-indent: 0;
+      text-align: right; /* 6 ESPACIOS A LA IZQUIERDA DEL BORDE DERECHO */
+    }
+    .oficio-footer-sig-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 14px;
+    }
+    .oficio-initials {
+      font-size: 8.5pt;
+      color: #333;
+      font-weight: bold;
+      align-self: flex-start;
+      margin-top: 0;
+    }
+
+    /* Print styles for Oficio */
+    @media print {
+      body.printing-oficio,
+      body.printing-oficio html {
+        overflow: hidden !important;
+        height: 100% !important;
+      }
+      body.printing-oficio * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+      }
+      body.printing-oficio *::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+    }
+    body.printing-oficio,
+    body.printing-oficio html {
+      overflow: hidden !important;
+      background: #ffffff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    body.printing-oficio * {
+      visibility: hidden !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    body.printing-oficio *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    body.printing-oficio #modalPreviewOficioIncorp,
+    body.printing-oficio #modalPreviewOficioIncorp .dialog-preview-oficio,
+    body.printing-oficio #modalPreviewOficioIncorp .oficio-sheet-container,
+    body.printing-oficio #modalPreviewOficioIncorp .oficio-a4-sheet,
+    body.printing-oficio #modalPreviewOficioIncorp .oficio-a4-sheet * {
+      visibility: visible !important;
+    }
+    body.printing-oficio #modalPreviewOficioIncorp {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+      overflow: hidden !important;
+    }
+    body.printing-oficio .doc-modal-header,
+    body.printing-oficio .modal-preview-controls-bar {
+      display: none !important;
+    }
+    body.printing-oficio .dialog-preview-oficio {
+      width: 100% !important;
+      max-width: none !important;
+      height: auto !important;
+      max-height: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      overflow: hidden !important;
+      background: transparent !important;
+    }
+    body.printing-oficio .oficio-sheet-container {
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+      overflow: hidden !important;
+      max-height: none !important;
+    }
+    body.printing-oficio .oficio-a4-sheet {
+      box-shadow: none !important;
+      border: none !important;
+      padding: 10mm 15mm 12mm 32mm !important;
+      margin: 0 auto !important;
+      width: 210mm !important;
+      max-width: 210mm !important;
+      height: 297mm !important;
+      min-height: 297mm !important;
+      max-height: 297mm !important;
+      box-sizing: border-box !important;
+      page-break-after: avoid !important;
+      break-inside: avoid !important;
+      overflow: hidden !important;
+    }
+    @page {
+      size: A4 portrait;
+      margin: 0;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1031,18 +1930,31 @@
       
       <!-- Topbar -->
       <header class="topbar">
-        <div class="topbar-header-row" style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" title="Abrir Menú" type="button">&#9776;</button>
+        <div class="topbar-header-row" style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:12px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" title="Abrir Men&uacute;" type="button">&#9776;</button>
             <div class="topbar-title">
               <h1 id="currentTableTitle">OFICIOS</h1>
             </div>
+            <span id="currentTableCount" class="topbar-tag">0 registros</span>
+
+            <!-- Widget Firmante del D??a -->
+            <div class="topbar-firmante-card" onclick="openFirmanteModal()" title="Haga clic para cambiar o editar el Firmante del D&iacute;a">
+              <div class="firmante-icon">&#9997;</div>
+              <div class="firmante-content">
+                <div class="firmante-header-text">
+                  <span class="firmante-label">FIRMANTE / DISPONE</span>
+                  <span class="firmante-badge-edit">Cambiar</span>
+                </div>
+                <div id="topbarFirmanteDisplay" class="firmante-name">CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD</div>
+              </div>
+            </div>
           </div>
-          <span id="currentTableCount" class="topbar-tag">0 registros</span>
-        </div>
-        <div class="topbar-actions">
-          <button class="btn-secondary-action" onclick="loadCurrentTableData()">&#128259; Actualizar</button>
-          <button class="btn-primary-action" onclick="openNewDocModal()">&#10010; Nuevo Registro</button>
+
+          <div class="topbar-actions">
+            <button class="btn-secondary-action" onclick="loadCurrentTableData()">&#128259; Actualizar</button>
+            <button class="btn-primary-action" onclick="openNewDocModal()">&#10010; Nuevo Registro</button>
+          </div>
         </div>
       </header>
 
@@ -1098,6 +2010,564 @@
     </div>
   </div>
 
+  <!-- MODAL ASISTENTE DE DOCUMENTO DE REFERENCIA -->
+  <div id="modalDocRefAssistant" class="doc-modal" style="z-index: 10000;">
+    <div class="doc-dialog" style="max-width: 520px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);">
+      <div class="doc-modal-header" style="background:#0b5a3c;">
+        <h3 style="color:#fff; font-size:15px; display:flex; align-items:center; gap:8px;">
+          <span>&#128203;</span> Formato de Documento de Referencia
+        </h3>
+        <button type="button" class="doc-modal-close" onclick="closeDocRefAssistant()">&times;</button>
+      </div>
+      <div class="doc-modal-body" style="padding: 20px; gap: 14px;">
+        <div class="form-group">
+          <label style="font-weight:700; font-size:12px; color:#1f3f30;">Tipo de Documento:</label>
+          <select id="refModal_tipo" class="form-control" onchange="updateRefPreview()">
+            <option value="RD">RESOLUCI&Oacute;N DIRECTORAL (RD)</option>
+            <option value="MEMO_CG">MEMOR&Aacute;NDUM CG</option>
+            <option value="MEMO_JEFE">MEMOR&Aacute;NDUM JEFE REGPOL</option>
+          </select>
+        </div>
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label style="font-weight:700; font-size:12px; color:#1f3f30;">N&uacute;mero de Documento:</label>
+            <input id="refModal_numero" class="form-control" type="text" placeholder="Ej. 456 o 00123" oninput="updateRefPreview()" />
+          </div>
+          <div class="form-group">
+            <label style="font-weight:700; font-size:12px; color:#1f3f30;">A&ntilde;o:</label>
+            <input id="refModal_year" class="form-control" type="number" oninput="updateRefPreview()" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="font-weight:700; font-size:12px; color:#1f3f30;">Fecha del Documento:</label>
+          <input id="refModal_fecha" class="form-control" type="date" oninput="updateRefPreview()" />
+        </div>
+        <div style="background:#f4f8f5; border:1.5px dashed #0b5a3c; padding:12px 14px; border-radius:8px;">
+          <label style="font-size:11px; font-weight:800; color:#0b5a3c; margin-bottom:6px; display:block;">FORMATO RESULTANTE (A GUARDAR):</label>
+          <div id="refModal_preview" style="font-size:13px; font-weight:700; color:#0b5a3c; word-break:break-word; background:#fff; padding:8px 10px; border-radius:6px; border:1px solid #c2e2cb;">...</div>
+        </div>
+      </div>
+      <div class="doc-modal-footer">
+        <button type="button" class="btn-secondary-action" onclick="closeDocRefAssistant()">Cancelar</button>
+        <button type="button" class="btn-primary-action" onclick="applyDocRefAssistant()">&#10003; Aplicar en Documento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PARA CONFIGURAR FIRMANTE DEL DÍA / QUIEN ORDENA -->
+  <div id="modalFirmanteDia" class="doc-modal" style="z-index: 10001;">
+    <div class="doc-dialog" style="max-width: 580px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);">
+      <div class="doc-modal-header" style="background:#0b5a3c;">
+        <h3 style="color:#fff; font-size:15px; display:flex; align-items:center; gap:8px;">
+          <span>&#9997;</span> Configurar Firmante del D&iacute;a / Quien Ordena
+        </h3>
+        <button type="button" class="doc-modal-close" onclick="closeFirmanteModal()">&times;</button>
+      </div>
+      <div class="doc-modal-body" style="padding: 20px; gap: 14px;">
+        
+        <!-- Búsqueda en vivo en personal_policial -->
+        <div class="form-group" style="position:relative;">
+          <label style="font-weight:700; font-size:12px; color:#1f3f30;">
+            Buscar Efectivo en L&iacute;nea <small style="color:#0b5a3c; font-weight:700;">(Tabla personal_policial)</small>
+          </label>
+          <input id="searchFirmanteInput" class="form-control" type="text" autocomplete="off" placeholder="Digite apellido, nombre o CIP para buscar en tiempo real..." oninput="searchFirmanteDoc(this)" onfocus="searchFirmanteDoc(this)" onkeydown="navigateFirmanteDropdown(event, this)" />
+          <div id="searchFirmanteInput_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
+        </div>
+
+        <!-- Grado, Apellidos y Nombres -->
+        <div class="form-group">
+          <label style="font-weight:700; font-size:12px; color:#1f3f30;">Grado, Apellidos y Nombres</label>
+          <input id="firmanteNombreInput" class="form-control" type="text" placeholder="Ej. CMDTE PNP CISNEROS APAZA RICKY FLORIAN" oninput="updateFirmantePreview()" required />
+        </div>
+
+        <!-- Cargo / Dispone como -->
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0; font-weight:700; font-size:12px; color:#1f3f30;">Cargo / Dispone como (Editable)</label>
+            <span style="font-size:11px; color:#0b5a3c; font-weight:700;">Sugerencias R&aacute;pidas</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
+            <button type="button" class="chip-btn" onclick="setFirmanteCargoChip('JEFE OFAD REGPOL HU\u00c1NUCO')">JEFE OFAD</button>
+            <button type="button" class="chip-btn" onclick="setFirmanteCargoChip('JEFE REGPOL HU\u00c1NUCO')">JEFE REGPOL</button>
+            <button type="button" class="chip-btn" onclick="setFirmanteCargoChip('JEFE DE LA DIVREINT HU\u00c1NUCO')">JEFE DIVREINT</button>
+            <button type="button" class="chip-btn" onclick="setFirmanteCargoChip('JEFE SEC-OFAD.AREREHUM')">JEFE AREREHUM</button>
+            <button type="button" class="chip-btn" onclick="setFirmanteCargoChip('COMISARIO')">COMISARIO</button>
+            <button type="button" class="chip-btn" onclick="setFirmanteCargoChip('JEFE DE DIVISI\u00d3N')">JEFE DIVISI&Oacute;N</button>
+          </div>
+          <input id="firmanteCargoInput" class="form-control" type="text" placeholder="Ej. JEFE OFAD REGPOL HU\u00c1NUCO" oninput="updateFirmantePreview()" required />
+        </div>
+
+        <!-- Vista previa -->
+        <div style="background:#f4f8f5; border:1.5px dashed #0b5a3c; padding:12px 14px; border-radius:8px;">
+          <label style="font-size:11px; font-weight:800; color:#0b5a3c; margin-bottom:6px; display:block;">
+            TEXTO COMPLETO QUE SE INSERTAR&Aacute; EN "QUIEN ORDENA / DISPONE":
+          </label>
+          <div id="firmantePreviewBox" style="font-size:13px; font-weight:700; color:#0b5a3c; word-break:break-word; background:#fff; padding:8px 10px; border-radius:6px; border:1px solid #c2e2cb;">
+            CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD REGPOL HU&Aacute;NUCO
+          </div>
+        </div>
+
+      </div>
+      <div class="doc-modal-footer">
+        <button type="button" class="btn-secondary-action" onclick="closeFirmanteModal()">Cancelar</button>
+        <button type="button" class="btn-primary-action" onclick="saveFirmanteDia()">&#128190; Guardar Firmante del D&iacute;a</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ASISTENTE / DESTINATARIO DEL OFICIO -->
+  <div id="modalDestinatarioOficio" class="doc-modal" style="z-index: 10002;">
+    <div class="doc-dialog" style="max-width: 640px; box-shadow: 0 25px 50px rgba(0,0,0,0.4);">
+      <div class="doc-modal-header" style="background:#0b5a3c;">
+        <h3 style="color:#fff; font-size:15px; display:flex; align-items:center; gap:8px;">
+          <span>&#128100;</span> Configurar Destinatario del Oficio (SE&Ntilde;OR :)
+        </h3>
+        <button type="button" class="doc-modal-close" onclick="closeDestinatarioModal()">&times;</button>
+      </div>
+      <div class="doc-modal-body" style="padding: 20px; gap: 14px;">
+        
+        <!-- Búsqueda en vivo en personal_policial -->
+        <div class="form-group" style="position:relative;">
+          <label style="font-weight:700; font-size:12px; color:#1f3f30;">
+            Buscar Destinatario en L&iacute;nea <small style="color:#0b5a3c; font-weight:700;">(Tabla personal_policial)</small>
+          </label>
+          <input id="searchDestinatarioInput" class="form-control" type="text" autocomplete="off" placeholder="Digite apellido, nombre o CIP del oficial destinatario..." oninput="searchDestinatarioDoc(this)" onfocus="searchDestinatarioDoc(this)" onkeydown="navigateDestinatarioDropdown(event, this)" />
+          <div id="searchDestinatarioInput_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
+        </div>
+
+        <!-- 1. GRADO DEL DESTINATARIO (SEÑOR :) -->
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0; font-weight:700; font-size:12px; color:#1f3f30;">1. Grado del Destinatario (Al lado de SE&Ntilde;OR :)</label>
+            <span style="font-size:11px; color:#0b5a3c; font-weight:700;">Sugerencias R&aacute;pidas</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
+            <button type="button" class="chip-btn" onclick="setDestinatarioGradoChip('CRNL. PNP')">CRNL. PNP</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioGradoChip('CORONEL PNP')">CORONEL PNP</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioGradoChip('CMDTE. PNP')">CMDTE. PNP</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioGradoChip('MAYOR PNP')">MAYOR PNP</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioGradoChip('CAPITAN PNP')">CAPITAN PNP</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioGradoChip('TENIENTE PNP')">TENIENTE PNP</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioGradoChip('ST1. PNP')">ST1. PNP</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioGradoChip('SB. PNP')">SB. PNP</button>
+          </div>
+          <input id="destinatarioGradoInput" class="form-control" type="text" placeholder="Ej. CRNL. PNP o CORONEL PNP" value="CRNL. PNP" oninput="updateDestinatarioPreview()" required />
+        </div>
+
+        <!-- 2. NOMBRES Y LUEGO APELLIDOS -->
+        <div class="form-group">
+          <label style="font-weight:700; font-size:12px; color:#1f3f30;">
+            2. Nombres y Apellidos del Destinatario <small style="color:#0b5a3c; font-weight:700;">(Primero Nombre(s), luego Apellidos)</small>
+          </label>
+          <input id="destinatarioNombreInput" class="form-control" type="text" placeholder="Ej. CHRISTIAM DARWIN CHAVEZ GOMEZ" oninput="updateDestinatarioPreview()" />
+        </div>
+
+        <!-- 3. CARGO DEL DESTINATARIO -->
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0; font-weight:700; font-size:12px; color:#1f3f30;">3. Cargo del Destinatario (Bajo los Nombres)</label>
+            <span style="font-size:11px; color:#0b5a3c; font-weight:700;">Sugerencias R&aacute;pidas</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
+            <button type="button" class="chip-btn" onclick="setDestinatarioCargoChip('JEFE DIVOPUS LEONCIO PRADO')">JEFE DIVOPUS LEONCIO PRADO</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioCargoChip('JEFE DIVOPUS HUANUCO')">JEFE DIVOPUS HUANUCO</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioCargoChip('JEFE DIVOPUS PUERTO INCA')">JEFE DIVOPUS PUERTO INCA</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioCargoChip('JEFE UNIDAD EJECUTORA N\u00b035-HSMU')">JEFE UNIDAD EJECUTORA N&deg;35-HSMU</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioCargoChip('JEFE OFAD REGPOL HU\u00c1NUCO')">JEFE OFAD</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioCargoChip('JEFE DIVINCRI HU\u00c1NUCO')">JEFE DIVINCRI</button>
+            <button type="button" class="chip-btn" onclick="setDestinatarioCargoChip('COMISARIO HUANUCO')">COMISARIO HUANUCO</button>
+          </div>
+          <input id="destinatarioCargoInput" class="form-control" type="text" placeholder="Ej. JEFE DIVOPUS LEONCIO PRADO" oninput="updateDestinatarioPreview()" required />
+        </div>
+
+        <!-- Vista previa de encabezado SEÑOR -->
+        <div style="background:#f4f8f5; border:1.5px dashed #0b5a3c; padding:12px 14px; border-radius:8px;">
+          <label style="font-size:11px; font-weight:800; color:#0b5a3c; margin-bottom:6px; display:block;">
+            VISTA PREVIA DEL ENCABEZADO "SE&Ntilde;OR :" EN EL OFICIO:
+          </label>
+          <div id="destinatarioPreviewBox" style="font-size:12.5px; font-weight:700; color:#0b5a3c; line-height:1.45; background:#fff; padding:10px 12px; border-radius:6px; border:1px solid #c2e2cb;">
+            SE&Ntilde;OR : CRNL. PNP<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#111; font-weight:700;">CHRISTIAM DARWIN CHAVEZ GOMEZ</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#222;">JEFE DIVOPUS LEONCIO PRADO</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="doc-modal-footer">
+        <button type="button" class="btn-secondary-action" onclick="closeDestinatarioModal()">Cancelar</button>
+        <button type="button" class="btn-primary-action" onclick="confirmDestinatarioAndOpenOficio()" style="background:#0b5a3c; border-color:#0b5a3c; display:flex; align-items:center; gap:6px;">
+          <span>&#128196;</span> Continuar a Previsualizar Oficio
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE VISTA PREVIA E IMPRESIÓN OFICIAL: ORDEN DE INCORPORACIÓN (A5 Horizontal x 2 en A4) -->
+  <div id="modalPreviewOrdenIncorp" class="modal-preview-orden">
+    <div class="dialog-preview-orden">
+      <div class="doc-modal-header" style="background: linear-gradient(90deg, #0b5a3c 0%, #06351f 100%); color: #fff;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:20px;">&#128196;</span>
+          <div>
+            <h3 style="color:#fff; margin:0; font-size:16px;">Vista Previa Oficial: Orden de Incorporaci&oacute;n</h3>
+            <div style="font-size:11.5px; color:#c9ded3;">Formato oficial PNP &middot; 2 Ejemplares A5 en Hoja A4</div>
+          </div>
+        </div>
+        <button type="button" class="doc-modal-close" onclick="closePreviewOrdenModal()" style="color:#fff;">&times;</button>
+      </div>
+
+      <!-- Barra de controles y acciones de la orden -->
+      <div class="modal-preview-controls-bar">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 12px; font-weight: bold; color: #18372b;">Firmante:</span>
+          <span id="previewFirmanteBadge" style="font-size:12px; font-weight:700; color:#0b5a3c; background:#e8f3ec; padding:4px 10px; border-radius:6px; border:1px solid #c2e2cb;">
+            CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD
+          </span>
+          <button type="button" class="btn-ref-assistant" onclick="openFirmanteModal()" title="Modificar firmante" style="height:32px; font-size:11.5px; padding:0 8px;">
+            &#9997; Cambiar
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn-secondary-action" onclick="copyOrdenSummary(event)" style="height:36px; font-size:12px;">
+            <span>&#128203;</span> Copiar Datos
+          </button>
+          <button type="button" class="btn-secondary-action" onclick="closePreviewOrdenModal()" style="height:36px; font-size:12px;">
+            <span>&#9999;</span> Volver / Editar
+          </button>
+          <button type="button" class="btn-primary-action" onclick="printOrdenDocument(event)" style="background:#1d4ed8; border-color:#1d4ed8; height:36px; font-size:12.5px; font-weight:bold; display:flex; align-items:center; gap:6px;">
+            <span>&#128424;&#65039;</span> Imprimir / Guardar PDF (A4)
+          </button>
+          <button type="button" class="btn-primary-action" id="btnPreviewConfirmSave" onclick="confirmAndSaveFromPreview()" style="background:#0b5a3c; height:36px; font-size:12.5px; font-weight:bold; display:flex; align-items:center; gap:6px;">
+            <span>&#128424;&#65039;&#128190;</span> Imprimir y Grabar Registro
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor del documento A4 con 2 copias A5 -->
+      <div class="orden-sheet-container">
+        <div id="ordenDocumentSheet" class="orden-a4-sheet">
+
+          <!-- COPIA 1 (SUPERIOR) -->
+          <div class="orden-a5-card" id="ordenCardTop">
+            <div class="orden-header-grid">
+              <div class="orden-left-brand">
+                <img class="orden-header-stamp-img" src="sello_membrete.png" alt="Membrete PNP" />
+              </div>
+              <div class="orden-center-title">
+                <div class="orden-doc-number-title">
+                  <div>ORDEN DE INCORPORACION N&deg; <span class="orden-val-num">001</span>-<span class="orden-val-year">2026</span>-COMOPPOL/</div>
+                  <div>DIRNOS PNP/REGPOL HUANUCO/SEC-OFAD.AREREHUM</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="orden-data-block">
+              <div class="orden-data-row">
+                <div class="orden-data-label">CIP</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-cip">---</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">GRADO Y APELLIDOS Y NOMBRES</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-grado-nombres">---</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">UNIDAD DE PROCEDENCIA</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-procedencia">DIVREINT HUANUCO</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">UNIDAD DE DESTINO</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-destino">OFAD REGPOL HUANUCO</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">FECHA DE SALIDA</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-fechasalida">---</span></div>
+              </div>
+              <div class="orden-data-row" style="align-items:flex-start;">
+                <div class="orden-data-label">MOTIVO</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val orden-obs-text"><span class="orden-val-motivo">---</span></div>
+              </div>
+              <div class="orden-data-row" style="align-items:flex-start;">
+                <div class="orden-data-label">OBSERVACION</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val orden-obs-text"><span class="orden-val-observacion">SE PONE A DISPOSICION AL PERSONAL POLICIAL ANTES INDICADO, A MERITO DE LOS DOCUMENTOS MENCIONADOS; POR LO QUE DEBERA DE COMUNICAR LA INCORPORACION AL JEFE DE LA DIVISION, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y AL AREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO, MEDIANTE EL CORREO rphuanuco.arerehum@policia.gob.pe CON EL DOCUMENTO CORRESPONDIENTE, SIN PERJUICIO DE FORMULAR DOCUMENTACION SOBRE ALGUNA NOVEDAD QUE PUDIERA SUSCITARSE.</span></div>
+              </div>
+            </div>
+
+            <div class="orden-footer-bottom-block">
+              <div class="orden-divider-line"></div>
+              <div class="orden-date-row">
+                <span class="orden-val-fechahora">HUÁNUCO, 09 DE SETIEMBRE DEL 2026 - 20:00 HORAS</span>
+              </div>
+              <div class="orden-footer-signature-row" style="margin-top: 50px;">
+                <!-- Sello Redondo y Firma -->
+                <div class="orden-seal-container">
+                  <img class="orden-round-seal-img" src="sello_redondo.png" alt="Sello Redondo" />
+                  <div class="orden-sign-box">
+                    <div class="orden-sign-line"></div>
+                    <div class="orden-sign-cip"><span class="orden-val-sign-cip"></span></div>
+                    <div class="orden-sign-name"><span class="orden-val-sign-name">CISNEROS APAZA RICKY FLORIAN</span></div>
+                    <div class="orden-sign-grade"><span class="orden-val-sign-grade">COMANDANTE PNP</span></div>
+                    <div class="orden-sign-cargo"><span class="orden-val-sign-cargo">JEFE DE LA OFAD REGPOL HU&Aacute;NUCO</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LÍNEA DE CORTE -->
+          <div class="orden-cut-guide">
+            <span class="orden-cut-label">&#9986; L&Iacute;NEA DE CORTE - 2 EJEMPLARES A5 EN HOJA A4</span>
+          </div>
+
+          <!-- COPIA 2 (INFERIOR) -->
+          <div class="orden-a5-card" id="ordenCardBottom">
+            <div class="orden-header-grid">
+              <div class="orden-left-brand">
+                <img class="orden-header-stamp-img" src="sello_membrete.png" alt="Membrete PNP" />
+              </div>
+              <div class="orden-center-title">
+                <div class="orden-doc-number-title">
+                  <div>ORDEN DE INCORPORACION N&deg; <span class="orden-val-num">001</span>-<span class="orden-val-year">2026</span>-COMOPPOL/</div>
+                  <div>DIRNOS PNP/REGPOL HUANUCO/SEC-OFAD.AREREHUM</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="orden-data-block">
+              <div class="orden-data-row">
+                <div class="orden-data-label">CIP</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-cip">---</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">GRADO Y APELLIDOS Y NOMBRES</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-grado-nombres">---</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">UNIDAD DE PROCEDENCIA</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-procedencia">DIVREINT HUANUCO</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">UNIDAD DE DESTINO</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-destino">OFAD REGPOL HUANUCO</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">FECHA DE SALIDA</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-fechasalida">---</span></div>
+              </div>
+              <div class="orden-data-row" style="align-items:flex-start;">
+                <div class="orden-data-label">MOTIVO</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val orden-obs-text"><span class="orden-val-motivo">---</span></div>
+              </div>
+              <div class="orden-data-row" style="align-items:flex-start;">
+                <div class="orden-data-label">OBSERVACION</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val orden-obs-text"><span class="orden-val-observacion">SE PONE A DISPOSICION AL PERSONAL POLICIAL ANTES INDICADO, A MERITO DE LOS DOCUMENTOS MENCIONADOS; POR LO QUE DEBERA DE COMUNICAR LA INCORPORACION AL JEFE DE LA DIVISION, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y AL AREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO, MEDIANTE EL CORREO rphuanuco.arerehum@policia.gob.pe CON EL DOCUMENTO CORRESPONDIENTE, SIN PERJUICIO DE FORMULAR DOCUMENTACION SOBRE ALGUNA NOVEDAD QUE PUDIERA SUSCITARSE.</span></div>
+              </div>
+            </div>
+
+            <div class="orden-footer-bottom-block">
+              <div class="orden-divider-line"></div>
+              <div class="orden-date-row">
+                <span class="orden-val-fechahora">HUÁNUCO, 09 DE SETIEMBRE DEL 2026 - 20:00 HORAS</span>
+              </div>
+              <div class="orden-footer-signature-row has-cargo" style="margin-top: 24px;">
+                <!-- Cargo Recepción (Más abajo) -->
+                <div class="orden-cargo-recepcion-box" style="margin-top:8px; margin-bottom:0;">
+                  <img class="orden-cargo-recepcion-img" src="sello_cargo.png" alt="Cargo Recepción" />
+                </div>
+                <!-- Sello Redondo y Firma -->
+                <div class="orden-seal-container">
+                  <img class="orden-round-seal-img" src="sello_redondo.png" alt="Sello Redondo" />
+                  <div class="orden-sign-box">
+                    <div class="orden-sign-line"></div>
+                    <div class="orden-sign-cip"><span class="orden-val-sign-cip"></span></div>
+                    <div class="orden-sign-name"><span class="orden-val-sign-name">CISNEROS APAZA RICKY FLORIAN</span></div>
+                    <div class="orden-sign-grade"><span class="orden-val-sign-grade">COMANDANTE PNP</span></div>
+                    <div class="orden-sign-cargo"><span class="orden-val-sign-cargo">JEFE DE LA OFAD REGPOL HU&Aacute;NUCO</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE VISTA PREVIA E IMPRESIÓN OFICIAL: OFICIO DE INCORPORACIÓN (Hoja Completa A4) -->
+  <div id="modalPreviewOficioIncorp" class="modal-preview-oficio">
+    <div class="dialog-preview-oficio">
+      <div class="doc-modal-header" style="background: linear-gradient(90deg, #0b5a3c 0%, #06351f 100%); color: #fff;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:20px;">&#128196;</span>
+          <div>
+            <h3 style="color:#fff; margin:0; font-size:16px;">Vista Previa Oficial: Oficio de Incorporaci&oacute;n</h3>
+            <div style="font-size:11.5px; color:#c9ded3;">Formato Oficial PNP &middot; Hoja Completa A4 (Descarga en Word / PDF)</div>
+          </div>
+        </div>
+        <button type="button" class="doc-modal-close" onclick="closePreviewOficioModal()" style="color:#fff;">&times;</button>
+      </div>
+
+      <!-- Barra de controles y acciones del Oficio -->
+      <div class="modal-preview-controls-bar">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 12px; font-weight: bold; color: #18372b;">Firmante:</span>
+          <span id="previewOficioFirmanteBadge" style="font-size:12px; font-weight:700; color:#0b5a3c; background:#e8f3ec; padding:4px 10px; border-radius:6px; border:1px solid #c2e2cb;">
+            CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD
+          </span>
+          <button type="button" class="btn-ref-assistant" onclick="openFirmanteModal()" title="Modificar firmante" style="height:32px; font-size:11.5px; padding:0 8px;">
+            &#9997; Cambiar
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn-secondary-action" onclick="copyOficioSummary(event)" style="height:36px; font-size:12px;">
+            <span>&#128203;</span> Copiar Texto
+          </button>
+          <button type="button" class="btn-secondary-action" onclick="closePreviewOficioModal()" style="height:36px; font-size:12px;">
+            <span>&#9999;</span> Volver / Editar
+          </button>
+          <button type="button" class="btn-primary-action" onclick="downloadWordOficio()" style="background:#0284c7; border-color:#0284c7; height:36px; font-size:12.5px; font-weight:bold; display:flex; align-items:center; gap:6px;">
+            <span>&#128196;</span> Descargar Word (.docx)
+          </button>
+          <button type="button" class="btn-primary-action" onclick="printOficioDocument(event)" style="background:#1d4ed8; border-color:#1d4ed8; height:36px; font-size:12.5px; font-weight:bold; display:flex; align-items:center; gap:6px;">
+            <span>&#128424;&#65039;</span> Imprimir / Guardar PDF (A4)
+          </button>
+          <button type="button" class="btn-primary-action" id="btnPreviewOficioConfirmSave" onclick="confirmAndSaveFromOficioPreview()" style="background:#0b5a3c; height:36px; font-size:12.5px; font-weight:bold; display:flex; align-items:center; gap:6px;">
+            <span>&#128424;&#65039;&#128190;</span> Imprimir y Grabar Registro
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor del documento A4 del Oficio -->
+      <div class="oficio-sheet-container">
+        <div id="oficioDocumentSheet" class="oficio-a4-sheet">
+
+          <!-- Encabezado Membrete Ministerial a Todo el Ancho -->
+          <div>
+            <div class="oficio-header-brand">
+              <img class="oficio-header-banner-img" src="cabecera_oficio.png" alt="Gobierno del Perú - Ministerio del Interior - Policía Nacional del Perú" />
+            </div>
+            <div class="oficio-lema-text">
+              &ldquo;A&ntilde;o de la Esperanza y el Fortalecimiento de la Democracia&rdquo;
+            </div>
+
+            <div class="oficio-date-place">
+              Hu&aacute;nuco, <span id="oficioValFechaTexto">08 de Setiembre del 2026</span>
+            </div>
+
+            <div class="oficio-title-num">
+              OFICIO N&deg; <span id="oficioValNum">001</span>-<span id="oficioValYear">2026</span>-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM
+            </div>
+
+            <div class="oficio-dest-block">
+              <div class="oficio-dest-row">
+                <div class="oficio-field-label">SE&Ntilde;OR</div>
+                <div class="oficio-field-sep">:</div>
+                <div class="oficio-field-val">
+                  <div style="font-weight:bold; text-transform:uppercase;" id="oficioValDestinoGrado">CORONEL PNP</div>
+                  <div style="font-weight:bold; font-size:10pt; color:#111; margin-top:2px; text-transform:uppercase;" id="oficioValDestinoNombre">CHRISTIAM DARWIN CHAVEZ GOMEZ</div>
+                  <div style="font-size:9.5pt; color:#222; margin-top:2px; text-transform:uppercase;" id="oficioValDestinoCargo">JEFE DIVOPUS LEONCIO PRADO</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="oficio-asunto-block">
+              <div class="oficio-asunto-row">
+                <div class="oficio-field-label">ASUNTO</div>
+                <div class="oficio-field-sep">:</div>
+                <div class="oficio-field-val">Pone a Disposici&oacute;n a personal PNP, por motivo que se indica.</div>
+              </div>
+              <div class="oficio-asunto-row" style="margin-top:6px;">
+                <div class="oficio-field-label">REF.</div>
+                <div class="oficio-field-sep">:</div>
+                <div class="oficio-field-val" id="oficioValRef">RD N&deg; 001-2026-DIRREHUM PNP</div>
+              </div>
+            </div>
+
+            <div class="oficio-body-text">
+              Tengo el honor de dirigirme a Ud., en atenci&oacute;n al documento indicado en la referencia, con la finalidad de poner a disposici&oacute;n al personal policial conforme a continuaci&oacute;n se detalla:
+            </div>
+
+            <!-- Tabla de datos del efectivo -->
+            <div class="oficio-detail-box">
+              <div class="oficio-detail-row">
+                <div class="oficio-detail-label">CIP</div>
+                <div class="oficio-detail-sep">:</div>
+                <div class="oficio-detail-val" id="oficioValCip">---</div>
+              </div>
+              <div class="oficio-detail-row">
+                <div class="oficio-detail-label">APELLIDOS Y NOMBRES</div>
+                <div class="oficio-detail-sep">:</div>
+                <div class="oficio-detail-val" id="oficioValPersonal">---</div>
+              </div>
+              <div class="oficio-detail-row">
+                <div class="oficio-detail-label">PROCEDENCIA / REVISTA</div>
+                <div class="oficio-detail-sep">:</div>
+                <div class="oficio-detail-val" id="oficioValProcedencia">---</div>
+              </div>
+              <div class="oficio-detail-row">
+                <div class="oficio-detail-label">MOTIVO</div>
+                <div class="oficio-detail-sep">:</div>
+                <div class="oficio-detail-val" id="oficioValMotivo">---</div>
+              </div>
+              <div class="oficio-detail-row">
+                <div class="oficio-detail-label">UNIDAD DE DESTINO</div>
+                <div class="oficio-detail-sep">:</div>
+                <div class="oficio-detail-val" id="oficioValDestino">---</div>
+              </div>
+            </div>
+
+            <div class="oficio-closing-text">
+              Al respecto, el citado efectivo policial, deber&aacute; ser incorporado a la unidad de Destino antes indicado; asimismo se solicita comunicar su incorporaci&oacute;n al &Aacute;rea de Recursos Humanos, mediante el documento correspondiente al <b>rphuanuco.arerehum@policia.gob.pe</b>.
+            </div>
+
+            <div class="oficio-closing-text">
+              Es propicia la ocasi&oacute;n para reiterarle los sentimientos de mi especial consideraci&oacute;n y deferente estima personal.
+            </div>
+
+            <div class="oficio-dios-guarde">
+              Dios guarde a Ud.
+            </div>
+          </div>
+
+          <!-- Pie de página y Firma -->
+          <div class="oficio-footer-sig-row">
+            <div class="oficio-initials">
+              <span id="oficioValIniciales">RFCA/jlms</span>
+            </div>
+
+            <div class="orden-seal-container">
+              <img class="orden-round-seal-img" src="sello_redondo.png" alt="Sello Redondo" />
+              <div class="orden-sign-box">
+                <div class="orden-sign-line"></div>
+                <div class="orden-sign-cip"><span id="oficioValSignCip"></span></div>
+                <div class="orden-sign-name"><span id="oficioValSignName">CISNEROS APAZA RICKY FLORIAN</span></div>
+                <div class="orden-sign-grade"><span id="oficioValSignGrade">COMANDANTE PNP</span></div>
+                <div class="orden-sign-cargo"><span id="oficioValSignCargo">JEFE DE LA OFAD REGPOL HU&Aacute;NUCO</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <!-- SCRIPTS Y L??GICA DE CONEXI??N CON REGLAS DE SEGURIDAD (RBAC) -->
   <script>
@@ -1113,7 +2583,7 @@
       carta_informativa: { title: 'CARTAS INFORMATIVAS', icon: '&#9993;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
       devolucion: { title: 'DEVOLUCIONES', icon: '&#128257;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
       resolucion: { title: 'RESOLUCIONES', icon: '&#9878;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
-      orden_incorporacion: { title: '\u00d3RDENES DE INCORPORACI\u00d3N', icon: '&#129706;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
+      orden_incorporacion: { title: '\u00d3RDENES DE INCORPORACI\u00d3N', icon: '&#129706;', isOrdenIncorporacion: true },
       orden_reincorporacion: { title: '\u00d3RDENES DE REINCORPORACI\u00d3N', icon: '&#128259;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
       comunicacion_telefonica: { title: 'COMUNICACIONES TELEF\u00d3NICAS', icon: '&#128222;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
       orden_telefonica: { title: '\u00d3RDENES TELEF\u00d3NICAS', icon: '&#9742;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
@@ -1126,6 +2596,856 @@
     let currentData = [];
     let currentUser = null;
     let editingId = null;
+
+    const PERSONAL_SUPABASE_URL = 'https://cmbjqttrwdphrirerzyx.supabase.co';
+    const PERSONAL_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtYmpxdHRyd2RwaHJpcmVyenl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDM1OTMsImV4cCI6MjA5NjYxOTU5M30.JVCjFMNiv7NMjrwKpmbpXz-3HNgda6gWR_TSUJ3pHds';
+
+    let unidadesCatalog = [];
+
+    async function loadUnidadesCatalogDoc() {
+      if (unidadesCatalog && unidadesCatalog.length > 0) return;
+      try {
+        const res = await fetch(`${PERSONAL_SUPABASE_URL}/rest/v1/unidades?select=*&order=id.asc`, {
+          headers: {
+            'apikey': PERSONAL_SUPABASE_KEY,
+            'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY
+          }
+        });
+        if (res.ok) {
+          const raw = await res.json();
+          unidadesCatalog = (raw || []).map(u => ({
+            id: u.id,
+            nivel_1: u.NIVEL1 || u.nivel_1,
+            nivel_1_nombre: u.EXACTO1 || u.nivel_1_nombre || u.NIVEL1 || u.nivel_1,
+            nivel_2: u.NIVEL2 || u.nivel_2,
+            nivel_2_nombre: u.EXACTO2 || u.nivel_2_nombre || u.NIVEL2 || u.nivel_2,
+            nivel_3: u.NIVEL3 || u.nivel_3,
+            nivel_3_nombre: u.EXACTO3 || u.nivel_3_nombre || u.NIVEL3 || u.nivel_3,
+            nivel_4: u.NIVEL4 || u.nivel_4,
+            nivel_4_nombre: u.EXACTO4 || u.nivel_4_nombre || u.NIVEL4 || u.nivel_4
+          }));
+        }
+      } catch (_) { unidadesCatalog = []; }
+    }
+
+    function unidadNombreFinal(u) {
+      return String(u.nivel_4_nombre || u.nivel_3_nombre || u.nivel_2_nombre || u.nivel_1_nombre || '').trim();
+    }
+
+    function normalizeSearchText(str) {
+      return String(str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .trim();
+    }
+
+    function getUnidadesListDoc() {
+      if (!unidadesCatalog || !unidadesCatalog.length) return [];
+      const set = new Set();
+      unidadesCatalog.forEach(u => {
+        const f = unidadNombreFinal(u);
+        if (f) set.add(f);
+        if (u.nivel_4_nombre) set.add(String(u.nivel_4_nombre).trim());
+        if (u.nivel_3_nombre) set.add(String(u.nivel_3_nombre).trim());
+        if (u.nivel_2_nombre) set.add(String(u.nivel_2_nombre).trim());
+        if (u.nivel_1_nombre) set.add(String(u.nivel_1_nombre).trim());
+      });
+      return [...set].filter(Boolean).sort((a, b) => a.localeCompare(b));
+    }
+
+    async function showUnidadesDocDropdown(inputEl) {
+      if (!unidadesCatalog || !unidadesCatalog.length) {
+        await loadUnidadesCatalogDoc();
+      }
+      filterUnidadesDocDropdown(inputEl);
+    }
+
+    function filterUnidadesDocDropdown(inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl) return;
+
+      const rawQuery = inputEl.value;
+      const q = normalizeSearchText(rawQuery);
+      const allUnits = getUnidadesListDoc();
+
+      if (!allUnits.length) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      let matches = [];
+      if (!q) {
+        matches = allUnits.slice(0, 50);
+      } else {
+        matches = allUnits.filter(u => normalizeSearchText(u).includes(q)).slice(0, 50);
+      }
+
+      if (matches.length === 0) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">No se encontraron unidades con "' + (rawQuery || '') + '"</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((unit, idx) => {
+        let displayHtml = unit;
+        if (q) {
+          const normUnit = normalizeSearchText(unit);
+          const startIdx = normUnit.indexOf(q);
+          if (startIdx >= 0) {
+            const before = unit.substring(0, startIdx);
+            const matchStr = unit.substring(startIdx, startIdx + q.length);
+            const after = unit.substring(startIdx + q.length);
+            displayHtml = `${before}<mark>${matchStr}</mark>${after}`;
+          }
+        }
+        const safeVal = encodeURIComponent(unit);
+        return `<div class="autocomplete-item ${idx === 0 && q ? 'active' : ''}" data-val="${safeVal}" onmousedown="selectUnidadDocOption('${inputEl.id}', '${safeVal}')">${displayHtml}</div>`;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function selectUnidadDocOption(inputId, encodedVal) {
+      const inputEl = document.getElementById(inputId);
+      const dropEl = document.getElementById(inputId + '_dropdown');
+      const value = decodeURIComponent(encodedVal);
+      if (inputEl) {
+        inputEl.value = value;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      if (dropEl) dropEl.style.display = 'none';
+    }
+
+    function navigateUnidadesDocDropdown(e, inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl || dropEl.style.display === 'none') return;
+
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          const encodedVal = items[activeIndex].getAttribute('data-val');
+          selectUnidadDocOption(inputEl.id, encodedVal);
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
+    // --- BÚSQUEDA EN TIEMPO REAL DE PERSONAL POLICIAL ---
+    let debouncePersonalTimer = null;
+    let debounceCipTimer = null;
+
+    function searchPersonalDoc(inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl) return;
+      const q = (inputEl.value || '').trim();
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      clearTimeout(debouncePersonalTimer);
+      debouncePersonalTimer = setTimeout(async () => {
+        try {
+          const encQ = encodeURIComponent(q);
+          const url = `${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=*&or=(CIP.ilike.*${encQ}*,APELLIDOS%20Y%20NOMBRES.ilike.*${encQ}*)&limit=15`;
+          const res = await fetch(url, {
+            headers: {
+              'apikey': PERSONAL_SUPABASE_KEY,
+              'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY
+            }
+          });
+          if (!res.ok) {
+            dropEl.style.display = 'none';
+            return;
+          }
+          const list = await res.json();
+          if (!list || !list.length) {
+            dropEl.innerHTML = `<div class="autocomplete-empty">No se encontr&oacute; personal policial con "${q}"</div>`;
+            dropEl.style.display = 'block';
+            return;
+          }
+
+          dropEl.innerHTML = list.map((item, idx) => {
+            const grado = String(item.GRADO || item.grado || '').trim();
+            const nombres = String(item['APELLIDOS Y NOMBRES'] || item.apellidos_nombres || '').trim();
+            const cip = String(item.CIP || item.cip || '').trim();
+            const unidadAnt = String(item['LISTA DE REVISTA'] || item.lista_de_revista || item['UNIDAD ANTERIOR'] || item.unidad_anterior || item['UNIDAD DE ORIGEN'] || item.unidad_de_origen || '').trim();
+            const fullVal = `${grado ? grado + ' ' : ''}${nombres}`.trim();
+            const safeVal = encodeURIComponent(fullVal);
+            const safeCip = encodeURIComponent(cip);
+            const safeUnidadAnt = encodeURIComponent(unidadAnt);
+
+            return `
+              <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" data-val="${safeVal}" data-cip="${safeCip}" data-unidad-anterior="${safeUnidadAnt}" onmousedown="selectPersonalDocOption('${inputEl.id}', '${safeVal}', '${safeCip}', '${safeUnidadAnt}')" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div>
+                  <span style="color:#0b5a3c; font-weight:800; font-size:12px;">&#128110; ${grado}</span>
+                  <span style="font-weight:700; color:#1f3f30;">${nombres}</span>
+                  ${unidadAnt ? `<div style="font-size:10.5px; color:#4b5563; margin-top:2px;">&#128203; Rev / Procedencia: <b>${unidadAnt}</b></div>` : ''}
+                </div>
+                <span style="font-size:11px; background:#e8f4ec; color:#0b5a3c; padding:2px 6px; border-radius:4px; font-weight:700;">CIP: ${cip || '---'}</span>
+              </div>
+            `;
+          }).join('');
+
+          dropEl.style.display = 'block';
+        } catch (err) {
+          console.error('Error buscando personal:', err);
+          dropEl.style.display = 'none';
+        }
+      }, 200);
+    }
+
+    function selectPersonalDocOption(inputId, encodedVal, encodedCip = '', encodedUnidadAnt = '') {
+      const inputEl = document.getElementById(inputId);
+      const dropEl = document.getElementById(inputId + '_dropdown');
+      const value = decodeURIComponent(encodedVal);
+      const cip = encodedCip ? decodeURIComponent(encodedCip) : '';
+      const unidadAnt = encodedUnidadAnt ? decodeURIComponent(encodedUnidadAnt) : '';
+
+      if (inputEl) {
+        inputEl.value = value;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const cipInput = document.getElementById('f_cip');
+      if (cipInput && cip) {
+        cipInput.value = cip;
+        cipInput.dispatchEvent(new Event('input', { bubbles: true }));
+        cipInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const unidadAntInput = document.getElementById('f_unidad_anterior');
+      if (unidadAntInput && unidadAnt) {
+        unidadAntInput.value = unidadAnt;
+        unidadAntInput.dispatchEvent(new Event('input', { bubbles: true }));
+        unidadAntInput.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      if (dropEl) dropEl.style.display = 'none';
+    }
+
+    function navigatePersonalDocDropdown(e, inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl || dropEl.style.display === 'none') return;
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          const encodedVal = items[activeIndex].getAttribute('data-val');
+          const encodedCip = items[activeIndex].getAttribute('data-cip') || '';
+          const encodedUnidadAnt = items[activeIndex].getAttribute('data-unidad-anterior') || '';
+          selectPersonalDocOption(inputEl.id, encodedVal, encodedCip, encodedUnidadAnt);
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
+    function lookupPersonalByCip(inputEl) {
+      if (!inputEl) return;
+      const cip = inputEl.value.trim();
+      if (!cip || cip.length < 8) return;
+
+      clearTimeout(debounceCipTimer);
+      debounceCipTimer = setTimeout(async () => {
+        try {
+          const url = `${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=*&CIP=eq.${encodeURIComponent(cip)}&limit=1`;
+          const res = await fetch(url, {
+            headers: {
+              'apikey': PERSONAL_SUPABASE_KEY,
+              'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY
+            }
+          });
+          if (res.ok) {
+            const list = await res.json();
+            if (list && list.length > 0) {
+              const pers = list[0];
+              const grado = String(pers.GRADO || pers.grado || '').trim();
+              const nombres = String(pers['APELLIDOS Y NOMBRES'] || pers.apellidos_nombres || '').trim();
+              const unidadAnt = String(pers['LISTA DE REVISTA'] || pers.lista_de_revista || pers['UNIDAD ANTERIOR'] || pers.unidad_anterior || pers['UNIDAD DE ORIGEN'] || pers.unidad_de_origen || '').trim();
+              const fullVal = `${grado ? grado + ' ' : ''}${nombres}`.trim();
+
+              const persInput = document.getElementById('f_grado_apellidos_nombres');
+              if (persInput && (!persInput.value.trim() || persInput.value.trim() !== fullVal)) {
+                persInput.value = fullVal;
+                persInput.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+
+              const unidadAntInput = document.getElementById('f_unidad_anterior');
+              if (unidadAntInput && unidadAnt && (!unidadAntInput.value.trim() || unidadAntInput.value.trim() !== unidadAnt)) {
+                unidadAntInput.value = unidadAnt;
+                unidadAntInput.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+            }
+          }
+        } catch (_) {}
+      }, 300);
+    }
+
+
+    // --- CATÁLOGO Y AUTOCOMPLETADO DE TIPO DE INCORPORACIÓN / ASUNTO ---
+    const TIPO_INCORP_DATA = {
+      'REASIGNACION': {
+        title: 'REASIGNACIÓN',
+        badge: '&#128259;',
+        options: [
+          'REASIGNACIÓN POR NECESIDAD DEL SERVICIO',
+          'REASIGNACIÓN A SU SOLICITUD',
+          'REASIGNACIÓN POR PERMUTA'
+        ]
+      },
+      'DESTAQUE': {
+        title: 'DESTAQUE',
+        badge: '&#128204;',
+        options: [
+          'DESTAQUE POR NECESIDAD DEL SERVICIO POR 30 DIAS',
+          'DESTAQUE POR NECESIDAD DEL SERVICIO POR 60 DIAS',
+          'DESTAQUE POR NECESIDAD DEL SERVICIO POR 90 DIAS',
+          'DESTAQUE A SU SOLICITUD POR 30 DIAS',
+          'DESTAQUE A SU SOLICITUD POR 60 DIAS',
+          'DESTAQUE A SU SOLICITUD POR 90 DIAS'
+        ]
+      },
+      'APOYO': {
+        title: 'APOYO',
+        badge: '&#129309;',
+        options: [
+          'APOYO HASTA NUEVA ORDEN POR NECESIDAD DEL SERVICIO',
+          'APOYO HASTA EL TERMINO DE CURSO DE CAPACITACION',
+          'APOYO HASTA EL TERMINO DE TRATAMIENTO MEDICO'
+        ]
+      }
+    };
+
+    let tiposIncorporacionCatalog = [
+      'REASIGNACIÓN POR NECESIDAD DEL SERVICIO',
+      'REASIGNACIÓN A SU SOLICITUD',
+      'REASIGNACIÓN POR PERMUTA',
+      'DESTAQUE POR NECESIDAD DEL SERVICIO POR 30 DIAS',
+      'DESTAQUE POR NECESIDAD DEL SERVICIO POR 60 DIAS',
+      'DESTAQUE POR NECESIDAD DEL SERVICIO POR 90 DIAS',
+      'DESTAQUE A SU SOLICITUD POR 30 DIAS',
+      'DESTAQUE A SU SOLICITUD POR 60 DIAS',
+      'DESTAQUE A SU SOLICITUD POR 90 DIAS',
+      'APOYO HASTA NUEVA ORDEN POR NECESIDAD DEL SERVICIO',
+      'APOYO HASTA EL TERMINO DE CURSO DE CAPACITACION',
+      'APOYO HASTA EL TERMINO DE TRATAMIENTO MEDICO'
+    ];
+
+    function selectTipoCategory(categoryKey) {
+      const cat = TIPO_INCORP_DATA[categoryKey];
+      if (!cat) return;
+
+      const subContainer = document.getElementById('subChips_f_descripcion');
+      if (!subContainer) return;
+
+      document.querySelectorAll('.cat-chip-btn').forEach(b => {
+        if (b.getAttribute('data-cat') === categoryKey) {
+          b.classList.add('active-cat');
+        } else {
+          b.classList.remove('active-cat');
+        }
+      });
+
+      subContainer.innerHTML = cat.options.map((opt, idx) => {
+        const safeVal = encodeURIComponent(opt);
+        let shortLabel = opt;
+        if (categoryKey === 'REASIGNACION') {
+          shortLabel = opt.replace(/^REASIGNACIÓN (POR )?/i, '');
+        } else if (categoryKey === 'DESTAQUE') {
+          shortLabel = opt.replace(/^DESTAQUE (POR )?/i, '');
+        } else if (categoryKey === 'APOYO') {
+          shortLabel = opt.replace(/^APOYO /i, '');
+        }
+        return `<button type="button" class="sub-chip-btn ${idx === 0 ? 'active-sub' : ''}" data-val="${safeVal}" onclick="applyTipoSubOption('${safeVal}')">${shortLabel}</button>`;
+      }).join('');
+
+      subContainer.style.display = 'flex';
+      applyTipoSubOption(encodeURIComponent(cat.options[0]));
+    }
+
+    function applyTipoSubOption(encodedVal) {
+      const val = decodeURIComponent(encodedVal);
+      const inputEl = document.getElementById('f_descripcion');
+      if (inputEl) {
+        inputEl.value = val;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      document.querySelectorAll('.sub-chip-btn').forEach(b => {
+        if (b.getAttribute('data-val') === encodedVal) {
+          b.classList.add('active-sub');
+        } else {
+          b.classList.remove('active-sub');
+        }
+      });
+    }
+
+    async function loadTiposIncorporacionDoc() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/tipo_incorporacion?select=descripcion&order=id.asc`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+        });
+        if (res.ok) {
+          const list = await res.json();
+          if (list && list.length) {
+            const names = list.map(x => String(x.descripcion || x.nombre || '').trim()).filter(Boolean);
+            if (names.length) {
+              tiposIncorporacionCatalog = Array.from(new Set([...names, ...tiposIncorporacionCatalog]));
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    function showTiposDocDropdown(inputEl) {
+      filterTiposDocDropdown(inputEl);
+    }
+
+    function filterTiposDocDropdown(inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl) return;
+      const rawQuery = inputEl.value || '';
+      const q = normalizeSearchText(rawQuery);
+
+      let matches = tiposIncorporacionCatalog;
+      if (q) {
+        matches = tiposIncorporacionCatalog.filter(t => normalizeSearchText(t).includes(q));
+      }
+
+      if (!matches.length) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((item, idx) => {
+        const safeVal = encodeURIComponent(item);
+        return `<div class="autocomplete-item ${idx === 0 && q ? 'active' : ''}" data-val="${safeVal}" onmousedown="selectTipoDocOption('${inputEl.id}', '${safeVal}')">${item}</div>`;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function selectTipoDocOption(inputId, encodedVal) {
+      const inputEl = document.getElementById(inputId);
+      const dropEl = document.getElementById(inputId + '_dropdown');
+      const value = decodeURIComponent(encodedVal);
+      if (inputEl) {
+        inputEl.value = value;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      if (dropEl) dropEl.style.display = 'none';
+    }
+
+    function navigateTiposDocDropdown(e, inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl || dropEl.style.display === 'none') return;
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          const encodedVal = items[activeIndex].getAttribute('data-val');
+          selectTipoDocOption(inputEl.id, encodedVal);
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
+
+    // --- FORMATEADOR DE N° ORDEN INCORPORACIÓN DIRREHUM ---
+    function cleanAndFormatOrdenDirrehum(val) {
+      if (!val) return '';
+      let str = String(val).trim();
+      if (!str) return '';
+      const currentYear = new Date().getFullYear();
+
+      if (/^ORDEN DE INCORPORACION N°/i.test(str)) {
+        return str;
+      }
+
+      if (/^\d+$/.test(str)) {
+        return `ORDEN DE INCORPORACION N° ${str}-${currentYear}-DIRREHUM PNP/DIVMRH-DIRREHUM PNP`;
+      }
+
+      const matchYear = str.match(/^(\d+)[-/](\d{4})$/);
+      if (matchYear) {
+        return `ORDEN DE INCORPORACION N° ${matchYear[1]}-${matchYear[2]}-DIRREHUM PNP/DIVMRH-DIRREHUM PNP`;
+      }
+
+      const matchPartial = str.match(/^(\d+)[-/](\d{4})[-/](.*)$/i);
+      if (matchPartial) {
+        return `ORDEN DE INCORPORACION N° ${matchPartial[1]}-${matchPartial[2]}-DIRREHUM PNP/DIVMRH-DIRREHUM PNP`;
+      }
+
+      return `ORDEN DE INCORPORACION N° ${str}-${currentYear}-DIRREHUM PNP/DIVMRH-DIRREHUM PNP`;
+    }
+
+    function formatBlurNumOrdenDirrehum(inputEl) {
+      if (!inputEl) return;
+      const raw = inputEl.value.trim();
+      if (raw) {
+        inputEl.value = cleanAndFormatOrdenDirrehum(raw);
+      }
+    }
+
+
+    // --- ASISTENTE FLOTANTE DE DOCUMENTO DE REFERENCIA ---
+    function formatFechaDocRef(isoDate) {
+      if (!isoDate) return '';
+      const parts = String(isoDate).split('-');
+      if (parts.length !== 3) return isoDate;
+      const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
+      const dia = parts[2];
+      const mesIndex = parseInt(parts[1], 10) - 1;
+      const anio = parts[0];
+      const mesNom = (mesIndex >= 0 && mesIndex < 12) ? meses[mesIndex] : parts[1];
+      return `${dia}${mesNom}${anio}`;
+    }
+
+    function openDocRefAssistant(tipo = 'RD') {
+      const tipoSelect = document.getElementById('refModal_tipo');
+      if (tipoSelect) tipoSelect.value = tipo;
+
+      const yearInput = document.getElementById('refModal_year');
+      if (yearInput && !yearInput.value) yearInput.value = new Date().getFullYear();
+
+      const fechaInput = document.getElementById('refModal_fecha');
+      if (fechaInput && !fechaInput.value) {
+        fechaInput.value = new Date().toISOString().split('T')[0];
+      }
+
+      updateRefPreview();
+      const modal = document.getElementById('modalDocRefAssistant');
+      if (modal) modal.classList.add('active');
+
+      setTimeout(() => {
+        const numInp = document.getElementById('refModal_numero');
+        if (numInp) {
+          numInp.focus();
+          numInp.select();
+        }
+      }, 100);
+    }
+
+    function closeDocRefAssistant() {
+      const modal = document.getElementById('modalDocRefAssistant');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function updateRefPreview() {
+      const tipo = document.getElementById('refModal_tipo')?.value || 'RD';
+      const numRaw = (document.getElementById('refModal_numero')?.value || '').trim();
+      const num = numRaw || '001';
+      const year = document.getElementById('refModal_year')?.value || new Date().getFullYear();
+      const fecha = document.getElementById('refModal_fecha')?.value || '';
+      const fechaFmt = formatFechaDocRef(fecha);
+
+      let formatted = '';
+      if (tipo === 'RD') {
+        formatted = `RD N° ${num}-${year}-DIRREHUM PNP DEL ${fechaFmt || '...'}`;
+      } else if (tipo === 'MEMO_CG') {
+        formatted = `MEMORANDUM N° ${num}-${year}-CG DEL ${fechaFmt || '...'}`;
+      } else if (tipo === 'MEMO_JEFE') {
+        formatted = `MEMORANDUM N° ${num}-${year}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/SEC-OFAD.AREREHUM DEL ${fechaFmt || '...'}`;
+      }
+
+      const prevEl = document.getElementById('refModal_preview');
+      if (prevEl) prevEl.textContent = formatted;
+      return formatted;
+    }
+
+    function applyDocRefAssistant() {
+      const formatted = updateRefPreview();
+      const inputEl = document.getElementById('f_documento_referencia');
+      if (inputEl) {
+        inputEl.value = formatted;
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      closeDocRefAssistant();
+    }
+
+
+    // --- GESTIÓN DE FIRMANTE DEL DÍA / QUIEN ORDENA ---
+    let currentFirmanteDia = {
+      nombre: 'CMDTE PNP CISNEROS APAZA RICKY FLORIAN',
+      cargo: 'JEFE OFAD',
+      cip: '340850'
+    };
+
+    function initFirmanteDia() {
+      const saved = localStorage.getItem('regpol_firmante_dia');
+      if (saved) {
+        try {
+          currentFirmanteDia = JSON.parse(saved);
+        } catch (_) {}
+      }
+      updateTopbarFirmanteDisplay();
+    }
+
+    function getFirmanteDiaTexto() {
+      const nom = (currentFirmanteDia.nombre || '').trim();
+      const car = (currentFirmanteDia.cargo || '').trim();
+      if (nom && car) return `${nom} - ${car}`;
+      if (nom) return nom;
+      if (car) return car;
+      return 'JEFE REGPOL HU\u00c1NUCO';
+    }
+
+    function updateTopbarFirmanteDisplay() {
+      const displayEl = document.getElementById('topbarFirmanteDisplay');
+      if (displayEl) {
+        displayEl.textContent = getFirmanteDiaTexto();
+      }
+    }
+
+    function openFirmanteModal() {
+      const nomInp = document.getElementById('firmanteNombreInput');
+      const carInp = document.getElementById('firmanteCargoInput');
+      const searchInp = document.getElementById('searchFirmanteInput');
+      if (nomInp) nomInp.value = currentFirmanteDia.nombre || '';
+      if (carInp) carInp.value = currentFirmanteDia.cargo || '';
+      if (searchInp) searchInp.value = '';
+
+      updateFirmantePreview();
+      const modal = document.getElementById('modalFirmanteDia');
+      if (modal) modal.classList.add('active');
+
+      setTimeout(() => {
+        if (searchInp) {
+          searchInp.focus();
+        }
+      }, 100);
+    }
+
+    function closeFirmanteModal() {
+      const modal = document.getElementById('modalFirmanteDia');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function setFirmanteCargoChip(cargoText) {
+      const carInp = document.getElementById('firmanteCargoInput');
+      if (carInp) {
+        carInp.value = cargoText;
+        updateFirmantePreview();
+      }
+    }
+
+    function updateFirmantePreview() {
+      const nom = (document.getElementById('firmanteNombreInput')?.value || '').trim();
+      const car = (document.getElementById('firmanteCargoInput')?.value || '').trim();
+      let full = '';
+      if (nom && car) full = `${nom} - ${car}`;
+      else if (nom) full = nom;
+      else if (car) full = car;
+      else full = '...';
+
+      const prevBox = document.getElementById('firmantePreviewBox');
+      if (prevBox) prevBox.textContent = full;
+      return full;
+    }
+
+    function saveFirmanteDia() {
+      const nom = (document.getElementById('firmanteNombreInput')?.value || '').trim();
+      const car = (document.getElementById('firmanteCargoInput')?.value || '').trim();
+
+      if (!nom) {
+        alert('Por favor ingrese el grado y nombre del efectivo firmante.');
+        return;
+      }
+
+      currentFirmanteDia.nombre = nom;
+      currentFirmanteDia.cargo = car;
+      localStorage.setItem('regpol_firmante_dia', JSON.stringify(currentFirmanteDia));
+      updateTopbarFirmanteDisplay();
+      closeFirmanteModal();
+
+      // Si el modal de documento est?? abierto, actualizar el campo f_quien_ordena
+      const docQuienOrdena = document.getElementById('f_quien_ordena');
+      if (docQuienOrdena) {
+        docQuienOrdena.value = getFirmanteDiaTexto();
+      }
+    }
+
+    let debounceFirmanteTimer = null;
+
+    function searchFirmanteDoc(inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl) return;
+      const q = (inputEl.value || '').trim();
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      clearTimeout(debounceFirmanteTimer);
+      debounceFirmanteTimer = setTimeout(async () => {
+        try {
+          const encQ = encodeURIComponent(q);
+          const url = `${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=id,CIP,GRADO,APELLIDOS%20Y%20NOMBRES,CARGO&or=(CIP.ilike.*${encQ}*,APELLIDOS%20Y%20NOMBRES.ilike.*${encQ}*)&limit=15`;
+          const res = await fetch(url, {
+            headers: {
+              'apikey': PERSONAL_SUPABASE_KEY,
+              'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY
+            }
+          });
+          if (!res.ok) {
+            dropEl.style.display = 'none';
+            return;
+          }
+          const list = await res.json();
+          if (!list || !list.length) {
+            dropEl.innerHTML = `<div class="autocomplete-empty">No se encontr&oacute; personal con "${q}"</div>`;
+            dropEl.style.display = 'block';
+            return;
+          }
+
+          dropEl.innerHTML = list.map((item, idx) => {
+            const grado = String(item.GRADO || item.grado || '').trim();
+            const nombres = String(item['APELLIDOS Y NOMBRES'] || item.apellidos_nombres || '').trim();
+            const cip = item.CIP || item.cip || '';
+            const cargo = String(item.CARGO || item.cargo || '').trim();
+            const fullNom = `${grado ? grado + ' ' : ''}${nombres}`.trim();
+
+            const safeNom = encodeURIComponent(fullNom);
+            const safeCargo = encodeURIComponent(cargo);
+            const safeCip = encodeURIComponent(cip);
+
+            return `
+              <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" onmousedown="selectFirmanteOption('${safeNom}', '${safeCargo}', '${safeCip}')" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div>
+                  <div style="color:#0b5a3c; font-weight:800; font-size:12px;">&#128110; ${grado} ${nombres}</div>
+                  ${cargo ? `<div style="font-size:11px; color:#4b5563; font-weight:600;">Cargo: ${cargo}</div>` : ''}
+                </div>
+                <span style="font-size:11px; background:#e8f4ec; color:#0b5a3c; padding:2px 6px; border-radius:4px; font-weight:700;">CIP: ${cip}</span>
+              </div>
+            `;
+          }).join('');
+
+          dropEl.style.display = 'block';
+        } catch (err) {
+          console.error('Error buscando firmante:', err);
+          dropEl.style.display = 'none';
+        }
+      }, 200);
+    }
+
+    function selectFirmanteOption(safeNom, safeCargo, safeCip) {
+      const nom = decodeURIComponent(safeNom);
+      const cargo = decodeURIComponent(safeCargo);
+      const cip = safeCip ? decodeURIComponent(safeCip) : '';
+
+      const nomInp = document.getElementById('firmanteNombreInput');
+      const carInp = document.getElementById('firmanteCargoInput');
+      const searchInp = document.getElementById('searchFirmanteInput');
+      const dropEl = document.getElementById('searchFirmanteInput_dropdown');
+
+      if (nomInp) nomInp.value = nom;
+      if (carInp && cargo) carInp.value = cargo;
+      if (searchInp) searchInp.value = nom;
+      if (dropEl) dropEl.style.display = 'none';
+
+      if (cip) {
+        currentFirmanteDia.cip = String(cip).trim();
+      }
+
+      updateFirmantePreview();
+    }
+
+    function navigateFirmanteDropdown(e, inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl || dropEl.style.display === 'none') return;
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          items[activeIndex].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      document.querySelectorAll('.autocomplete-dropdown').forEach(d => {
+        const inputId = d.id.replace('_dropdown', '');
+        const inputEl = document.getElementById(inputId);
+        if (e.target !== inputEl && !d.contains(e.target)) {
+          d.style.display = 'none';
+        }
+      });
+    });
 
     // Validaci??n de Rol Administrador
     function isUserAdmin() {
@@ -1160,6 +3480,7 @@
 
     function checkAuth() {
       const session = localStorage.getItem('regpol_docs_user');
+      initFirmanteDia();
       if (session) {
         try {
           currentUser = JSON.parse(session);
@@ -1167,6 +3488,8 @@
           document.getElementById('loginOverlay').classList.add('hidden');
           loadAllBadges();
           loadCurrentTableData();
+          loadUnidadesCatalogDoc();
+          loadTiposIncorporacionDoc();
           return;
         } catch (_) {}
       }
@@ -1220,8 +3543,11 @@
         updateUserInterface();
         document.getElementById('loginOverlay').classList.add('hidden');
 
+        initFirmanteDia();
         loadAllBadges();
         loadCurrentTableData();
+        loadUnidadesCatalogDoc();
+        loadTiposIncorporacionDoc();
       } catch (err) {
         errEl.textContent = err.message || 'Error al intentar iniciar sesi\u00f3n.';
         errEl.style.display = 'flex';
@@ -1385,6 +3711,25 @@
       const conf = TABLES_CONFIG[currentTable];
       const admin = isUserAdmin();
 
+      if (conf.isOrdenIncorporacion) {
+        thead.innerHTML = `
+          <tr>
+            <th style="width:60px;">ID</th>
+            <th>N&deg; Documento</th>
+            <th>Fecha Doc.</th>
+            <th>Descripci&oacute;n / Asunto</th>
+            <th>Grado, Apellidos y Nombres</th>
+            <th>Destino</th>
+            <th>N&deg; Ord. Incorp. DIRREHUM</th>
+            <th>Doc. Referencia</th>
+            <th>Quien Ordena</th>
+            <th>Usuario Registra</th>
+            <th style="width:140px; text-align:center;">Acciones</th>
+          </tr>
+        `;
+        return;
+      }
+
       if (conf.isUserTable) {
         thead.innerHTML = `
           <tr>
@@ -1446,6 +3791,31 @@
 
       empty.style.display = 'none';
 
+      if (conf.isOrdenIncorporacion) {
+        tbody.innerHTML = items.map(item => `
+          <tr>
+            <td>${item.id}</td>
+            <td><span class="badge-doc">${item.numero_documento || '---'}</span></td>
+            <td>${item.fecha_documento || '---'}</td>
+            <td>${item.descripcion || '---'}</td>
+            <td><b>${item.grado_apellidos_nombres || item.grado_apellidos_nomnbres || '---'}</b></td>
+            <td><b>${item.destino || '---'}</b></td>
+            <td><span class="badge-doc">${item.numero_orden_incorporacion_dirrehum || '---'}</span></td>
+            <td>${item.documento_referencia || '---'}</td>
+            <td>${item.quien_ordena || '---'}</td>
+            <td><small>${item.usuario_registra || '---'}</small></td>
+            <td style="text-align:center; white-space:nowrap;">
+              <button class="action-btn" style="background:#e0f2fe; border-color:#bae6fd; color:#0369a1; font-weight:600; padding:4px 7px;" onclick="openPreviewOrdenFromRecordById(${item.id})" title="Ver e Imprimir Orden Oficial PNP (A5 x 2)">&#128065; Orden</button>
+              ${admin ? `
+                <button class="action-btn" onclick="editRecord(${item.id})" title="Editar">&#9999;</button>
+                <button class="action-btn btn-del" onclick="deleteRecord(${item.id})" title="Eliminar">&#128465;</button>
+              ` : ''}
+            </td>
+          </tr>
+        `).join('');
+        return;
+      }
+
       if (conf.isUserTable) {
         tbody.innerHTML = items.map(item => `
           <tr>
@@ -1496,11 +3866,13 @@
           <td>${item.descripcion || '---'}</td>
           ${conf.hasQuienOrdena ? `<td>${item.quien_ordena || '---'}</td>` : ''}
           <td><small>${item.usuario_registra || '---'}</small></td>
-          ${admin ? `
-          <td style="text-align:center;">
+          <td style="text-align:center; white-space:nowrap;">
+            ${currentTable === 'oficios' ? `<button class="action-btn" style="background:#e0f2fe; border-color:#bae6fd; color:#0369a1; font-weight:600; padding:4px 7px;" onclick="openPreviewOficioFromRecordById(${item.id})" title="Ver e Imprimir Oficio Oficial PNP (A4)">👁️ Oficio</button>` : ''}
+            ${admin ? `
             <button class="action-btn" onclick="editRecord(${item.id})" title="Editar">&#9999;</button>
             <button class="action-btn btn-del" onclick="deleteRecord(${item.id})" title="Eliminar">&#128465;</button>
-          </td>` : ''}
+            ` : ''}
+          </td>
         </tr>
       `).join('');
     }
@@ -1539,6 +3911,114 @@
       const container = document.getElementById('docModalFields');
       const conf = TABLES_CONFIG[currentTable];
       const today = new Date().toISOString().split('T')[0];
+      const footerEl = document.querySelector('#docForm .doc-modal-footer');
+
+      if (conf.isOrdenIncorporacion) {
+        if (footerEl) {
+          footerEl.innerHTML = `
+            <button type="button" class="btn-secondary-action" onclick="closeDocModal()">Cancelar</button>
+            <button type="button" class="btn-primary-action" style="background:#0284c7; border-color:#0284c7; display:flex; align-items:center; gap:6px;" onclick="openPreviewOrdenFromForm()">
+              <span>&#128065;</span> <span>Imprimir y Grabar Registro</span>
+            </button>
+          `;
+        }
+
+        let numSugerido = existing.numero_documento || '';
+        if (!numSugerido && currentData.length > 0) {
+          const nextNum = String(currentData.length + 1).padStart(3, '0');
+          const year = new Date().getFullYear();
+          numSugerido = `${nextNum}-${year}`;
+        } else if (!numSugerido) {
+          numSugerido = `001-${new Date().getFullYear()}`;
+        }
+
+        container.innerHTML = `
+          <div class="form-group">
+            <label>N&uacute;mero de Documento</label>
+            <input id="f_numero_documento" class="form-control" type="text" value="${numSugerido}" placeholder="Ej. 001-2026" required />
+          </div>
+          <div class="form-group">
+            <label>Fecha del Documento</label>
+            <input id="f_fecha_documento" class="form-control" type="date" value="${existing.fecha_documento || today}" required />
+          </div>
+          <div class="form-group" style="position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0; font-weight:700;">Descripci&oacute;n / Asunto</label>
+              <span style="font-size:11px; color:#0b5a3c; font-weight:700;">&#128196; Tipo Incorporaci&oacute;n</span>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:6px;">
+              <button type="button" class="cat-chip-btn" data-cat="REASIGNACION" onclick="selectTipoCategory('REASIGNACION')">&#128259; REASIGNACI&Oacute;N</button>
+              <button type="button" class="cat-chip-btn" data-cat="DESTAQUE" onclick="selectTipoCategory('DESTAQUE')">&#128204; DESTAQUE</button>
+              <button type="button" class="cat-chip-btn" data-cat="APOYO" onclick="selectTipoCategory('APOYO')">&#129309; APOYO</button>
+            </div>
+            <div id="subChips_f_descripcion" class="sub-chips-row" style="display:none;"></div>
+            <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Detalle o asunto de la orden (digite o seleccione una opción)..." style="resize:vertical;" oninput="filterTiposDocDropdown(this)" onfocus="showTiposDocDropdown(this)" onkeydown="navigateTiposDocDropdown(event, this)" required>${existing.descripcion || ''}</textarea>
+            <div id="f_descripcion_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
+          </div>
+          <div class="form-group" style="position:relative;">
+            <label>Grado, Apellidos y Nombres <small style="color:#0b5a3c; font-weight:700;">(B&uacute;squeda en vivo en Personal Policial)</small></label>
+            <input id="f_grado_apellidos_nombres" class="form-control" type="text" autocomplete="off" placeholder="Digite apellido, nombre o CIP para buscar en tiempo real..." value="${existing.grado_apellidos_nombres || existing.grado_apellidos_nomnbres || ''}" oninput="searchPersonalDoc(this)" onfocus="searchPersonalDoc(this)" onkeydown="navigatePersonalDocDropdown(event, this)" required />
+            <div id="f_grado_apellidos_nombres_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0; font-weight:700;">CIP del Efectivo (8 d&iacute;gitos) <span style="color:#dc2626;">*</span></label>
+              <span style="font-size:11px; color:#0b5a3c; font-weight:700;">&#128110; Obligatorio</span>
+            </div>
+            <input id="f_cip" class="form-control" type="text" maxlength="8" placeholder="Ej. 12345678 (se autocompleta o digite obligatoriamente)" value="${existing.cip || existing.CIP || (existing.grado_apellidos_nombres ? (existing.grado_apellidos_nombres.match(/CIP\s*:?\s*(\d{8})/i)?.[1] || '') : '')}" oninput="lookupPersonalByCip(this)" required />
+            <small style="color:#6b7280; font-size:11px; margin-top:3px; display:block;">Carga autom&aacute;ticamente al seleccionar el efectivo. Si no existe en la base de datos, debe digitarlo de manera obligatoria.</small>
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0; font-weight:700;">Unidad Anterior / Procedencia <span style="color:#dc2626;">*</span></label>
+              <span style="font-size:11px; color:#0b5a3c; font-weight:700;">&#128203; Lista de Revista</span>
+            </div>
+            <input id="f_unidad_anterior" class="form-control" type="text" placeholder="Ej. COMOPPOL DIRNOS REGPOL HUANUCO DIVREINT" value="${existing.unidad_anterior_procedencia || existing.unidad_anterior || existing.procedencia || existing.lista_de_revista || existing.unidad_de_origen || ''}" required />
+            <small style="color:#6b7280; font-size:11px; margin-top:3px; display:block;">Carga autom&aacute;ticamente del campo <b>Lista de Revista</b> de Personal Policial. Si no existe en la base de datos, debe registrarlo de manera obligatoria.</small>
+          </div>
+          <div class="form-group" style="position:relative;">
+            <label>Destino / Destinatario <small style="color:#0b5a3c; font-weight:700;">(B&uacute;squeda en vivo en Unidades)</small></label>
+            <input id="f_destino" class="form-control" type="text" autocomplete="off" placeholder="Ej. JEFE OFAD / COMISAR&Iacute;A HU&Aacute;NUCO" value="${existing.destino || ''}" oninput="filterUnidadesDocDropdown(this)" onfocus="showUnidadesDocDropdown(this)" onkeydown="navigateUnidadesDocDropdown(event, this)" required />
+            <div id="f_destino_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
+          </div>
+          <div class="form-group">
+            <label>N&deg; Orden Incorporaci&oacute;n DIRREHUM</label>
+            <input id="f_numero_orden_incorporacion_dirrehum" class="form-control" type="text" placeholder="Ej. 123 o 123-2026 (se formatear&aacute; autom&aacute;ticamente)" value="${existing.numero_orden_incorporacion_dirrehum || ''}" onblur="formatBlurNumOrdenDirrehum(this)" />
+            <small style="color:#6b7280; font-size:11px; margin-top:3px; display:block;">Se guardar&aacute; como: <b>ORDEN DE INCORPORACION N&deg; [N&Uacute;MERO]-[A&Ntilde;O]-DIRREHUM PNP/DIVMRH-DIRREHUM PNP</b></small>
+          </div>
+          <div class="form-group" style="position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0;">Documento de Referencia</label>
+              <button type="button" class="btn-ref-assistant" onclick="openDocRefAssistant()">
+                &#9889; Asistente Formato
+              </button>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">
+              <button type="button" class="chip-btn" onclick="openDocRefAssistant('RD')">&#128196; Res. Directoral</button>
+              <button type="button" class="chip-btn" onclick="openDocRefAssistant('MEMO_CG')">&#128196; Memo CG</button>
+              <button type="button" class="chip-btn" onclick="openDocRefAssistant('MEMO_JEFE')">&#128196; Memo Jefe REGPOL</button>
+            </div>
+            <input id="f_documento_referencia" class="form-control" type="text" placeholder="Ej. RD N&deg; 001-2026-DIRREHUM PNP DEL 08SET2026" value="${existing.documento_referencia || ''}" />
+          </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0;">Quien Ordena / Dispone</label>
+              <button type="button" class="btn-ref-assistant" onclick="openFirmanteModal()" title="Configurar firmante del d&iacute;a">
+                &#9997; Cambiar Firmante
+              </button>
+            </div>
+            <input id="f_quien_ordena" class="form-control" type="text" placeholder="Ej. CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD" value="${existing.quien_ordena || getFirmanteDiaTexto()}" />
+          </div>
+        `;
+        return;
+      }
+
+      if (footerEl) {
+        footerEl.innerHTML = `
+          <button type="button" class="btn-secondary-action" onclick="closeDocModal()">Cancelar</button>
+          <button type="submit" class="btn-primary-action" id="btnSaveDoc">&#128190; Guardar Registro</button>
+        `;
+      }
 
       if (conf.isUserTable) {
         container.innerHTML = `
@@ -1595,9 +4075,10 @@
 
       if (conf.hasDestino) {
         html += `
-          <div class="form-group">
+          <div class="form-group" style="position:relative;">
             <label>Destino / Destinatario</label>
-            <input id="f_destino" class="form-control" type="text" placeholder="Ej. JEFE OFAD / COMISAR\u00cdA HU\u00c1NUCO" value="${existing.destino || ''}" required />
+            <input id="f_destino" class="form-control" type="text" autocomplete="off" placeholder="Ej. JEFE OFAD / COMISAR&Iacute;A HU&Aacute;NUCO" value="${existing.destino || ''}" oninput="filterUnidadesDocDropdown(this)" onfocus="showUnidadesDocDropdown(this)" onkeydown="navigateUnidadesDocDropdown(event, this)" required />
+            <div id="f_destino_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
           </div>
         `;
       }
@@ -1618,17 +4099,23 @@
       }
 
       html += `
-        <div class="form-group">
+        <div class="form-group" style="position:relative;">
           <label>Descripci&oacute;n / Asunto</label>
-          <textarea id="f_descripcion" class="form-control" rows="3" placeholder="Detalle o asunto del documento..." style="resize:vertical;" required>${existing.descripcion || ''}</textarea>
+          <textarea id="f_descripcion" class="form-control" rows="3" placeholder="Detalle o asunto del documento..." style="resize:vertical;" oninput="filterTiposDocDropdown(this)" onfocus="showTiposDocDropdown(this)" onkeydown="navigateTiposDocDropdown(event, this)" required>${existing.descripcion || ''}</textarea>
+          <div id="f_descripcion_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
         </div>
       `;
 
       if (conf.hasQuienOrdena) {
         html += `
           <div class="form-group">
-            <label>Quien Ordena / Dispone</label>
-            <input id="f_quien_ordena" class="form-control" type="text" placeholder="Ej. JEFE REGPOL HU\u00c1NUCO" value="${existing.quien_ordena || ''}" />
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0;">Quien Ordena / Dispone</label>
+              <button type="button" class="btn-ref-assistant" onclick="openFirmanteModal()" title="Configurar firmante del d&iacute;a">
+                &#9997; Cambiar Firmante
+              </button>
+            </div>
+            <input id="f_quien_ordena" class="form-control" type="text" placeholder="Ej. CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD" value="${existing.quien_ordena || getFirmanteDiaTexto()}" />
           </div>
         `;
       }
@@ -1646,6 +4133,1019 @@
       return 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
     }
 
+    // --- LÓGICA DE VISTA PREVIA Y GENERACIÓN DE ORDEN DE INCORPORACIÓN ---
+    let currentPreviewData = null;
+
+    function buildMotivoText(data) {
+      if (!data) return 'REASIGNACIÓN – NECESIDAD DEL SERVICIO.';
+
+      let tipoInc = (data.tipo_incorporacion || '').trim().toUpperCase();
+      let mot = (data.motivo || data.motivo_destaque || '').trim().toUpperCase();
+      let dirrehum = (data.numero_orden_incorporacion_dirrehum || '').trim();
+      let docRef = (data.documento_referencia || data.documento_que_sustenta || '').trim();
+      let aMerito = (data.a_merito || '').trim();
+      let desc = (data.descripcion || '').trim();
+
+      let baseTipoMot = '';
+      if (tipoInc && mot) {
+        baseTipoMot = `${tipoInc} – ${mot}`;
+      } else if (tipoInc) {
+        baseTipoMot = `${tipoInc} – NECESIDAD DEL SERVICIO`;
+      } else if (desc && !desc.toUpperCase().startsWith('INCORPORACIÓN DEL')) {
+        baseTipoMot = desc.toUpperCase();
+      } else {
+        const cond = String(data.condicion || '').trim().toUpperCase();
+        if (cond === 'DESTACADO') {
+          baseTipoMot = 'DESTAQUE – APOYO POLICIAL';
+        } else {
+          baseTipoMot = 'REASIGNACIÓN – NECESIDAD DEL SERVICIO';
+        }
+      }
+
+      let refParts = [];
+      if (dirrehum) refParts.push(dirrehum.toUpperCase());
+      if (docRef && !refParts.some(p => p.includes(docRef.toUpperCase()))) {
+        refParts.push(docRef.toUpperCase());
+      }
+      let refCombined = refParts.join(' - ');
+
+      let parts = [baseTipoMot];
+
+      if (refCombined && !baseTipoMot.includes(refCombined)) {
+        parts.push(`A MÉRITO: ${refCombined}`);
+      }
+
+      if (aMerito && !baseTipoMot.includes(aMerito.toUpperCase()) && !refCombined.includes(aMerito.toUpperCase())) {
+        parts.push(`– ${aMerito.toUpperCase()}`);
+      }
+
+      let res = parts.join(' ');
+      if (!res.endsWith('.')) res += '.';
+      return res;
+    }
+
+    function formatFechaHoraMil(dateVal, fallbackDate) {
+      let target = dateVal || fallbackDate;
+      if (!target) target = new Date();
+
+      let d;
+      if (target instanceof Date) {
+        d = target;
+      } else if (typeof target === 'string') {
+        let s = target.trim();
+        if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(s)) {
+          d = new Date(s.replace(' ', 'T'));
+        } else if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+          const [y, m, day] = s.split('-').map(Number);
+          d = new Date(y, m - 1, day, 12, 0, 0);
+        } else {
+          d = new Date(s);
+        }
+      } else {
+        d = new Date(target);
+      }
+
+      if (isNaN(d.getTime())) d = new Date();
+
+      const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = meses[d.getMonth()];
+      const anio = d.getFullYear();
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `HUÁNUCO, ${dia} DE ${mes} DEL ${anio} - ${hh}:${mm} HORAS`;
+    }
+
+    function formatFechaCorta(dateVal) {
+      if (!dateVal) return '';
+      const d = new Date(dateVal);
+      if (isNaN(d.getTime())) return String(dateVal);
+      const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = meses[d.getMonth()];
+      const anio = d.getFullYear();
+      return `${dia}${mes}${anio}`;
+    }
+
+    function parseFirmanteString(str) {
+      if (!str) {
+        let rawNom = (currentFirmanteDia && currentFirmanteDia.nombre) || 'CISNEROS APAZA RICKY FLORIAN';
+        let soloNom = extractSoloApellidosNombres(rawNom);
+        let cargoDef = (currentFirmanteDia && currentFirmanteDia.cargo) || 'JEFE DE LA OFAD REGPOL HUÁNUCO';
+        let cipDef = (currentFirmanteDia && currentFirmanteDia.cip) || '340850';
+        return {
+          grado: 'COMANDANTE PNP',
+          nombre: soloNom.toUpperCase(),
+          cargo: cargoDef.toUpperCase(),
+          cip: cipDef
+        };
+      }
+      let parts = str.split(' - ');
+      let pers = (parts[0] || '').trim();
+      let cargo = (parts[1] || (currentFirmanteDia && currentFirmanteDia.cargo) || 'JEFE DE LA OFAD REGPOL HUÁNUCO').trim();
+      let grado = 'COMANDANTE PNP';
+
+      let cip = '';
+      let cipMatch = pers.match(/CIP\s*:?\s*(\d+)/i) || pers.match(/\((\d{6,8})\)/) || str.match(/CIP\s*:?\s*(\d+)/i);
+      if (cipMatch) {
+        cip = cipMatch[1];
+      } else if (currentFirmanteDia && currentFirmanteDia.cip) {
+        cip = currentFirmanteDia.cip;
+      } else {
+        cip = '340850';
+      }
+
+      if (/^CMDTE|^COMANDANTE/i.test(pers)) grado = 'COMANDANTE PNP';
+      else if (/^CRNL|^CORONEL/i.test(pers)) grado = 'CORONEL PNP';
+      else if (/^GRAL|^GENERAL/i.test(pers)) grado = 'GENERAL PNP';
+      else if (/^MAY|^MAYOR/i.test(pers)) grado = 'MAYOR PNP';
+      else if (/^CAP|^CAPIT/i.test(pers)) grado = 'CAPITÁN PNP';
+      else if (/^TNTE|^TENIENTE/i.test(pers)) grado = 'TENIENTE PNP';
+      else if (/^ST|^SUBOFICIAL/i.test(pers)) grado = 'SUBOFICIAL PNP';
+      else if (/^S[123]/i.test(pers)) grado = 'SUBOFICIAL PNP';
+
+      let soloNombre = extractSoloApellidosNombres(pers);
+
+      return {
+        grado: grado,
+        nombre: soloNombre.toUpperCase(),
+        cargo: cargo.toUpperCase(),
+        cip: cip
+      };
+    }
+
+    function renderAndShowOrdenPreview(data) {
+      currentPreviewData = data || {};
+      
+      let rawNum = data.numero_documento || '001';
+      let numMatch = String(rawNum).match(/(\d+)/);
+      let numPad = numMatch ? String(numMatch[1]).padStart(3, '0') : '001';
+      
+      let currentYear = new Date().getFullYear();
+      let yearMatch = String(rawNum).match(/20\d{2}/) || (data.fecha_documento ? String(data.fecha_documento).match(/^(\d{4})/) : null);
+      let year = yearMatch ? (yearMatch[1] || yearMatch[0]) : currentYear;
+
+      // CIP, Grado, Nombres
+      let fullPers = data.grado_apellidos_nombres || data.grado_apellidos_nomnbres || '';
+      let cipVal = data.cip || data.CIP || '';
+      let gradoVal = '';
+      let nombresVal = fullPers.replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim();
+
+      if (!cipVal) {
+        let cipMatch = fullPers.match(/CIP\s*:?\s*(\d+)/i) || fullPers.match(/\((\d{8})\)/);
+        if (cipMatch) {
+          cipVal = cipMatch[1];
+        }
+      }
+
+      const gradesList = ['GENERAL PNP', 'GRAL PNP', 'CORONEL PNP', 'CRNL PNP', 'CMDTE PNP', 'COMANDANTE PNP', 'MAYOR PNP', 'MAY PNP', 'CAPITAN PNP', 'CAP PNP', 'TENIENTE PNP', 'TNTE PNP', 'ALFEREZ PNP', 'ALF PNP', 'SB PNP', 'ST1 PNP', 'ST2 PNP', 'ST3 PNP', 'S1 PNP', 'S2 PNP', 'S3 PNP', 'SO1 PNP', 'SO2 PNP', 'SO3 PNP', 'SS PNP'];
+      for (const g of gradesList) {
+        if (nombresVal.toUpperCase().startsWith(g)) {
+          gradoVal = g;
+          nombresVal = nombresVal.substring(g.length).trim();
+          break;
+        }
+      }
+      if (!gradoVal) gradoVal = 'PNP';
+
+      let procedenciaVal = (data.unidad_anterior_procedencia || data.procedencia || data.unidad_anterior || data.lista_de_revista || data.unidad_de_origen || 'DIVREINT HUANUCO').toUpperCase();
+      let destinoVal = (data.destino || 'OFAD REGPOL HUANUCO').toUpperCase();
+      let fechaSalida = formatFechaCorta(data.fecha_salida || data.fecha_documento || new Date());
+      let motivoText = buildMotivoText(data);
+      let observacionText = data.observacion || 'SE PONE A DISPOSICION AL PERSONAL POLICIAL ANTES INDICADO, A MERITO DE LOS DOCUMENTOS MENCIONADOS; POR LO QUE DEBERA DE COMUNICAR LA INCORPORACION AL JEFE DE LA DIVISION, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y AL AREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO, MEDIANTE EL CORREO rphuanuco.arerehum@policia.gob.pe CON EL DOCUMENTO CORRESPONDIENTE, SIN PERJUICIO DE FORMULAR DOCUMENTACION SOBRE ALGUNA NOVEDAD QUE PUDIERA SUSCITARSE.';
+      let fechaHoraText = formatFechaHoraMil(data.created_at || data.fecha_documento);
+
+      // Parse firmante
+      let firmanteStr = data.quien_ordena || getFirmanteDiaTexto();
+      let firmanteObj = parseFirmanteString(firmanteStr);
+
+      const gradoNombresFormatted = `${gradoVal} ${nombresVal.toUpperCase()}`.trim();
+
+      // Populate elements in both A5 cards
+      document.querySelectorAll('.orden-val-num').forEach(el => el.textContent = numPad);
+      document.querySelectorAll('.orden-val-year').forEach(el => el.textContent = year);
+      document.querySelectorAll('.orden-val-cip').forEach(el => el.textContent = cipVal || '---');
+      document.querySelectorAll('.orden-val-grado-nombres').forEach(el => el.textContent = gradoNombresFormatted || '---');
+      document.querySelectorAll('.orden-val-grado').forEach(el => el.textContent = gradoVal || 'PNP');
+      document.querySelectorAll('.orden-val-nombres').forEach(el => el.textContent = nombresVal.toUpperCase() || '---');
+      document.querySelectorAll('.orden-val-procedencia').forEach(el => el.textContent = procedenciaVal);
+      document.querySelectorAll('.orden-val-destino').forEach(el => el.textContent = destinoVal);
+      document.querySelectorAll('.orden-val-fechasalida').forEach(el => el.textContent = fechaSalida);
+      document.querySelectorAll('.orden-val-motivo').forEach(el => el.textContent = motivoText);
+      document.querySelectorAll('.orden-val-observacion').forEach(el => el.textContent = observacionText);
+      document.querySelectorAll('.orden-val-fechahora').forEach(el => el.textContent = fechaHoraText);
+
+      document.querySelectorAll('.orden-val-sign-cip').forEach(el => el.textContent = firmanteObj.cip ? (firmanteObj.cip.startsWith('CIP') ? firmanteObj.cip : `CIP: ${firmanteObj.cip}`) : '');
+      document.querySelectorAll('.orden-val-sign-name').forEach(el => el.textContent = extractSoloApellidosNombres(firmanteObj.nombre).toUpperCase());
+      document.querySelectorAll('.orden-val-sign-grade').forEach(el => el.textContent = firmanteObj.grado);
+      document.querySelectorAll('.orden-val-sign-cargo').forEach(el => el.textContent = firmanteObj.cargo);
+
+      const badgeFirmante = document.getElementById('previewFirmanteBadge');
+      if (badgeFirmante) badgeFirmante.textContent = firmanteStr;
+
+      const btnSave = document.getElementById('btnPreviewConfirmSave');
+      if (btnSave) {
+        if (data.fromForm) {
+          btnSave.style.display = 'inline-flex';
+          btnSave.innerHTML = '<span>&#128424;&#65039;&#128190;</span> Imprimir y Grabar Registro';
+        } else {
+          btnSave.style.display = isUserAdmin() ? 'inline-flex' : 'none';
+          btnSave.innerHTML = '<span>&#128424;&#65039;&#128190;</span> Imprimir y Actualizar Registro';
+        }
+      }
+
+      document.getElementById('modalPreviewOrdenIncorp').classList.add('active');
+    }
+
+    function openPreviewOrdenFromForm() {
+      const numDocEl = document.getElementById('f_numero_documento');
+      const fechaDocEl = document.getElementById('f_fecha_documento');
+      const descEl = document.getElementById('f_descripcion');
+      const persEl = document.getElementById('f_grado_apellidos_nombres');
+      const cipEl = document.getElementById('f_cip');
+      const unidadAntEl = document.getElementById('f_unidad_anterior');
+      const destinoEl = document.getElementById('f_destino');
+      const numDirrehumEl = document.getElementById('f_numero_orden_incorporacion_dirrehum');
+      const docRefEl = document.getElementById('f_documento_referencia');
+      const quienOrdenaEl = document.getElementById('f_quien_ordena');
+
+      if (!numDocEl || !numDocEl.value.trim()) {
+        alert('Por favor ingrese el Número de Documento.');
+        numDocEl?.focus();
+        return;
+      }
+      if (!descEl || !descEl.value.trim()) {
+        alert('Por favor ingrese o seleccione la Descripción / Asunto.');
+        descEl?.focus();
+        return;
+      }
+      if (!persEl || !persEl.value.trim()) {
+        alert('Por favor ingrese o seleccione el Grado, Apellidos y Nombres del efectivo.');
+        persEl?.focus();
+        return;
+      }
+      if (!cipEl || !cipEl.value.trim()) {
+        alert('El campo CIP es obligatorio (8 dígitos). Por favor digite o seleccione el efectivo.');
+        cipEl?.focus();
+        return;
+      }
+      if (!/^\d{8}$/.test(cipEl.value.trim())) {
+        alert('El CIP debe contener exactamente 8 dígitos numéricos.');
+        cipEl?.focus();
+        return;
+      }
+      if (!unidadAntEl || !unidadAntEl.value.trim()) {
+        alert('El campo Unidad Anterior / Procedencia es obligatorio.');
+        unidadAntEl?.focus();
+        return;
+      }
+      if (!destinoEl || !destinoEl.value.trim()) {
+        alert('Por favor ingrese o seleccione el Destino.');
+        destinoEl?.focus();
+        return;
+      }
+
+      let numDirrehum = (numDirrehumEl?.value || '').trim();
+      if (numDirrehum) {
+        numDirrehum = cleanAndFormatOrdenDirrehum(numDirrehum);
+        if (numDirrehumEl) numDirrehumEl.value = numDirrehum;
+      }
+
+      const ordenData = {
+        numero_documento: numDocEl.value.trim(),
+        fecha_documento: fechaDocEl ? fechaDocEl.value : new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString(),
+        descripcion: descEl.value.trim(),
+        grado_apellidos_nombres: persEl.value.trim().replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim(),
+        cip: cipEl.value.trim(),
+        unidad_anterior: unidadAntEl.value.trim(),
+        procedencia: unidadAntEl.value.trim(),
+        destino: destinoEl.value.trim(),
+        numero_orden_incorporacion_dirrehum: numDirrehum,
+        documento_referencia: (docRefEl?.value || '').trim(),
+        quien_ordena: (quienOrdenaEl?.value || '').trim() || getFirmanteDiaTexto(),
+        usuario_registra: getUsuarioRegistraNombre(),
+        fromForm: true
+      };
+
+      renderAndShowOrdenPreview(ordenData);
+    }
+
+    function openPreviewOrdenFromRecordById(id) {
+      const item = currentData.find(r => String(r.id) === String(id));
+      if (!item) {
+        alert('No se encontró el registro seleccionado.');
+        return;
+      }
+      let rawPers = (item.grado_apellidos_nombres || item.grado_apellidos_nomnbres || '').replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim();
+      let cipVal = item.cip || item.CIP || '';
+      if (!cipVal) {
+        let cipMatch = (item.grado_apellidos_nombres || '').match(/CIP\s*:?\s*(\d{8})/i) || (item.grado_apellidos_nombres || '').match(/\((\d{8})\)/);
+        if (cipMatch) {
+          cipVal = cipMatch[1];
+        }
+      }
+      let unidadAntVal = item.unidad_anterior_procedencia || item.unidad_anterior || item.procedencia || item.lista_de_revista || item.unidad_de_origen || '';
+      const ordenData = {
+        id: item.id,
+        numero_documento: item.numero_documento,
+        fecha_documento: item.fecha_documento,
+        created_at: item.created_at || item.created_time || item.fecha_documento,
+        descripcion: item.descripcion,
+        grado_apellidos_nombres: rawPers,
+        cip: cipVal,
+        unidad_anterior: unidadAntVal,
+        procedencia: unidadAntVal,
+        unidad_anterior_procedencia: unidadAntVal,
+        destino: item.destino,
+        numero_orden_incorporacion_dirrehum: item.numero_orden_incorporacion_dirrehum,
+        documento_referencia: item.documento_referencia,
+        quien_ordena: item.quien_ordena || getFirmanteDiaTexto(),
+        usuario_registra: item.usuario_registra,
+        fromForm: false
+      };
+      renderAndShowOrdenPreview(ordenData);
+    }
+
+    async function confirmAndSaveFromPreview() {
+      if (currentPreviewData && currentPreviewData.fromForm) {
+        printOrdenDocument();
+        await saveDocRecord();
+        closePreviewOrdenModal();
+      } else if (currentPreviewData && currentPreviewData.id) {
+        if (!isUserAdmin()) {
+          alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede modificar registros existentes.');
+          return;
+        }
+        printOrdenDocument();
+        await saveDocRecord();
+        closePreviewOrdenModal();
+      } else {
+        printOrdenDocument();
+        closePreviewOrdenModal();
+      }
+    }
+
+    function closePreviewOrdenModal() {
+      document.getElementById('modalPreviewOrdenIncorp').classList.remove('active');
+      document.body.classList.remove('printing-orden');
+    }
+
+    function printOrdenDocument(e) {
+      if (e) e.preventDefault();
+      document.body.classList.add('printing-orden');
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-orden');
+      }, 1000);
+    }
+
+    function copyOrdenSummary(e) {
+      if (e) e.preventDefault();
+      if (!currentPreviewData) return;
+      const numDoc = currentPreviewData.numero_documento || '';
+      const efectivo = currentPreviewData.grado_apellidos_nombres || '';
+      const destino = currentPreviewData.destino || '';
+      const motivo = buildMotivoText(currentPreviewData);
+      const text = `ORDEN DE INCORPORACION N° ${numDoc}
+EFECTIVO: ${efectivo}
+DESTINO: ${destino}
+MOTIVO: ${motivo}
+FECHA: ${currentPreviewData.fecha_documento || ''}
+FIRMANTE: ${currentPreviewData.quien_ordena || ''}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Datos de la Orden de Incorporación copiados al portapapeles.');
+      }).catch(() => {
+        alert('No se pudo copiar automáticamente al portapapeles.');
+      });
+    }
+
+    // ==================== OFICIO DE INCORPORACIÓN (A4 HOJA COMPLETA / WORD) ====================
+    let currentPreviewOficioData = null;
+
+    function formatFechaTextoLarga(dateVal) {
+      if (!dateVal) dateVal = new Date();
+      const d = new Date(dateVal);
+      const validDate = isNaN(d.getTime()) ? new Date() : d;
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const dia = String(validDate.getDate()).padStart(2, '0');
+      const mes = meses[validDate.getMonth()];
+      const anio = validDate.getFullYear();
+      return `${dia} de ${mes} del ${anio}`;
+    }
+
+    function extractSoloApellidosNombres(str) {
+      if (!str) return '';
+      let s = String(str).trim();
+      s = s.replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim();
+      const rankRegex = /^(?:GRAL|GENERAL|CRNL|CORONEL|CMDTE|COMANDANTE|MAY|MAYOR|CAP|CAPIT[AÁ]N|TNTE|TENIENTE|ALFZ|ALF[EÉ]REZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO1|SO2|SO3|SOB|SOS|SOM|SOP|SUBOFICIAL|SUB\s*OFICIAL|T[EÉ]CNICO|BRIGADIER)(?:\s+DE\s+PRIMERA|\s+DE\s+SEGUNDA|\s+DE\s+TERCERA)?(?:\s+(?:PNP|P\.N\.P\.|\(R\)|SERVICIOS|ARMAS))?\s*[\.\-:]*\s+/i;
+      let cleaned = s.replace(rankRegex, '');
+      cleaned = cleaned.replace(/^PNP\s*[\.\-:]*\s*/i, '');
+      return cleaned.trim() || s;
+    }
+
+    function extractWordsClean(str) {
+      if (!str) return [];
+      let s = String(str).trim();
+      s = s.replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim();
+      const rankRegex = /^(?:GRAL|GENERAL|CRNL|CORONEL|CMDTE|COMANDANTE|MAY|MAYOR|CAP|CAPIT[AÁ]N|TNTE|TENIENTE|ALFZ|ALF[EÉ]REZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO1|SO2|SO3|SOB|SOS|SOM|SOP|SUBOFICIAL|SUB\s*OFICIAL|T[EÉ]CNICO|BRIGADIER)(?:\s+DE\s+PRIMERA|\s+DE\s+SEGUNDA|\s+DE\s+TERCERA)?(?:\s+(?:PNP|P\.N\.P\.|\(R\)|SERVICIOS|ARMAS))?\s*[\.\-:]*\s+/i;
+      s = s.replace(rankRegex, '').replace(/^PNP\s*[\.\-:]*\s*/i, '').trim();
+      let words = s.split(/\s+/).filter(w => w.length > 0 && !/^(?:DE|DEL|LA|LAS|LOS|Y|E)$/i.test(w));
+      return words;
+    }
+
+    function getInitialsNombresApellidos(fullName, isLower = false) {
+      let words = extractWordsClean(fullName);
+      if (!words.length) return isLower ? 'jlms' : 'RFCA';
+      let inits = '';
+      if (words.length === 4) {
+        inits = words[2][0] + words[3][0] + words[0][0] + words[1][0];
+      } else if (words.length === 3) {
+        inits = words[2][0] + words[0][0] + words[1][0];
+      } else if (words.length === 2) {
+        inits = words[1][0] + words[0][0];
+      } else if (words.length > 4) {
+        let n1 = words[words.length - 2][0];
+        let n2 = words[words.length - 1][0];
+        let a1 = words[0][0];
+        let a2 = words[1][0];
+        inits = n1 + n2 + a1 + a2;
+      } else {
+        inits = words.map(w => w[0]).join('');
+      }
+      return isLower ? inits.toLowerCase() : inits.toUpperCase();
+    }
+
+    function buildDocumentInitials(signerStr, userObjOrName) {
+      let signerName = signerStr || '';
+      if (signerName.includes(' - ')) {
+        signerName = signerName.split(' - ')[0];
+      }
+      let signerInitials = getInitialsNombresApellidos(signerName, false);
+      if (!signerInitials) signerInitials = 'RFCA';
+
+      let userName = '';
+      if (userObjOrName && typeof userObjOrName === 'object') {
+        userName = userObjOrName['APELLIDOS Y NOMBRES'] || userObjOrName.apellidos_nombres || userObjOrName.nombre || '';
+      } else if (typeof userObjOrName === 'string') {
+        userName = userObjOrName;
+      }
+      if (!userName && typeof currentUser !== 'undefined' && currentUser) {
+        userName = currentUser['APELLIDOS Y NOMBRES'] || currentUser.apellidos_nombres || currentUser.nombre || '';
+      }
+      if (!userName) {
+        userName = 'JOSE LUIS MANSILLA SANTA MARIA';
+      }
+
+      let userInitials = getInitialsNombresApellidos(userName, true);
+      if (!userInitials) userInitials = 'jlms';
+
+      return `${signerInitials}/${userInitials}`;
+    }
+
+    function renderAndShowOficioPreview(data) {
+      currentPreviewOficioData = data || {};
+      
+      let rawNum = data.numero_documento || '001';
+      let numMatch = String(rawNum).match(/(\d+)/);
+      let numPad = numMatch ? String(numMatch[1]).padStart(3, '0') : '001';
+      
+      let currentYear = new Date().getFullYear();
+      let yearMatch = String(rawNum).match(/20\d{2}/) || (data.fecha_documento ? String(data.fecha_documento).match(/^(\d{4})/) : null);
+      let year = yearMatch ? (yearMatch[1] || yearMatch[0]) : currentYear;
+
+      let fechaTexto = formatFechaTextoLarga(data.fecha_documento || new Date());
+      let fullPers = data.grado_apellidos_nombres || '';
+      let soloPers = extractSoloApellidosNombres(fullPers);
+      let cipVal = data.cip || '';
+      let procedenciaVal = (data.procedencia || data.unidad_anterior || data.lista_de_revista || 'DIVREINT HUANUCO').toUpperCase();
+      let destinoVal = (data.destino || 'OFAD REGPOL HUANUCO').toUpperCase();
+      let motivoText = buildMotivoText(data);
+      let refText = data.numero_orden_incorporacion_dirrehum ? `${data.numero_orden_incorporacion_dirrehum}${data.documento_referencia ? ' - ' + data.documento_referencia : ''}` : (data.documento_referencia || 'RD N° 001-2026-DIRREHUM PNP');
+
+      let firmanteStr = data.quien_ordena || getFirmanteDiaTexto();
+      let firmanteObj = parseFirmanteString(firmanteStr);
+
+      let gradoDest = (data.destinatario_grado || 'CORONEL PNP').toUpperCase();
+      let nombreDest = (data.destinatario_nombre || '').toUpperCase();
+      let cargoDest = (data.destinatario_cargo || data.destino || 'JEFE DIVOPUS LEONCIO PRADO').toUpperCase();
+
+      // Populate elements
+      document.getElementById('oficioValNum').textContent = numPad;
+      document.getElementById('oficioValYear').textContent = year;
+      document.getElementById('oficioValFechaTexto').textContent = fechaTexto;
+
+      const gradoDestEl = document.getElementById('oficioValDestinoGrado');
+      if (gradoDestEl) gradoDestEl.textContent = gradoDest;
+
+      const nombreDestEl = document.getElementById('oficioValDestinoNombre');
+      if (nombreDestEl) {
+        if (nombreDest) {
+          nombreDestEl.textContent = nombreDest;
+          nombreDestEl.style.display = 'block';
+        } else {
+          nombreDestEl.style.display = 'none';
+        }
+      }
+
+      const cargoDestEl = document.getElementById('oficioValDestinoCargo');
+      if (cargoDestEl) {
+        if (cargoDest) {
+          cargoDestEl.textContent = cargoDest;
+          cargoDestEl.style.display = 'block';
+        } else {
+          cargoDestEl.style.display = 'none';
+        }
+      }
+      document.getElementById('oficioValRef').textContent = refText;
+      document.getElementById('oficioValPersonal').textContent = soloPers.toUpperCase() || '---';
+      document.getElementById('oficioValCip').textContent = cipVal || '---';
+      document.getElementById('oficioValProcedencia').textContent = procedenciaVal;
+      document.getElementById('oficioValMotivo').textContent = motivoText;
+      document.getElementById('oficioValDestino').textContent = destinoVal;
+
+      // Signature
+      document.getElementById('oficioValSignCip').textContent = firmanteObj.cip ? (firmanteObj.cip.startsWith('CIP') ? firmanteObj.cip : `CIP: ${firmanteObj.cip}`) : '';
+      document.getElementById('oficioValSignName').textContent = extractSoloApellidosNombres(firmanteObj.nombre).toUpperCase();
+      document.getElementById('oficioValSignGrade').textContent = firmanteObj.grado;
+      document.getElementById('oficioValSignCargo').textContent = firmanteObj.cargo;
+
+      // Pie de p\u00e1gina: Iniciales Redactor / Registrador
+      let docInitials = buildDocumentInitials(firmanteStr, data.usuario_registra || currentUser);
+      const initsEl = document.getElementById('oficioValIniciales');
+      if (initsEl) initsEl.textContent = docInitials;
+
+      const badgeFirmante = document.getElementById('previewOficioFirmanteBadge');
+      if (badgeFirmante) badgeFirmante.textContent = firmanteStr;
+
+      const btnSave = document.getElementById('btnPreviewOficioConfirmSave');
+      if (btnSave) {
+        if (data.fromForm) {
+          btnSave.style.display = 'inline-flex';
+          btnSave.innerHTML = '<span>&#128424;&#65039;&#128190;</span> Imprimir y Grabar Registro';
+        } else {
+          btnSave.style.display = isUserAdmin() ? 'inline-flex' : 'none';
+          btnSave.innerHTML = '<span>&#128424;&#65039;&#128190;</span> Imprimir y Actualizar Registro';
+        }
+      }
+
+      document.getElementById('modalPreviewOficioIncorp').classList.add('active');
+    }
+
+    let currentPendingOficioData = null;
+    let debounceDestinatarioTimer = null;
+
+    function openDestinatarioModalFromForm() {
+      const numDocEl = document.getElementById('f_numero_documento');
+      const fechaDocEl = document.getElementById('f_fecha_documento');
+      const descEl = document.getElementById('f_descripcion');
+      const persEl = document.getElementById('f_grado_apellidos_nombres');
+      const cipEl = document.getElementById('f_cip');
+      const unidadAntEl = document.getElementById('f_unidad_anterior');
+      const destinoEl = document.getElementById('f_destino');
+      const numDirrehumEl = document.getElementById('f_numero_orden_incorporacion_dirrehum');
+      const docRefEl = document.getElementById('f_documento_referencia');
+      const quienOrdenaEl = document.getElementById('f_quien_ordena');
+
+      if (!numDocEl || !numDocEl.value.trim()) {
+        alert('Por favor ingrese el N\u00famero de Documento.');
+        numDocEl?.focus();
+        return;
+      }
+      if (!descEl || !descEl.value.trim()) {
+        alert('Por favor ingrese o seleccione la Descripci\u00f3n / Asunto.');
+        descEl?.focus();
+        return;
+      }
+      if (!persEl || !persEl.value.trim()) {
+        alert('Por favor ingrese o seleccione el Grado, Apellidos y Nombres del efectivo.');
+        persEl?.focus();
+        return;
+      }
+      if (!cipEl || !cipEl.value.trim()) {
+        alert('El campo CIP es obligatorio (8 d\u00edgitos). Por favor digite o seleccione el efectivo.');
+        cipEl?.focus();
+        return;
+      }
+      if (!/^\d{8}$/.test(cipEl.value.trim())) {
+        alert('El CIP debe contener exactamente 8 d\u00edgitos num\u00e9ricos.');
+        cipEl?.focus();
+        return;
+      }
+      if (!unidadAntEl || !unidadAntEl.value.trim()) {
+        alert('El campo Unidad Anterior / Procedencia es obligatorio.');
+        unidadAntEl?.focus();
+        return;
+      }
+      if (!destinoEl || !destinoEl.value.trim()) {
+        alert('Por favor ingrese o seleccione el Destino.');
+        destinoEl?.focus();
+        return;
+      }
+
+      let numDirrehum = (numDirrehumEl?.value || '').trim();
+      if (numDirrehum) {
+        numDirrehum = cleanAndFormatOrdenDirrehum(numDirrehum);
+        if (numDirrehumEl) numDirrehumEl.value = numDirrehum;
+      }
+
+      const oficioData = {
+        numero_documento: numDocEl.value.trim(),
+        fecha_documento: fechaDocEl ? fechaDocEl.value : new Date().toISOString().split('T')[0],
+        descripcion: descEl.value.trim(),
+        grado_apellidos_nombres: persEl.value.trim().replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim(),
+        cip: cipEl.value.trim(),
+        unidad_anterior: unidadAntEl.value.trim(),
+        procedencia: unidadAntEl.value.trim(),
+        destino: destinoEl.value.trim(),
+        numero_orden_incorporacion_dirrehum: numDirrehum,
+        documento_referencia: (docRefEl?.value || '').trim(),
+        quien_ordena: (quienOrdenaEl?.value || '').trim() || getFirmanteDiaTexto(),
+        usuario_registra: getUsuarioRegistraNombre(),
+        fromForm: true
+      };
+
+      openDestinatarioModal(oficioData);
+    }
+
+    function openDestinatarioModalFromRecordById(id) {
+      const item = currentData.find(r => String(r.id) === String(id));
+      if (!item) {
+        alert('No se encontró el registro seleccionado.');
+        return;
+      }
+      let rawPers = (item.grado_apellidos_nombres || item.grado_apellidos_nomnbres || '').replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim();
+      let cipVal = item.cip || item.CIP || '';
+      if (!cipVal) {
+        let cipMatch = (item.grado_apellidos_nombres || '').match(/CIP\s*:?\s*(\d{6,8})/i) || (item.descripcion || '').match(/CIP\s*:?\s*(\d{6,8})/i) || (item.grado_apellidos_nombres || '').match(/\((\d{6,8})\)/);
+        if (cipMatch) {
+          cipVal = cipMatch[1];
+        }
+      }
+      if (!rawPers && item.descripcion) {
+        let persMatch = item.descripcion.match(/Pone a Disposici[oó]n al\s+(.*?)\s+con CIP/i) || item.descripcion.match(/al\s+(.*?)\s+con CIP/i) || item.descripcion.match(/INCORPORACI[OÓ]N DEL\s+(.*?)\s+CON CIP/i);
+        if (persMatch) {
+          rawPers = persMatch[1].trim();
+        }
+      }
+      let unidadAntVal = item.unidad_anterior || item.procedencia || item.lista_de_revista || item.unidad_de_origen || '';
+      const oficioData = {
+        id: item.id,
+        numero_documento: item.numero_documento,
+        fecha_documento: item.fecha_documento,
+        descripcion: item.descripcion,
+        grado_apellidos_nombres: rawPers,
+        cip: cipVal,
+        unidad_anterior: unidadAntVal,
+        procedencia: unidadAntVal,
+        destino: item.destino,
+        numero_orden_incorporacion_dirrehum: item.numero_orden_incorporacion_dirrehum,
+        documento_referencia: item.documento_referencia,
+        quien_ordena: item.quien_ordena || getFirmanteDiaTexto(),
+        usuario_registra: item.usuario_registra,
+        fromForm: false
+      };
+      openDestinatarioModal(oficioData);
+    }
+
+    function openPreviewOficioFromForm() {
+      openDestinatarioModalFromForm();
+    }
+
+    function openPreviewOficioFromRecordById(id) {
+      openDestinatarioModalFromRecordById(id);
+    }
+
+    function convertApellidosNombresToNombresApellidos(fullName) {
+      if (!fullName) return '';
+      let str = fullName.replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim();
+      str = str.replace(/^(CRNL\.?|CORONEL|CMDTE\.?|COMANDANTE|MAY\.?|MAYOR|CAP\.?|CAPITAN|TNTE\.?|TENIENTE|ALFZ\.?|ALFEREZ|SS\.?|SB\.?|ST1\.?|ST2\.?|ST3\.?|S1\.?|S2\.?|S3\.?|SO\d?\.?)\s+(PNP\s+)?/i, '').trim();
+      
+      let parts = str.split(/\s+/).filter(Boolean);
+      if (parts.length <= 1) return str;
+      if (parts.length === 2) {
+        return `${parts[1]} ${parts[0]}`;
+      }
+      if (parts.length === 3) {
+        return `${parts[2]} ${parts[0]} ${parts[1]}`;
+      }
+      if (parts.length === 4) {
+        return `${parts[2]} ${parts[3]} ${parts[0]} ${parts[1]}`;
+      }
+      if (parts.length > 4) {
+        let aps = parts.slice(0, 2).join(' ');
+        let noms = parts.slice(2).join(' ');
+        return `${noms} ${aps}`;
+      }
+      return str;
+    }
+
+    function setDestinatarioGradoChip(grado) {
+      const gradoInp = document.getElementById('destinatarioGradoInput');
+      if (gradoInp) gradoInp.value = grado;
+      updateDestinatarioPreview();
+    }
+
+    function setDestinatarioGradoChip(grado) {
+      const gradoInp = document.getElementById('destinatarioGradoInput');
+      if (gradoInp) gradoInp.value = grado;
+      updateDestinatarioPreview();
+    }
+
+    function setDestinatarioCargoChip(cargo) {
+      const cargoInp = document.getElementById('destinatarioCargoInput');
+      if (cargoInp) cargoInp.value = cargo;
+      updateDestinatarioPreview();
+    }
+
+    function updateDestinatarioPreview() {
+      const grado = (document.getElementById('destinatarioGradoInput')?.value || 'CRNL. PNP').trim().toUpperCase();
+      const nombre = (document.getElementById('destinatarioNombreInput')?.value || '').trim().toUpperCase();
+      const cargo = (document.getElementById('destinatarioCargoInput')?.value || 'JEFE DIVOPUS LEONCIO PRADO').trim().toUpperCase();
+
+      const box = document.getElementById('destinatarioPreviewBox');
+      if (box) {
+        let html = `<b>SE&Ntilde;OR :</b> ${grado}`;
+        if (nombre) {
+          html += `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#111; font-weight:700;">${nombre}</span>`;
+        }
+        if (cargo) {
+          html += `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#222;">${cargo}</span>`;
+        }
+        box.innerHTML = html;
+      }
+    }
+
+    function openDestinatarioModal(data) {
+      currentPendingOficioData = data;
+      
+      const gradoInp = document.getElementById('destinatarioGradoInput');
+      const cargoInp = document.getElementById('destinatarioCargoInput');
+      const nomInp = document.getElementById('destinatarioNombreInput');
+      const searchInp = document.getElementById('searchDestinatarioInput');
+      const dropEl = document.getElementById('searchDestinatarioInput_dropdown');
+
+      if (searchInp) searchInp.value = '';
+      if (dropEl) dropEl.style.display = 'none';
+
+      let defaultCargo = data.destino || 'JEFE DIVOPUS LEONCIO PRADO';
+      if (gradoInp) gradoInp.value = 'CRNL. PNP';
+      if (cargoInp) cargoInp.value = defaultCargo;
+      if (nomInp) nomInp.value = '';
+
+      updateDestinatarioPreview();
+      document.getElementById('modalDestinatarioOficio').classList.add('active');
+    }
+
+    function closeDestinatarioModal() {
+      document.getElementById('modalDestinatarioOficio').classList.remove('active');
+    }
+
+    function searchDestinatarioDoc(inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl) return;
+      const q = (inputEl.value || '').trim();
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      clearTimeout(debounceDestinatarioTimer);
+      debounceDestinatarioTimer = setTimeout(async () => {
+        try {
+          const encQ = encodeURIComponent(q);
+          const url = `${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=id,CIP,GRADO,APELLIDOS%20Y%20NOMBRES,CARGO&or=(CIP.ilike.*${encQ}*,APELLIDOS%20Y%20NOMBRES.ilike.*${encQ}*)&limit=15`;
+          const res = await fetch(url, {
+            headers: {
+              'apikey': PERSONAL_SUPABASE_KEY,
+              'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY
+            }
+          });
+          if (!res.ok) {
+            dropEl.style.display = 'none';
+            return;
+          }
+          const list = await res.json();
+          if (!list || !list.length) {
+            dropEl.innerHTML = `<div class="autocomplete-empty">No se encontr&oacute; personal con "${q}"</div>`;
+            dropEl.style.display = 'block';
+            return;
+          }
+
+          dropEl.innerHTML = list.map((item, idx) => {
+            const grado = String(item.GRADO || item.grado || '').trim();
+            const rawNombres = String(item['APELLIDOS Y NOMBRES'] || item.apellidos_nombres || '').trim();
+            const cip = item.CIP || item.cip || '';
+            const cargo = String(item.CARGO || item.cargo || '').trim();
+            
+            const safeGrado = encodeURIComponent(grado);
+            const safeNom = encodeURIComponent(rawNombres);
+            const safeCargo = encodeURIComponent(cargo);
+
+            return `
+              <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" onmousedown="selectDestinatarioOption('${safeNom}', '${safeCargo}', '${safeGrado}')" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div>
+                  <div style="color:#0b5a3c; font-weight:800; font-size:12px;">&#128110; ${grado} ${rawNombres}</div>
+                  ${cargo ? `<div style="font-size:11px; color:#4b5563; font-weight:600;">Cargo: ${cargo}</div>` : ''}
+                </div>
+                <span style="font-size:11px; background:#e8f4ec; color:#0b5a3c; padding:2px 6px; border-radius:4px; font-weight:700;">CIP: ${cip}</span>
+              </div>
+            `;
+          }).join('');
+
+          dropEl.style.display = 'block';
+        } catch (err) {
+          console.error('Error buscando destinatario:', err);
+          dropEl.style.display = 'none';
+        }
+      }, 200);
+    }
+
+    function selectDestinatarioOption(safeNom, safeCargo, safeGrado) {
+      const rawNom = decodeURIComponent(safeNom);
+      const cargo = safeCargo ? decodeURIComponent(safeCargo) : '';
+      const grado = safeGrado ? decodeURIComponent(safeGrado) : '';
+
+      const gradoInp = document.getElementById('destinatarioGradoInput');
+      const nomInp = document.getElementById('destinatarioNombreInput');
+      const carInp = document.getElementById('destinatarioCargoInput');
+      const searchInp = document.getElementById('searchDestinatarioInput');
+      const dropEl = document.getElementById('searchDestinatarioInput_dropdown');
+
+      if (grado && gradoInp) gradoInp.value = grado.toUpperCase();
+      
+      const formattedNom = convertApellidosNombresToNombresApellidos(rawNom);
+      if (nomInp) nomInp.value = formattedNom.toUpperCase();
+      
+      if (carInp && cargo) carInp.value = cargo.toUpperCase();
+      if (searchInp) searchInp.value = `${grado ? grado + ' ' : ''}${formattedNom}`.trim();
+      if (dropEl) dropEl.style.display = 'none';
+
+      updateDestinatarioPreview();
+    }
+
+    function navigateDestinatarioDropdown(e, inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl || dropEl.style.display === 'none') return;
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          items[activeIndex].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
+    function confirmDestinatarioAndOpenOficio() {
+      if (!currentPendingOficioData) return;
+      
+      const grado = (document.getElementById('destinatarioGradoInput')?.value || '').trim().toUpperCase() || 'CRNL. PNP';
+      const nombre = (document.getElementById('destinatarioNombreInput')?.value || '').trim().toUpperCase();
+      const cargo = (document.getElementById('destinatarioCargoInput')?.value || '').trim().toUpperCase() || 'JEFE DIVOPUS LEONCIO PRADO';
+
+      currentPendingOficioData.destinatario_grado = grado;
+      currentPendingOficioData.destinatario_nombre = nombre;
+      currentPendingOficioData.destinatario_cargo = cargo;
+
+      closeDestinatarioModal();
+      renderAndShowOficioPreview(currentPendingOficioData);
+    }
+
+    async function downloadWordOficio() {
+      if (!currentPreviewOficioData) return;
+      const data = currentPreviewOficioData;
+      
+      let rawNum = data.numero_documento || '001';
+      let numMatch = String(rawNum).match(/(\d+)/);
+      let numPad = numMatch ? String(numMatch[1]).padStart(3, '0') : '001';
+      let year = new Date().getFullYear();
+      let fechaTexto = formatFechaTextoLarga(data.fecha_documento || new Date());
+      let destinoVal = (data.destino || 'OFAD REGPOL HUANUCO').toUpperCase();
+      let gradoDest = (data.destinatario_grado || 'CORONEL PNP').toUpperCase();
+      let nombreDest = (data.destinatario_nombre || '').toUpperCase();
+      let cargoDest = (data.destinatario_cargo || destinoVal).toUpperCase();
+      let motivoText = buildMotivoText(data);
+      let firmanteStr = data.quien_ordena || getFirmanteDiaTexto();
+      let firmanteObj = parseFirmanteString(firmanteStr);
+      let soloPers = extractSoloApellidosNombres(data.grado_apellidos_nombres || '');
+      let persFull = data.cip ? `CIP: ${data.cip} - ${soloPers.toUpperCase()}` : soloPers.toUpperCase();
+
+      try {
+        // Fetch template from local root
+        const res = await fetch('PLATILLA OFICIO_INCORPORACION.docx');
+        if (!res.ok) {
+          throw new Error('No se pudo cargar el archivo "PLATILLA OFICIO_INCORPORACION.docx". Aseg\u00farese de que est\u00e9 en la carpeta ra\u00edz del sistema.');
+        }
+        const buffer = await res.arrayBuffer();
+        if (typeof PizZip === 'undefined') {
+          alert('Cargando librer\u00eda de procesamiento Word... por favor intente en unos segundos.');
+          return;
+        }
+
+        const zip = new PizZip(buffer);
+        let docXml = zip.file('word/document.xml').asText();
+
+        // Replacements
+        docXml = docXml.replace(/FECHA/g, fechaTexto);
+        docXml = docXml.replace(/NUMERO/g, numPad);
+        docXml = docXml.replace(/CARGO DESTINATARIO/g, gradoDest);
+        docXml = docXml.replace(/Nombres_apellidos destinatario/g, nombreDest);
+        docXml = docXml.replace(/Cargo destinatario/g, cargoDest);
+        docXml = docXml.replace(/N[\u00b0\u00ba\s]*Orden Incorporaci[\u0000-\u00ff]*?DIRREHUM/gi, data.numero_orden_incorporacion_dirrehum || 'ORDEN DE INCORPORACION N\u00b0 DIRREHUM');
+        docXml = docXml.replace(/Documento de Referencia/g, data.documento_referencia || '');
+        docXml = docXml.replace(/Tengo el honor de dirigirme a Ud\., con la finalidad de poner a disposici[\u0000-\u00ff]*? al personal policial conforme a los motivos que a continuaci[\u0000-\u00ff]*? se detalla:/gi, 'Tengo el honor de dirigirme a Ud., en atenci\u00f3n al documento indicado en la referencia, con la finalidad de poner a disposici\u00f3n al personal policial conforme a continuaci\u00f3n se detalla:');
+        docXml = docXml.replace(/GRADO APELLIDOS Y NOMBRES/g, persFull);
+        docXml = docXml.replace(/MOTIVO/g, motivoText);
+        docXml = docXml.replace(/UNIDAD DE DESTINO/g, destinoVal);
+        let docInitials = buildDocumentInitials(firmanteStr, data.usuario_registra || currentUser);
+        docXml = docXml.replace(/RFCA\//g, `${docInitials}`);
+
+        zip.file('word/document.xml', docXml);
+        const outBlob = zip.generate({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+
+        saveAs(outBlob, `OFICIO_INCORPORACION_${numPad}-${year}.docx`);
+      } catch (err) {
+        console.error('Error generando documento Word:', err);
+        alert('Error al generar el archivo Word: ' + (err.message || err));
+      }
+    }
+
+    function closePreviewOficioModal() {
+      document.getElementById('modalPreviewOficioIncorp').classList.remove('active');
+      document.body.classList.remove('printing-oficio');
+    }
+
+    function printOficioDocument(e) {
+      if (e) e.preventDefault();
+      document.body.classList.add('printing-oficio');
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-oficio');
+      }, 1000);
+    }
+
+    function copyOficioSummary(e) {
+      if (e) e.preventDefault();
+      if (!currentPreviewOficioData) return;
+      const d = currentPreviewOficioData;
+      const text = `OFICIO N° ${d.numero_documento || ''}
+SEÑOR: ${d.destino || ''}
+ASUNTO: Pone a Disposición a personal PNP, por motivo que se indica.
+REF: ${(d.numero_orden_incorporacion_dirrehum || '')} ${(d.documento_referencia || '')}
+EFECTIVO: ${d.grado_apellidos_nombres || ''} (CIP: ${d.cip || ''})
+PROCEDENCIA: ${d.unidad_anterior || ''}
+MOTIVO: ${buildMotivoText(d)}
+DESTINO: ${d.destino || ''}
+FIRMANTE: ${d.quien_ordena || ''}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Texto del Oficio copiado al portapapeles.');
+      }).catch(() => {
+        alert('No se pudo copiar automáticamente al portapapeles.');
+      });
+    }
+
+    async function confirmAndSaveFromOficioPreview() {
+      if (currentPreviewOficioData && currentPreviewOficioData.fromForm) {
+        printOficioDocument();
+        await saveDocRecord();
+        closePreviewOficioModal();
+      } else if (currentPreviewOficioData && currentPreviewOficioData.id) {
+        if (!isUserAdmin()) {
+          alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede modificar registros existentes.');
+          return;
+        }
+        printOficioDocument();
+        await saveDocRecord();
+        closePreviewOficioModal();
+      } else {
+        printOficioDocument();
+        closePreviewOficioModal();
+      }
+    }
+
     async function saveDocRecord() {
       const conf = TABLES_CONFIG[currentTable];
       const payload = {};
@@ -1655,7 +5155,71 @@
         return;
       }
 
-      if (conf.isUserTable) {
+      if (conf.isOrdenIncorporacion) {
+        const numDocEl = document.getElementById('f_numero_documento');
+        const descEl = document.getElementById('f_descripcion');
+        const persEl = document.getElementById('f_grado_apellidos_nombres');
+        const cipEl = document.getElementById('f_cip');
+        const unidadAntEl = document.getElementById('f_unidad_anterior');
+        const destinoEl = document.getElementById('f_destino');
+
+        if (!numDocEl || !numDocEl.value.trim()) {
+          alert('Por favor ingrese el Número de Documento.');
+          numDocEl?.focus();
+          return;
+        }
+        if (!descEl || !descEl.value.trim()) {
+          alert('Por favor ingrese o seleccione la Descripción / Asunto.');
+          descEl?.focus();
+          return;
+        }
+        if (!persEl || !persEl.value.trim()) {
+          alert('Por favor ingrese o seleccione el Grado, Apellidos y Nombres del efectivo.');
+          persEl?.focus();
+          return;
+        }
+        if (!cipEl || !cipEl.value.trim()) {
+          alert('El campo CIP es obligatorio (8 dígitos).');
+          cipEl?.focus();
+          return;
+        }
+        if (!/^\d{8}$/.test(cipEl.value.trim())) {
+          alert('El CIP debe contener exactamente 8 dígitos numéricos.');
+          cipEl?.focus();
+          return;
+        }
+        if (!unidadAntEl || !unidadAntEl.value.trim()) {
+          alert('El campo Unidad Anterior / Procedencia es obligatorio.');
+          unidadAntEl?.focus();
+          return;
+        }
+        if (!destinoEl || !destinoEl.value.trim()) {
+          alert('Por favor ingrese o seleccione el Destino.');
+          destinoEl?.focus();
+          return;
+        }
+
+        let persVal = persEl.value.trim().replace(/\s*\(?CIP\s*:?\s*\d+\)?/gi, '').trim();
+        let cipVal = (document.getElementById('f_cip')?.value || '').trim();
+        let unidAntVal = (document.getElementById('f_unidad_anterior')?.value || '').trim();
+
+        payload.numero_documento = numDocEl.value.trim();
+        payload.fecha_documento = document.getElementById('f_fecha_documento').value;
+        payload.descripcion = descEl.value.trim();
+        payload.grado_apellidos_nombres = persVal;
+        payload.CIP = cipVal || null;
+        payload.unidad_anterior_procedencia = unidAntVal || null;
+        payload.destino = destinoEl.value.trim();
+
+        let numDirrehum = (document.getElementById('f_numero_orden_incorporacion_dirrehum')?.value || '').trim();
+        if (numDirrehum) {
+          numDirrehum = cleanAndFormatOrdenDirrehum(numDirrehum);
+        }
+        payload.numero_orden_incorporacion_dirrehum = numDirrehum || null;
+        payload.documento_referencia = (document.getElementById('f_documento_referencia')?.value || '').trim() || null;
+        payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
+        payload.usuario_registra = getUsuarioRegistraNombre();
+      } else if (conf.isUserTable) {
         if (!isUserAdmin()) {
           alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede gestionar usuarios.');
           return;
@@ -1681,8 +5245,10 @@
       }
 
       const saveBtn = document.getElementById('btnSaveDoc');
-      saveBtn.disabled = true;
-      saveBtn.textContent = 'Guardando...';
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+      }
 
       try {
         if (editingId) {
@@ -1701,8 +5267,10 @@
       } catch (err) {
         alert('Error al guardar: ' + err.message);
       } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = '&#128190; Guardar Registro';
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '&#128190; Guardar Registro';
+        }
       }
     }
 
@@ -1743,6 +5311,21 @@
       const conf = TABLES_CONFIG[currentTable];
       
       const exportRows = currentData.map((item, idx) => {
+        if (conf.isOrdenIncorporacion) {
+          return {
+            'N°': idx + 1,
+            'N° DOCUMENTO': item.numero_documento || '',
+            'FECHA DOCUMENTO': item.fecha_documento || '',
+            'DESCRIPCIÓN / ASUNTO': item.descripcion || '',
+            'GRADO, APELLIDOS Y NOMBRES': item.grado_apellidos_nombres || item.grado_apellidos_nomnbres || '',
+            'DESTINO': item.destino || '',
+            'N° ORDEN INCORP. DIRREHUM': item.numero_orden_incorporacion_dirrehum || '',
+            'DOCUMENTO REFERENCIA': item.documento_referencia || '',
+            'QUIEN ORDENA': item.quien_ordena || '',
+            'USUARIO REGISTRA': item.usuario_registra || ''
+          };
+        }
+
         if (conf.isUserTable) {
           return {
             'N??': idx + 1,
