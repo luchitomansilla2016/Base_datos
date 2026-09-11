@@ -996,7 +996,7 @@
     .orden-header-grid {
       display: grid;
       grid-template-columns: 180px 1fr;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
       margin-bottom: 8px; /* 1.5 espacios hacia el bloque CIP */
     }
@@ -1030,6 +1030,7 @@
       letter-spacing: 0.01em;
       text-align: center;
       width: 100%;
+      margin-top: 16px; /* Solo el titulo baja dos espacios */
     }
     .orden-doc-number-title div {
       white-space: nowrap;
@@ -1098,6 +1099,7 @@
       display: flex;
       align-items: flex-end;
       margin-bottom: 2px;
+      margin-left: -12px; /* Sello de cargo corre un espacio a la izquierda */
     }
     .orden-cargo-recepcion-img {
       width: 100%;
@@ -1114,7 +1116,7 @@
     }
     .orden-round-seal-img {
       position: absolute;
-      left: 18px;
+      left: -4px; /* Sello redondo corre un espacio a la izquierda (antes 18px) */
       bottom: 2px;
       width: 78px;
       height: 78px;
