@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -1595,7 +1595,7 @@
           <button id="deletePermanentBtn" class="danger admin-only" onclick="deletePermanentCurrent(event)" style="display:none;">🗑️ Eliminar permanente</button>
           <button id="formFichaBtn" type="button" class="secondary" onclick="openFichaFromForm(event)" style="display:none;">📄 Ver Ficha</button>
           <button id="btnSaveAndGenOrden" type="button" class="primary" onclick="saveRecordAndGenerateOrden(event)" style="background: linear-gradient(135deg, #0b5a3c 0%, #0a6370 100%); display:none;">📑 Guardar y Generar Orden</button>
-          <button class="primary" onclick="saveRecord(event)">Guardar cambios</button>
+          <button id="saveRecordBtn" class="primary" onclick="saveRecord(event)">Guardar cambios</button>
         </div>
       </div>
     </div>
@@ -5845,95 +5845,103 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       if (e) e.preventDefault();
       if (!canEdit()) return;
 
-      let sec = moduloFormFields[currentTable] || moduloFormFields.personal;
-      if (current && currentTable === 'personal') {
-        sec = sec.filter(s => !s.id || !s.id.startsWith('sec_datos_'));
-      }
-      const obj = {};
-
-      sec.forEach(s => {
-        s.fields.forEach(k => {
-          const el = document.getElementById(k);
-          if (!el) return;
-          let v = el.value.trim();
-          const meta = allFieldMeta[k] || {};
-          if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
-          const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
-
-          if (currentTable === 'personal') {
-            const dbCol = personalDbColumnMap[k];
-            if (dbCol) {
-              obj[dbCol] = finalVal;
-            }
-          } else if (currentTable === 'referidos') {
-            const dbCol = referidosDbColumnMap[k] || k;
-            obj[dbCol] = finalVal;
-          } else {
-            obj[k] = finalVal;
-          }
-        });
-      });
-
-      if (currentTable === 'referidos') {
-        retornoModalFields.forEach(k => {
-          const el = document.getElementById(k);
-          if (el) {
-            const v = el.value.trim();
-            const dbCol = referidosDbColumnMap[k] || k;
-            obj[dbCol] = v === '' ? null : v;
-          }
-        });
-      }
-
-      const cipVal = (currentTable === 'personal' || currentTable === 'referidos') ? (obj['CIP'] || obj['cip']) : obj['cip'];
-      if (!cipVal || String(cipVal).length < 6) { toast('Ingrese un CIP válido', 'warning'); return; }
-
-      // Asegurar valores por defecto para columnas NOT NULL en personal_policial
-      if (currentTable === 'personal') {
-        if (!obj['CODOFIN']) obj['CODOFIN'] = obj['CIP'] || cipVal || '';
-        if (!obj['ESPECIALIDAD']) obj['ESPECIALIDAD'] = 'DE ARMAS';
-        if (!obj['JERARQUÍA']) obj['JERARQUÍA'] = 'SUBOFICIAL';
-        if (!obj['CONDICIÓN']) obj['CONDICIÓN'] = 'NATO';
-        if (!obj['SITUACIÓN ACTUAL']) obj['SITUACIÓN ACTUAL'] = 'PRESENTE';
-        if (!obj['CARGO']) obj['CARGO'] = 'OPERATIVO';
-        if (!obj['TIPO DNI']) obj['TIPO DNI'] = 'ELECTRONICO';
-        if (!obj['CORREO INSTITUCIONAL']) obj['CORREO INSTITUCIONAL'] = (cipVal ? `${cipVal}@policia.gob.pe` : '');
-        if (!obj['DOCUMENTO QUE SUSTENTA']) obj['DOCUMENTO QUE SUSTENTA'] = cipVal || '';
-        if (!obj['UNIDAD ANTERIOR']) obj['UNIDAD ANTERIOR'] = '';
-        if (!obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO']) obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO'] = '';
-        if (!obj['APTITUD PSICOSOMÁTICO']) obj['APTITUD PSICOSOMÁTICO'] = 'APTO';
-        if (!obj['ESTADO CIVIL']) obj['ESTADO CIVIL'] = 'SOLTERO(A)';
-        if (obj['HIJOS'] === null || obj['HIJOS'] === undefined) obj['HIJOS'] = 0;
-      }
-
-      // Sanitización contra PGRST204: solo enviar columnas reales de la tabla correspondiente
-      if (currentTable === 'referidos') {
-        const validReferidosCols = new Set([
-          'CIP', 'GRADO', 'APELLIDOS Y NOMBRES', 'UNIDAD DE ORIGEN', 'LISTA DE REVISTA',
-          'CONDICION', 'SITUACION ACTUAL', 'DOCUMENTO DE REFERENCIA', 'DIAGNOSTICO',
-          'DOC PONE A DISPOSICION', 'FECHA DOC', 'NRO EXCLUSION', 'FECHA EXCLUSION',
-          'DOC RETORNO', 'NRO INCLUSION', 'FECHA INCLUSION', 'TIPO DOC', 'NRO DOC',
-          'FECHA DOC RETORNO', 'OBSERVACION'
-        ]);
-        Object.keys(obj).forEach(key => {
-          if (!validReferidosCols.has(key)) delete obj[key];
-        });
-      } else if (currentTable === 'personal') {
-        const validPersonalCols = new Set([
-          'id', 'CIP', 'TIPO DNI', 'CODOFIN', 'GRADO', 'APELLIDOS Y NOMBRES', 'DNI',
-          'UNIDAD DE ORIGEN', 'LISTA DE REVISTA', 'SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO',
-          'FECHA INCORPORACIÓN', 'DOCUMENTO QUE SUSTENTA', 'UNIDAD ANTERIOR', 'CONDICIÓN',
-          'SITUACIÓN ACTUAL', 'CARGO', 'JERARQUÍA', 'ESPECIALIDAD', 'APTITUD PSICOSOMÁTICO',
-          'F. INICIO', 'F. TERMINO', 'SEXO', 'FECHA DE NACIMIENTO', 'FECHA ING. ESTADO',
-          'FECHA ING. ESCUELA', 'FECHA EGR. ESCUELA', 'FECHA ULT. ASCENSO',
-          'CORREO INSTITUCIONAL', 'CORREO PERSONAL', 'HIJOS', 'ESTADO CIVIL', 'CELULAR'
-        ]);
-        Object.keys(obj).forEach(key => {
-          if (!validPersonalCols.has(key)) delete obj[key];
-        });
-      }
+      const btnSave = document.getElementById('saveRecordBtn');
+      const btnGen = document.getElementById('btnSaveAndGenOrden');
+      if (btnSave) { btnSave.disabled = true; btnSave.textContent = '⏳ Guardando...'; }
+      if (btnGen) { btnGen.disabled = true; }
 
       try {
+        let sec = moduloFormFields[currentTable] || moduloFormFields.personal;
+        if (current && currentTable === 'personal') {
+          sec = sec.filter(s => !s.id || !s.id.startsWith('sec_datos_'));
+        }
+        const obj = {};
+
+        sec.forEach(s => {
+          s.fields.forEach(k => {
+            const el = document.getElementById(k);
+            if (!el) return;
+            let v = el.value.trim();
+            const meta = allFieldMeta[k] || {};
+            if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
+            const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
+
+            if (currentTable === 'personal') {
+              const dbCol = personalDbColumnMap[k];
+              if (dbCol) {
+                obj[dbCol] = finalVal;
+              }
+            } else if (currentTable === 'referidos') {
+              const dbCol = referidosDbColumnMap[k] || k;
+              obj[dbCol] = finalVal;
+            } else {
+              obj[k] = finalVal;
+            }
+          });
+        });
+
+        if (currentTable === 'referidos') {
+          retornoModalFields.forEach(k => {
+            const el = document.getElementById(k);
+            if (el) {
+              const v = el.value.trim();
+              const dbCol = referidosDbColumnMap[k] || k;
+              obj[dbCol] = v === '' ? null : v;
+            }
+          });
+        }
+
+        const cipVal = (currentTable === 'personal' || currentTable === 'referidos') ? (obj['CIP'] || obj['cip']) : obj['cip'];
+        if (!cipVal || String(cipVal).length < 6) { 
+          toast('Ingrese un CIP válido (mínimo 6 dígitos)', 'warning'); 
+          return; 
+        }
+
+        // Asegurar valores por defecto para columnas NOT NULL en personal_policial
+        if (currentTable === 'personal') {
+          if (!obj['CODOFIN']) obj['CODOFIN'] = obj['CIP'] || cipVal || '';
+          if (!obj['ESPECIALIDAD']) obj['ESPECIALIDAD'] = 'DE ARMAS';
+          if (!obj['JERARQUÍA']) obj['JERARQUÍA'] = 'SUBOFICIAL';
+          if (!obj['CONDICIÓN']) obj['CONDICIÓN'] = 'NATO';
+          if (!obj['SITUACIÓN ACTUAL']) obj['SITUACIÓN ACTUAL'] = 'PRESENTE';
+          if (!obj['CARGO']) obj['CARGO'] = 'OPERATIVO';
+          if (!obj['TIPO DNI']) obj['TIPO DNI'] = 'ELECTRONICO';
+          if (!obj['CORREO INSTITUCIONAL']) obj['CORREO INSTITUCIONAL'] = (cipVal ? `${cipVal}@policia.gob.pe` : '');
+          if (!obj['DOCUMENTO QUE SUSTENTA']) obj['DOCUMENTO QUE SUSTENTA'] = cipVal || '';
+          if (!obj['UNIDAD ANTERIOR']) obj['UNIDAD ANTERIOR'] = '';
+          if (!obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO']) obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO'] = '';
+          if (!obj['APTITUD PSICOSOMÁTICO']) obj['APTITUD PSICOSOMÁTICO'] = 'APTO';
+          if (!obj['ESTADO CIVIL']) obj['ESTADO CIVIL'] = 'SOLTERO(A)';
+          if (obj['HIJOS'] === null || obj['HIJOS'] === undefined) obj['HIJOS'] = 0;
+        }
+
+        // Sanitización contra PGRST204: solo enviar columnas reales de la tabla correspondiente
+        if (currentTable === 'referidos') {
+          const validReferidosCols = new Set([
+            'CIP', 'GRADO', 'APELLIDOS Y NOMBRES', 'UNIDAD DE ORIGEN', 'LISTA DE REVISTA',
+            'CONDICION', 'SITUACION ACTUAL', 'DOCUMENTO DE REFERENCIA', 'DIAGNOSTICO',
+            'DOC PONE A DISPOSICION', 'FECHA DOC', 'NRO EXCLUSION', 'FECHA EXCLUSION',
+            'DOC RETORNO', 'NRO INCLUSION', 'FECHA INCLUSION', 'TIPO DOC', 'NRO DOC',
+            'FECHA DOC RETORNO', 'OBSERVACION'
+          ]);
+          Object.keys(obj).forEach(key => {
+            if (!validReferidosCols.has(key)) delete obj[key];
+          });
+        } else if (currentTable === 'personal') {
+          const validPersonalCols = new Set([
+            'id', 'CIP', 'TIPO DNI', 'CODOFIN', 'GRADO', 'APELLIDOS Y NOMBRES', 'DNI',
+            'UNIDAD DE ORIGEN', 'LISTA DE REVISTA', 'SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO',
+            'FECHA INCORPORACIÓN', 'DOCUMENTO QUE SUSTENTA', 'UNIDAD ANTERIOR', 'CONDICIÓN',
+            'SITUACIÓN ACTUAL', 'CARGO', 'JERARQUÍA', 'ESPECIALIDAD', 'APTITUD PSICOSOMÁTICO',
+            'F. INICIO', 'F. TERMINO', 'SEXO', 'FECHA DE NACIMIENTO', 'FECHA ING. ESTADO',
+            'FECHA ING. ESCUELA', 'FECHA EGR. ESCUELA', 'FECHA ULT. ASCENSO',
+            'CORREO INSTITUCIONAL', 'CORREO PERSONAL', 'HIJOS', 'ESTADO CIVIL', 'CELULAR'
+          ]);
+          Object.keys(obj).forEach(key => {
+            if (!validPersonalCols.has(key)) delete obj[key];
+          });
+        }
+
         if (current) {
           if (current.id !== undefined && current.id !== null && current.id !== '') {
             await req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(obj) });
@@ -6036,15 +6044,24 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
 
         toast('Registro guardado exitosamente', 'success');
         closeForm();
-        await loadData();
+        loadData();
       } catch (err) {
-        toast('Error al guardar: ' + err.message, 'error');
+        console.error('Error al guardar:', err);
+        toast('Error al guardar: ' + (err.message || err), 'error');
+      } finally {
+        if (btnSave) { btnSave.disabled = false; btnSave.textContent = 'Guardar cambios'; }
+        if (btnGen) { btnGen.disabled = false; }
       }
     }
 
     async function saveRecordAndGenerateOrden(e) {
       if (e) e.preventDefault();
       if (!canEdit()) return;
+
+      const btnGen = document.getElementById('btnSaveAndGenOrden');
+      const btnSave = document.getElementById('saveRecordBtn');
+      if (btnGen) { btnGen.disabled = true; btnGen.textContent = '⏳ Generando Orden...'; }
+      if (btnSave) { btnSave.disabled = true; }
 
       try {
         toast('Generando número de Orden de Incorporación...', 'info');
@@ -6067,65 +6084,68 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         }
         const obj = {};
 
-      sec.forEach(s => {
-        s.fields.forEach(k => {
-          const el = document.getElementById(k);
-          if (!el) return;
-          let v = el.value.trim();
-          const meta = allFieldMeta[k] || {};
-          if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
-          const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
+        sec.forEach(s => {
+          s.fields.forEach(k => {
+            const el = document.getElementById(k);
+            if (!el) return;
+            let v = el.value.trim();
+            const meta = allFieldMeta[k] || {};
+            if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
+            const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
 
-          if (currentTable === 'personal') {
-            const dbCol = personalDbColumnMap[k];
-            if (dbCol) {
-              obj[dbCol] = finalVal;
+            if (currentTable === 'personal') {
+              const dbCol = personalDbColumnMap[k];
+              if (dbCol) {
+                obj[dbCol] = finalVal;
+              }
+            } else {
+              obj[k] = finalVal;
             }
-          } else {
-            obj[k] = finalVal;
-          }
+          });
         });
-      });
 
-      const cipVal = obj['CIP'] || obj['cip'] || onlyDigits(document.getElementById('cip')?.value);
-      if (!cipVal || String(cipVal).length < 6) { toast('Ingrese un CIP válido', 'warning'); return; }
+        const cipVal = obj['CIP'] || obj['cip'] || onlyDigits(document.getElementById('cip')?.value);
+        if (!cipVal || String(cipVal).length < 6) { 
+          toast('Ingrese un CIP válido (mínimo 6 dígitos)', 'warning'); 
+          return; 
+        }
 
-      // Asegurar valores por defecto para columnas NOT NULL en personal_policial
-      if (currentTable === 'personal') {
-        if (!obj['CODOFIN']) obj['CODOFIN'] = obj['CIP'] || cipVal || '';
-        if (!obj['ESPECIALIDAD']) obj['ESPECIALIDAD'] = 'DE ARMAS';
-        if (!obj['JERARQUÍA']) obj['JERARQUÍA'] = 'SUBOFICIAL';
-        if (!obj['CONDICIÓN']) obj['CONDICIÓN'] = 'NATO';
-        if (!obj['SITUACIÓN ACTUAL']) obj['SITUACIÓN ACTUAL'] = 'PRESENTE';
-        if (!obj['CARGO']) obj['CARGO'] = 'OPERATIVO';
-        if (!obj['TIPO DNI']) obj['TIPO DNI'] = 'ELECTRONICO';
-        if (!obj['CORREO INSTITUCIONAL']) obj['CORREO INSTITUCIONAL'] = (cipVal ? `${cipVal}@policia.gob.pe` : '');
-        if (!obj['DOCUMENTO QUE SUSTENTA']) obj['DOCUMENTO QUE SUSTENTA'] = nextCorr.formattedDocNum;
-        if (!obj['FECHA INCORPORACIÓN']) obj['FECHA INCORPORACIÓN'] = todayYMD;
-        if (!obj['UNIDAD ANTERIOR']) obj['UNIDAD ANTERIOR'] = '';
-        if (!obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO']) obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO'] = '';
-        if (!obj['APTITUD PSICOSOMÁTICO']) obj['APTITUD PSICOSOMÁTICO'] = 'APTO';
-        if (!obj['ESTADO CIVIL']) obj['ESTADO CIVIL'] = 'SOLTERO(A)';
-        if (obj['HIJOS'] === null || obj['HIJOS'] === undefined) obj['HIJOS'] = 0;
-      }
+        // Asegurar valores por defecto para columnas NOT NULL en personal_policial
+        if (currentTable === 'personal') {
+          if (!obj['CODOFIN']) obj['CODOFIN'] = obj['CIP'] || cipVal || '';
+          if (!obj['ESPECIALIDAD']) obj['ESPECIALIDAD'] = 'DE ARMAS';
+          if (!obj['JERARQUÍA']) obj['JERARQUÍA'] = 'SUBOFICIAL';
+          if (!obj['CONDICIÓN']) obj['CONDICIÓN'] = 'NATO';
+          if (!obj['SITUACIÓN ACTUAL']) obj['SITUACIÓN ACTUAL'] = 'PRESENTE';
+          if (!obj['CARGO']) obj['CARGO'] = 'OPERATIVO';
+          if (!obj['TIPO DNI']) obj['TIPO DNI'] = 'ELECTRONICO';
+          if (!obj['CORREO INSTITUCIONAL']) obj['CORREO INSTITUCIONAL'] = (cipVal ? `${cipVal}@policia.gob.pe` : '');
+          if (!obj['DOCUMENTO QUE SUSTENTA']) obj['DOCUMENTO QUE SUSTENTA'] = nextCorr.formattedDocNum;
+          if (!obj['FECHA INCORPORACIÓN']) obj['FECHA INCORPORACIÓN'] = todayYMD;
+          if (!obj['UNIDAD ANTERIOR']) obj['UNIDAD ANTERIOR'] = '';
+          if (!obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO']) obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO'] = '';
+          if (!obj['APTITUD PSICOSOMÁTICO']) obj['APTITUD PSICOSOMÁTICO'] = 'APTO';
+          if (!obj['ESTADO CIVIL']) obj['ESTADO CIVIL'] = 'SOLTERO(A)';
+          if (obj['HIJOS'] === null || obj['HIJOS'] === undefined) obj['HIJOS'] = 0;
+        }
 
-      const validPersonalCols = new Set([
-        'id', 'CIP', 'TIPO DNI', 'CODOFIN', 'GRADO', 'APELLIDOS Y NOMBRES', 'DNI',
-        'UNIDAD DE ORIGEN', 'LISTA DE REVISTA', 'SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO',
-        'FECHA INCORPORACIÓN', 'DOCUMENTO QUE SUSTENTA', 'UNIDAD ANTERIOR', 'CONDICIÓN',
-        'SITUACIÓN ACTUAL', 'CARGO', 'JERARQUÍA', 'ESPECIALIDAD', 'APTITUD PSICOSOMÁTICO',
-        'F. INICIO', 'F. TERMINO', 'SEXO', 'FECHA DE NACIMIENTO', 'FECHA ING. ESTADO',
-        'FECHA ING. ESCUELA', 'FECHA EGR. ESCUELA', 'FECHA ULT. ASCENSO',
-        'CORREO INSTITUCIONAL', 'CORREO PERSONAL', 'HIJOS', 'ESTADO CIVIL', 'CELULAR'
-      ]);
-      const cleanObj = {};
-      Object.keys(obj).forEach(key => {
-        if (validPersonalCols.has(key)) cleanObj[key] = obj[key];
-      });
-      cleanObj['DOCUMENTO QUE SUSTENTA'] = nextCorr.formattedDocNum;
-      if (!cleanObj['FECHA INCORPORACIÓN']) cleanObj['FECHA INCORPORACIÓN'] = todayYMD;
+        const validPersonalCols = new Set([
+          'id', 'CIP', 'TIPO DNI', 'CODOFIN', 'GRADO', 'APELLIDOS Y NOMBRES', 'DNI',
+          'UNIDAD DE ORIGEN', 'LISTA DE REVISTA', 'SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO',
+          'FECHA INCORPORACIÓN', 'DOCUMENTO QUE SUSTENTA', 'UNIDAD ANTERIOR', 'CONDICIÓN',
+          'SITUACIÓN ACTUAL', 'CARGO', 'JERARQUÍA', 'ESPECIALIDAD', 'APTITUD PSICOSOMÁTICO',
+          'F. INICIO', 'F. TERMINO', 'SEXO', 'FECHA DE NACIMIENTO', 'FECHA ING. ESTADO',
+          'FECHA ING. ESCUELA', 'FECHA EGR. ESCUELA', 'FECHA ULT. ASCENSO',
+          'CORREO INSTITUCIONAL', 'CORREO PERSONAL', 'HIJOS', 'ESTADO CIVIL', 'CELULAR'
+        ]);
+        const cleanObj = {};
+        Object.keys(obj).forEach(key => {
+          if (validPersonalCols.has(key)) cleanObj[key] = obj[key];
+        });
+        cleanObj['DOCUMENTO QUE SUSTENTA'] = nextCorr.formattedDocNum;
+        if (!cleanObj['FECHA INCORPORACIÓN']) cleanObj['FECHA INCORPORACIÓN'] = todayYMD;
 
-      toast('Guardando datos del efectivo...', 'info');
+        toast('Guardando datos del efectivo...', 'info');
         if (current) {
           if (current.id !== undefined && current.id !== null && current.id !== '') {
             await req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(cleanObj) });
@@ -6233,7 +6253,6 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         const insertedDoc = await docReq(API_ORDEN_INCORPORACION, { method: 'POST', body: JSON.stringify(docPayload) });
         const docId = (Array.isArray(insertedDoc) && insertedDoc[0]) ? insertedDoc[0].id : (insertedDoc?.id || '');
 
-        // Guardar documento_pone_disposicion y fecha_documento en tablas de incorporados si ya existian
         if (cipVal) {
           try { await req(API_INCORPORADOS_REASIGNADOS + '?cip=eq.' + encodeURIComponent(cipVal), { method: 'PATCH', body: JSON.stringify({ "documento_pone_disposicion": nextCorr.formattedDocNum, "fecha_documento": todayYMD }) }); } catch (_) {}
           try { await req(API_INCORPORADOS_DESTACADOS + '?cip=eq.' + encodeURIComponent(cipVal), { method: 'PATCH', body: JSON.stringify({ "documento_pone_disposicion": nextCorr.formattedDocNum, "fecha_documento": todayYMD }) }); } catch (_) {}
@@ -6267,11 +6286,14 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
 
         toast(`Orden de Incorporación N° ${nextCorr.numPadded} generada exitosamente`, 'success');
         closeForm();
-        await loadData();
         displayOrdenPreview(ordenData);
+        loadData();
       } catch (err) {
         console.error('Error en saveRecordAndGenerateOrden:', err);
-        toast('Error al guardar y generar orden: ' + err.message, 'error');
+        toast('Error al guardar y generar orden: ' + (err.message || err), 'error');
+      } finally {
+        if (btnGen) { btnGen.disabled = false; btnGen.textContent = '📑 Guardar y Generar Orden'; }
+        if (btnSave) { btnSave.disabled = false; }
       }
     }
 
