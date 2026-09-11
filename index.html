@@ -2830,6 +2830,68 @@
       observacion: 'OBSERVACION'
     };
 
+    let tableSampleRows = {};
+
+    function getDbColumnKey(targetKey, sampleRow) {
+      if (!sampleRow) return targetKey;
+      if (sampleRow[targetKey] !== undefined) return targetKey;
+      const targetNorm = normalizeText(targetKey).replace(/[^a-z0-9]/g, '');
+      const sampleKeys = Object.keys(sampleRow);
+      for (const k of sampleKeys) {
+        const kNorm = normalizeText(k).replace(/[^a-z0-9]/g, '');
+        if (kNorm === targetNorm) return k;
+      }
+      return targetKey;
+    }
+
+    function buildCleanPersonalPayload(inputObj) {
+      const sample = tableSampleRows['personal'] || (rows && currentTable === 'personal' && rows[0] ? rows[0] : null);
+      const cleanPayload = {};
+      const todayYMD = new Date().toISOString().split('T')[0];
+      const cipVal = inputObj['CIP'] || inputObj['cip'] || '';
+      
+      const standardFields = [
+        ['CIP', cipVal],
+        ['TIPO DNI', inputObj['TIPO DNI'] || inputObj['tipo_dni'] || 'ELECTRONICO'],
+        ['CODOFIN', inputObj['CODOFIN'] || inputObj['codofin'] || cipVal || ''],
+        ['GRADO', inputObj['GRADO'] || inputObj['grado'] || ''],
+        ['APELLIDOS Y NOMBRES', inputObj['APELLIDOS Y NOMBRES'] || inputObj['apellidos_y_nombres'] || ''],
+        ['DNI', inputObj['DNI'] || inputObj['dni'] || null],
+        ['UNIDAD DE ORIGEN', inputObj['UNIDAD DE ORIGEN'] || inputObj['unidad_de_origen'] || 'REGPOL HUANUCO'],
+        ['LISTA DE REVISTA', inputObj['LISTA DE REVISTA'] || inputObj['lista_de_revista'] || 'REGPOL HUANUCO'],
+        ['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO', inputObj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO'] || inputObj['subunidad_donde_se_encuentra_por_curso_o_apoyo'] || ''],
+        ['FECHA INCORPORACIÓN', inputObj['FECHA INCORPORACIÓN'] || inputObj['fecha_de_incorporacion'] || todayYMD],
+        ['DOCUMENTO QUE SUSTENTA', inputObj['DOCUMENTO QUE SUSTENTA'] || inputObj['documento_que_sustenta'] || ''],
+        ['UNIDAD ANTERIOR', inputObj['UNIDAD ANTERIOR'] || inputObj['unidad_anterior'] || ''],
+        ['CONDICIÓN', inputObj['CONDICIÓN'] || inputObj['condicion'] || 'NATO'],
+        ['SITUACIÓN ACTUAL', inputObj['SITUACIÓN ACTUAL'] || inputObj['situacion_actual'] || 'PRESENTE'],
+        ['CARGO', inputObj['CARGO'] || inputObj['cargo'] || 'OPERATIVO'],
+        ['JERARQUÍA', inputObj['JERARQUÍA'] || inputObj['jerarquia'] || 'SUBOFICIAL'],
+        ['ESPECIALIDAD', inputObj['ESPECIALIDAD'] || inputObj['especialidad'] || 'DE ARMAS'],
+        ['APTITUD PSICOSOMÁTICO', inputObj['APTITUD PSICOSOMÁTICO'] || inputObj['aptitud_psicosomatico'] || 'APTO'],
+        ['F. INICIO', inputObj['F. INICIO'] || inputObj['f_inicio'] || null],
+        ['F. TERMINO', inputObj['F. TERMINO'] || inputObj['f_termino'] || null],
+        ['SEXO', inputObj['SEXO'] || inputObj['sexo'] || 'M'],
+        ['FECHA DE NACIMIENTO', inputObj['FECHA DE NACIMIENTO'] || inputObj['fecha_de_nacimiento'] || null],
+        ['FECHA ING. ESTADO', inputObj['FECHA ING. ESTADO'] || inputObj['f_ingreso_al_estado'] || null],
+        ['FECHA ING. ESCUELA', inputObj['FECHA ING. ESCUELA'] || inputObj['f_ingreso_a_la_escuela'] || null],
+        ['FECHA EGR. ESCUELA', inputObj['FECHA EGR. ESCUELA'] || inputObj['f_egreso_de_la_escuela'] || null],
+        ['FECHA ULT. ASCENSO', inputObj['FECHA ULT. ASCENSO'] || inputObj['f_ultimo_ascenso'] || null],
+        ['CORREO INSTITUCIONAL', inputObj['CORREO INSTITUCIONAL'] || inputObj['correo_institucional'] || (cipVal ? `${cipVal}@policia.gob.pe` : '')],
+        ['CORREO PERSONAL', inputObj['CORREO PERSONAL'] || inputObj['correo_personal'] || ''],
+        ['HIJOS', (inputObj['HIJOS'] !== null && inputObj['HIJOS'] !== undefined && inputObj['HIJOS'] !== '') ? Number(inputObj['HIJOS']) : (inputObj['hijos'] !== null && inputObj['hijos'] !== undefined && inputObj['hijos'] !== '' ? Number(inputObj['hijos']) : 0)],
+        ['ESTADO CIVIL', inputObj['ESTADO CIVIL'] || inputObj['estado_civil'] || 'SOLTERO(A)'],
+        ['CELULAR', inputObj['CELULAR'] || inputObj['celular'] || null]
+      ];
+
+      standardFields.forEach(([stdKey, val]) => {
+        const actualKey = getDbColumnKey(stdKey, sample);
+        cleanPayload[actualKey] = val;
+      });
+
+      return cleanPayload;
+    }
+
     function formatDateForInput(val) {
       if (!val) return '';
       const str = String(val).trim();
@@ -3073,6 +3135,7 @@
         }
 
         if (token !== loadDataToken || tableSnapshot !== currentTable) return;
+        tableSampleRows[tableSnapshot] = (loadedRows && loadedRows[0]) ? loadedRows[0] : null;
         rows = loadedRows;
         ordenarRegistros(rows);
         buildAdvancedFilters();
@@ -4468,37 +4531,6 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         const insertedDoc = await docReq(API_ORDEN_INCORPORACION, { method: 'POST', body: JSON.stringify(docPayload) });
         const docId = (Array.isArray(insertedDoc) && insertedDoc[0]) ? insertedDoc[0].id : (insertedDoc?.id || '');
 
-        // Actualizar automáticamente 'DOCUMENTO QUE SUSTENTA' en personal_policial e incorporados
-        if (cipVal) {
-          try {
-            await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipVal), {
-              method: 'PATCH',
-              body: JSON.stringify({
-                'DOCUMENTO QUE SUSTENTA': nextCorr.formattedDocNum,
-                'FECHA INCORPORACIÓN': firstValue(r, ['FECHA INCORPORACIÓN', 'fecha_de_incorporacion']) || todayYMD
-              })
-            });
-          } catch (_) {}
-          try {
-            await req(API_INCORPORADOS_REASIGNADOS + '?cip=eq.' + encodeURIComponent(cipVal), {
-              method: 'PATCH',
-              body: JSON.stringify({
-                'documento_pone_disposicion': nextCorr.formattedDocNum,
-                'fecha_documento': todayYMD
-              })
-            });
-          } catch (_) {}
-          try {
-            await req(API_INCORPORADOS_DESTACADOS + '?cip=eq.' + encodeURIComponent(cipVal), {
-              method: 'PATCH',
-              body: JSON.stringify({
-                'documento_pone_disposicion': nextCorr.formattedDocNum,
-                'fecha_documento': todayYMD
-              })
-            });
-          } catch (_) {}
-        }
-
         const ordenData = {
           id: docId,
           numero_documento: nextCorr.formattedDocNum,
@@ -4525,9 +4557,48 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         };
 
         closeFicha();
-        await loadData();
         displayOrdenPreview(ordenData);
         toast(`Orden de Incorporación N° ${nextCorr.numPadded} generada exitosamente`, 'success');
+
+        // Notificación en tiempo real para documentos.html
+        if (window.BroadcastChannel) {
+          try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'NUEVO_DOCUMENTO', data: docPayload }); } catch (_) {}
+        }
+        try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
+
+        // Sincronizaciones secundarias en segundo plano
+        (async () => {
+          if (cipVal) {
+            try {
+              await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipVal), {
+                method: 'PATCH',
+                body: JSON.stringify({
+                  'DOCUMENTO QUE SUSTENTA': nextCorr.formattedDocNum,
+                  'FECHA INCORPORACIÓN': firstValue(r, ['FECHA INCORPORACIÓN', 'fecha_de_incorporacion']) || todayYMD
+                })
+              });
+            } catch (_) {}
+            try {
+              await req(API_INCORPORADOS_REASIGNADOS + '?cip=eq.' + encodeURIComponent(cipVal), {
+                method: 'PATCH',
+                body: JSON.stringify({
+                  'documento_pone_disposicion': nextCorr.formattedDocNum,
+                  'fecha_documento': todayYMD
+                })
+              });
+            } catch (_) {}
+            try {
+              await req(API_INCORPORADOS_DESTACADOS + '?cip=eq.' + encodeURIComponent(cipVal), {
+                method: 'PATCH',
+                body: JSON.stringify({
+                  'documento_pone_disposicion': nextCorr.formattedDocNum,
+                  'fecha_documento': todayYMD
+                })
+              });
+            } catch (_) {}
+          }
+          loadData();
+        })();
       } catch (err) {
         toast('Error al generar Orden de Incorporación: ' + err.message, 'error');
       }
@@ -5845,6 +5916,11 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       if (e) e.preventDefault();
       if (!canEdit()) return;
 
+      // Si es un nuevo registro en PERSONAL, ejecutar flujo completo con generación de Orden y visor de impresión
+      if (!current && currentTable === 'personal') {
+        return saveRecordAndGenerateOrden(e);
+      }
+
       const btnSave = document.getElementById('saveRecordBtn');
       const btnGen = document.getElementById('btnSaveAndGenOrden');
       if (btnSave) { btnSave.disabled = true; btnSave.textContent = '⏳ Guardando...'; }
@@ -5915,7 +5991,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
           if (obj['HIJOS'] === null || obj['HIJOS'] === undefined) obj['HIJOS'] = 0;
         }
 
-        // Sanitización contra PGRST204: solo enviar columnas reales de la tabla correspondiente
+        let finalPayload = obj;
         if (currentTable === 'referidos') {
           const validReferidosCols = new Set([
             'CIP', 'GRADO', 'APELLIDOS Y NOMBRES', 'UNIDAD DE ORIGEN', 'LISTA DE REVISTA',
@@ -5924,36 +6000,30 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
             'DOC RETORNO', 'NRO INCLUSION', 'FECHA INCLUSION', 'TIPO DOC', 'NRO DOC',
             'FECHA DOC RETORNO', 'OBSERVACION'
           ]);
+          finalPayload = {};
           Object.keys(obj).forEach(key => {
-            if (!validReferidosCols.has(key)) delete obj[key];
+            if (validReferidosCols.has(key)) finalPayload[key] = obj[key];
           });
         } else if (currentTable === 'personal') {
-          const validPersonalCols = new Set([
-            'id', 'CIP', 'TIPO DNI', 'CODOFIN', 'GRADO', 'APELLIDOS Y NOMBRES', 'DNI',
-            'UNIDAD DE ORIGEN', 'LISTA DE REVISTA', 'SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO',
-            'FECHA INCORPORACIÓN', 'DOCUMENTO QUE SUSTENTA', 'UNIDAD ANTERIOR', 'CONDICIÓN',
-            'SITUACIÓN ACTUAL', 'CARGO', 'JERARQUÍA', 'ESPECIALIDAD', 'APTITUD PSICOSOMÁTICO',
-            'F. INICIO', 'F. TERMINO', 'SEXO', 'FECHA DE NACIMIENTO', 'FECHA ING. ESTADO',
-            'FECHA ING. ESCUELA', 'FECHA EGR. ESCUELA', 'FECHA ULT. ASCENSO',
-            'CORREO INSTITUCIONAL', 'CORREO PERSONAL', 'HIJOS', 'ESTADO CIVIL', 'CELULAR'
-          ]);
-          Object.keys(obj).forEach(key => {
-            if (!validPersonalCols.has(key)) delete obj[key];
-          });
+          finalPayload = buildCleanPersonalPayload(obj);
         }
 
         if (current) {
           if (current.id !== undefined && current.id !== null && current.id !== '') {
-            await req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(obj) });
-          } else if (currentTable === 'referidos' || currentTable === 'personal') {
+            await req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(finalPayload) });
+          } else if (currentTable === 'referidos') {
             const cipKey = firstValue(current, ['CIP', 'cip']);
-            await req(API + '?CIP=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(obj) });
+            await req(API + '?CIP=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(finalPayload) });
+          } else if (currentTable === 'personal') {
+            const cipKey = firstValue(current, ['CIP', 'cip']);
+            const dbCipCol = getDbColumnKey('CIP', tableSampleRows['personal'] || rows?.[0]);
+            await req(API + `?${encodeURIComponent(dbCipCol)}=eq.` + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(finalPayload) });
           } else {
             const cipKey = firstValue(current, ['cip', 'CIP']);
-            await req(API + '?cip=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(obj) });
+            await req(API + '?cip=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(finalPayload) });
           }
         } else {
-          await req(API, { method: 'POST', body: JSON.stringify(obj) });
+          await req(API, { method: 'POST', body: JSON.stringify(finalPayload) });
 
           // Limpiar solicitud QR procesada si coincide el CIP
           try {
@@ -6110,111 +6180,11 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
           return; 
         }
 
-        // Asegurar valores por defecto para columnas NOT NULL en personal_policial
-        if (currentTable === 'personal') {
-          if (!obj['CODOFIN']) obj['CODOFIN'] = obj['CIP'] || cipVal || '';
-          if (!obj['ESPECIALIDAD']) obj['ESPECIALIDAD'] = 'DE ARMAS';
-          if (!obj['JERARQUÍA']) obj['JERARQUÍA'] = 'SUBOFICIAL';
-          if (!obj['CONDICIÓN']) obj['CONDICIÓN'] = 'NATO';
-          if (!obj['SITUACIÓN ACTUAL']) obj['SITUACIÓN ACTUAL'] = 'PRESENTE';
-          if (!obj['CARGO']) obj['CARGO'] = 'OPERATIVO';
-          if (!obj['TIPO DNI']) obj['TIPO DNI'] = 'ELECTRONICO';
-          if (!obj['CORREO INSTITUCIONAL']) obj['CORREO INSTITUCIONAL'] = (cipVal ? `${cipVal}@policia.gob.pe` : '');
-          if (!obj['DOCUMENTO QUE SUSTENTA']) obj['DOCUMENTO QUE SUSTENTA'] = nextCorr.formattedDocNum;
-          if (!obj['FECHA INCORPORACIÓN']) obj['FECHA INCORPORACIÓN'] = todayYMD;
-          if (!obj['UNIDAD ANTERIOR']) obj['UNIDAD ANTERIOR'] = '';
-          if (!obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO']) obj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO'] = '';
-          if (!obj['APTITUD PSICOSOMÁTICO']) obj['APTITUD PSICOSOMÁTICO'] = 'APTO';
-          if (!obj['ESTADO CIVIL']) obj['ESTADO CIVIL'] = 'SOLTERO(A)';
-          if (obj['HIJOS'] === null || obj['HIJOS'] === undefined) obj['HIJOS'] = 0;
-        }
+        const cleanObj = buildCleanPersonalPayload(obj);
+        const docSustentaCol = getDbColumnKey('DOCUMENTO QUE SUSTENTA', tableSampleRows['personal'] || rows?.[0]);
+        cleanObj[docSustentaCol] = nextCorr.formattedDocNum;
 
-        const validPersonalCols = new Set([
-          'id', 'CIP', 'TIPO DNI', 'CODOFIN', 'GRADO', 'APELLIDOS Y NOMBRES', 'DNI',
-          'UNIDAD DE ORIGEN', 'LISTA DE REVISTA', 'SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO',
-          'FECHA INCORPORACIÓN', 'DOCUMENTO QUE SUSTENTA', 'UNIDAD ANTERIOR', 'CONDICIÓN',
-          'SITUACIÓN ACTUAL', 'CARGO', 'JERARQUÍA', 'ESPECIALIDAD', 'APTITUD PSICOSOMÁTICO',
-          'F. INICIO', 'F. TERMINO', 'SEXO', 'FECHA DE NACIMIENTO', 'FECHA ING. ESTADO',
-          'FECHA ING. ESCUELA', 'FECHA EGR. ESCUELA', 'FECHA ULT. ASCENSO',
-          'CORREO INSTITUCIONAL', 'CORREO PERSONAL', 'HIJOS', 'ESTADO CIVIL', 'CELULAR'
-        ]);
-        const cleanObj = {};
-        Object.keys(obj).forEach(key => {
-          if (validPersonalCols.has(key)) cleanObj[key] = obj[key];
-        });
-        cleanObj['DOCUMENTO QUE SUSTENTA'] = nextCorr.formattedDocNum;
-        if (!cleanObj['FECHA INCORPORACIÓN']) cleanObj['FECHA INCORPORACIÓN'] = todayYMD;
-
-        toast('Guardando datos del efectivo...', 'info');
-        if (current) {
-          if (current.id !== undefined && current.id !== null && current.id !== '') {
-            await req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(cleanObj) });
-          } else {
-            const cipKey = firstValue(current, ['CIP', 'cip']);
-            await req(API + '?CIP=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(cleanObj) });
-          }
-        } else {
-          await req(API, { method: 'POST', body: JSON.stringify(cleanObj) });
-
-          // Limpiar solicitud QR procesada si coincide el CIP
-          try {
-            const matchedSol = solicitudesList.find(s => String(s.cip) === String(cipVal));
-            if (matchedSol) {
-              const apiBase = (window.location.protocol === 'http:' || window.location.protocol === 'https:') ? '' : `http://${SERVER_LOCAL_IP}:${SERVER_PORT}`;
-              await fetch(`${apiBase}/api/solicitudes?id=${encodeURIComponent(matchedSol.id)}`, { method: 'DELETE' });
-              solicitudesList = solicitudesList.filter(s => s.id !== matchedSol.id);
-              localStorage.setItem(QR_STORAGE_KEY, JSON.stringify(solicitudesList));
-              updateSolicitudesBadge();
-            }
-          } catch (_) {}
-
-          // Sincronizaciones automáticas de nuevo registro
-          const condVal = String(document.getElementById('condicion')?.value || cleanObj['CONDICIÓN'] || '').trim().toUpperCase();
-          const cipClean = onlyDigits(document.getElementById('cip')?.value || cleanObj['CIP']);
-
-          if (condVal === 'NATO') {
-            const incorpObj = {
-              "cip": cipClean,
-              "grado": document.getElementById('grado')?.value || cleanObj['GRADO'] || null,
-              "apellidos_nombres": document.getElementById('apellidos_y_nombres')?.value || cleanObj['APELLIDOS Y NOMBRES'] || null,
-              "lista_revista_anterior": document.getElementById('unidad_anterior')?.value || cleanObj['UNIDAD ANTERIOR'] || null,
-              "situacion": getFieldValue('incorp_situacion') || 'INCORPORADO',
-              "fecha_incorporacion_regpol": document.getElementById('fecha_de_incorporacion')?.value || todayYMD,
-              "tipo_incorporacion": getFieldValue('incorp_tipo_incorporacion') || null,
-              "motivo": getFieldValue('incorp_motivo') || null,
-              "documento_referencia": getFieldValue('documento_que_sustenta') || nextCorr.formattedDocNum,
-              "a_merito": getFieldValue('incorp_a_merito') || null,
-              "unidad_origen_actual": getFieldValue('unidad_de_origen') || cleanObj['UNIDAD DE ORIGEN'] || null,
-              "lista_revista_nueva": getFieldValue('lista_de_revista') || cleanObj['LISTA DE REVISTA'] || null,
-              "numero_inclusion": getFieldValue('incorp_numero_inclusion') || null,
-              "fecha_inclusion": document.getElementById('incorp_fecha_inclusion')?.value || null,
-              "documento_pone_disposicion": nextCorr.formattedDocNum,
-              "fecha_documento": todayYMD,
-              "observacion": getFieldValue('incorp_observacion') || null
-            };
-            try { await req(API_INCORPORADOS_REASIGNADOS, { method: 'POST', body: JSON.stringify(incorpObj) }); } catch (_) {}
-          } else if (condVal === 'DESTACADO') {
-            const destIncorpObj = {
-              "cip": cipClean,
-              "grado": document.getElementById('grado')?.value || cleanObj['GRADO'] || null,
-              "apellidos_nombres": document.getElementById('apellidos_y_nombres')?.value || cleanObj['APELLIDOS Y NOMBRES'] || null,
-              "unidad_origen_actual": getFieldValue('unidad_de_origen') || cleanObj['UNIDAD DE ORIGEN'] || null,
-              "lista_revista_anterior": getFieldValue('dest_incorp_lista_revista_anterior') || document.getElementById('unidad_anterior')?.value || document.getElementById('lista_de_revista')?.value || cleanObj['LISTA DE REVISTA'] || null,
-              "condicion": 'DESTACADO',
-              "situacion_actual": document.getElementById('situacion_actual')?.value || cleanObj['SITUACIÓN ACTUAL'] || 'PRESENTE',
-              "fecha_incorporacion": document.getElementById('fecha_de_incorporacion')?.value || todayYMD,
-              "motivo": getFieldValue('dest_incorp_motivo') || null,
-              "documento_referencia": getFieldValue('dest_incorp_documento_referencia') || nextCorr.formattedDocNum,
-              "destino": getFieldValue('subunidad_donde_se_encuentra_por_curso_o_apoyo') || null,
-              "numero_inclusion": getFieldValue('dest_incorp_numero_inclusion') || null,
-              "fecha_inclusion": document.getElementById('dest_incorp_fecha_inclusion')?.value || null,
-              "documento_pone_disposicion": nextCorr.formattedDocNum,
-              "fecha_documento": todayYMD,
-              "observacion": getFieldValue('dest_incorp_observacion') || null
-            };
-            try { await req(API_INCORPORADOS_DESTACADOS, { method: 'POST', body: JSON.stringify(destIncorpObj) }); } catch (_) {}
-          }
-        }
+        toast('Guardando y generando orden...', 'info');
 
         // Insertar en Registro_documentos
         const jefeSel = document.getElementById('ordenJefeSelect') || document.getElementById('oficioJefeSelect');
@@ -6250,13 +6220,17 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
           usuario_registra: usuarioReg
         };
 
-        const insertedDoc = await docReq(API_ORDEN_INCORPORACION, { method: 'POST', body: JSON.stringify(docPayload) });
-        const docId = (Array.isArray(insertedDoc) && insertedDoc[0]) ? insertedDoc[0].id : (insertedDoc?.id || '');
+        // Ejecutar inserción de personal y creación de orden en PARALELO para máxima velocidad
+        const savePersonalPromise = current ? (
+          (current.id !== undefined && current.id !== null && current.id !== '') ?
+            req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(cleanObj) }) :
+            req(API + '?CIP=eq.' + encodeURIComponent(firstValue(current, ['CIP', 'cip'])), { method: 'PATCH', body: JSON.stringify(cleanObj) })
+        ) : req(API, { method: 'POST', body: JSON.stringify(cleanObj) });
 
-        if (cipVal) {
-          try { await req(API_INCORPORADOS_REASIGNADOS + '?cip=eq.' + encodeURIComponent(cipVal), { method: 'PATCH', body: JSON.stringify({ "documento_pone_disposicion": nextCorr.formattedDocNum, "fecha_documento": todayYMD }) }); } catch (_) {}
-          try { await req(API_INCORPORADOS_DESTACADOS + '?cip=eq.' + encodeURIComponent(cipVal), { method: 'PATCH', body: JSON.stringify({ "documento_pone_disposicion": nextCorr.formattedDocNum, "fecha_documento": todayYMD }) }); } catch (_) {}
-        }
+        const saveDocPromise = docReq(API_ORDEN_INCORPORACION, { method: 'POST', body: JSON.stringify(docPayload) });
+
+        const [personalRes, insertedDoc] = await Promise.all([savePersonalPromise, saveDocPromise]);
+        const docId = (Array.isArray(insertedDoc) && insertedDoc[0]) ? insertedDoc[0].id : (insertedDoc?.id || '');
 
         const ordenData = {
           id: docId,
@@ -6284,10 +6258,86 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
           usuario_registra: usuarioReg
         };
 
-        toast(`Orden de Incorporación N° ${nextCorr.numPadded} generada exitosamente`, 'success');
+        // Mostrar vista previa y cerrar formulario de inmediato sin bloqueos
         closeForm();
         displayOrdenPreview(ordenData);
-        loadData();
+        toast(`Orden de Incorporación N° ${nextCorr.numPadded} generada exitosamente`, 'success');
+
+        // Notificar en tiempo real a la pestaña de documentos.html
+        if (window.BroadcastChannel) {
+          try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'NUEVO_DOCUMENTO', data: docPayload }); } catch(_) {}
+        }
+        try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch(_) {}
+
+        // Sincronizaciones en segundo plano sin congelar la interfaz
+        (async () => {
+          // Limpiar solicitud QR procesada si coincide el CIP
+          try {
+            const matchedSol = solicitudesList.find(s => String(s.cip) === String(cipVal));
+            if (matchedSol) {
+              const apiBase = (window.location.protocol === 'http:' || window.location.protocol === 'https:') ? '' : `http://${SERVER_LOCAL_IP}:${SERVER_PORT}`;
+              await fetch(`${apiBase}/api/solicitudes?id=${encodeURIComponent(matchedSol.id)}`, { method: 'DELETE' });
+              solicitudesList = solicitudesList.filter(s => s.id !== matchedSol.id);
+              localStorage.setItem(QR_STORAGE_KEY, JSON.stringify(solicitudesList));
+              updateSolicitudesBadge();
+            }
+          } catch (_) {}
+
+          // Sincronizaciones automáticas de nuevo registro en tablas de incorporados
+          if (!current) {
+            const condVal = String(document.getElementById('condicion')?.value || cleanObj['CONDICIÓN'] || '').trim().toUpperCase();
+            const cipClean = onlyDigits(document.getElementById('cip')?.value || cleanObj['CIP']);
+
+            if (condVal === 'NATO') {
+              const incorpObj = {
+                "cip": cipClean,
+                "grado": document.getElementById('grado')?.value || cleanObj['GRADO'] || null,
+                "apellidos_nombres": document.getElementById('apellidos_y_nombres')?.value || cleanObj['APELLIDOS Y NOMBRES'] || null,
+                "lista_revista_anterior": document.getElementById('unidad_anterior')?.value || cleanObj['UNIDAD ANTERIOR'] || null,
+                "situacion": getFieldValue('incorp_situacion') || 'INCORPORADO',
+                "fecha_incorporacion_regpol": document.getElementById('fecha_de_incorporacion')?.value || todayYMD,
+                "tipo_incorporacion": getFieldValue('incorp_tipo_incorporacion') || null,
+                "motivo": getFieldValue('incorp_motivo') || null,
+                "documento_referencia": getFieldValue('documento_que_sustenta') || nextCorr.formattedDocNum,
+                "a_merito": getFieldValue('incorp_a_merito') || null,
+                "unidad_origen_actual": getFieldValue('unidad_de_origen') || cleanObj['UNIDAD DE ORIGEN'] || null,
+                "lista_revista_nueva": getFieldValue('lista_de_revista') || cleanObj['LISTA DE REVISTA'] || null,
+                "numero_inclusion": getFieldValue('incorp_numero_inclusion') || null,
+                "fecha_inclusion": document.getElementById('incorp_fecha_inclusion')?.value || null,
+                "documento_pone_disposicion": nextCorr.formattedDocNum,
+                "fecha_documento": todayYMD,
+                "observacion": getFieldValue('incorp_observacion') || null
+              };
+              try { await req(API_INCORPORADOS_REASIGNADOS, { method: 'POST', body: JSON.stringify(incorpObj) }); } catch (_) {}
+            } else if (condVal === 'DESTACADO') {
+              const destIncorpObj = {
+                "cip": cipClean,
+                "grado": document.getElementById('grado')?.value || cleanObj['GRADO'] || null,
+                "apellidos_nombres": document.getElementById('apellidos_y_nombres')?.value || cleanObj['APELLIDOS Y NOMBRES'] || null,
+                "unidad_origen_actual": getFieldValue('unidad_de_origen') || cleanObj['UNIDAD DE ORIGEN'] || null,
+                "lista_revista_anterior": getFieldValue('dest_incorp_lista_revista_anterior') || document.getElementById('unidad_anterior')?.value || document.getElementById('lista_de_revista')?.value || cleanObj['LISTA DE REVISTA'] || null,
+                "condicion": 'DESTACADO',
+                "situacion_actual": document.getElementById('situacion_actual')?.value || cleanObj['SITUACIÓN ACTUAL'] || 'PRESENTE',
+                "fecha_incorporacion": document.getElementById('fecha_de_incorporacion')?.value || todayYMD,
+                "motivo": getFieldValue('dest_incorp_motivo') || null,
+                "documento_referencia": getFieldValue('dest_incorp_documento_referencia') || nextCorr.formattedDocNum,
+                "destino": getFieldValue('subunidad_donde_se_encuentra_por_curso_o_apoyo') || null,
+                "numero_inclusion": getFieldValue('dest_incorp_numero_inclusion') || null,
+                "fecha_inclusion": document.getElementById('dest_incorp_fecha_inclusion')?.value || null,
+                "documento_pone_disposicion": nextCorr.formattedDocNum,
+                "fecha_documento": todayYMD,
+                "observacion": getFieldValue('dest_incorp_observacion') || null
+              };
+              try { await req(API_INCORPORADOS_DESTACADOS, { method: 'POST', body: JSON.stringify(destIncorpObj) }); } catch (_) {}
+            }
+          }
+
+          if (cipVal) {
+            try { await req(API_INCORPORADOS_REASIGNADOS + '?cip=eq.' + encodeURIComponent(cipVal), { method: 'PATCH', body: JSON.stringify({ "documento_pone_disposicion": nextCorr.formattedDocNum, "fecha_documento": todayYMD }) }); } catch (_) {}
+            try { await req(API_INCORPORADOS_DESTACADOS + '?cip=eq.' + encodeURIComponent(cipVal), { method: 'PATCH', body: JSON.stringify({ "documento_pone_disposicion": nextCorr.formattedDocNum, "fecha_documento": todayYMD }) }); } catch (_) {}
+          }
+          loadData();
+        })();
       } catch (err) {
         console.error('Error en saveRecordAndGenerateOrden:', err);
         toast('Error al guardar y generar orden: ' + (err.message || err), 'error');

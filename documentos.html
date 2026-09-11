@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -3685,26 +3685,70 @@
       loadCurrentTableData();
     }
 
-    async function loadCurrentTableData() {
+    async function loadCurrentTableData(silent = false) {
       const tbody = document.getElementById('tableBody');
       const empty = document.getElementById('emptyState');
       const countEl = document.getElementById('currentTableCount');
 
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">Cargando datos...</td></tr>';
+      if (!silent) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px;">Cargando datos...</td></tr>';
+      }
 
       try {
         const data = await apiRequest(`${currentTable}?select=*&order=id.desc`);
         currentData = Array.isArray(data) ? data : [];
-        countEl.textContent = `${currentData.length} registros`;
+        if (countEl) countEl.textContent = `${currentData.length} registros`;
         const badge = document.getElementById(`badge_${currentTable}`);
         if (badge) badge.textContent = currentData.length;
 
         renderTableStructure();
         renderTableRows(currentData);
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--red); padding:30px;">Error al cargar datos: ${err.message}</td></tr>`;
+        if (!silent) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--red); padding:30px;">Error al cargar datos: ${err.message}</td></tr>`;
+        }
       }
     }
+
+    // --- SINCRONIZACIÓN EN TIEMPO REAL MULTI-PESTAÑA Y MULTI-DISPOSITIVO ---
+    const pnpDocsChannel = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('pnp_docs_channel') : null;
+    if (pnpDocsChannel) {
+      pnpDocsChannel.onmessage = (event) => {
+        if (currentUser) {
+          loadCurrentTableData(true);
+          loadAllBadges();
+        }
+      };
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'pnp_last_doc_update' && currentUser) {
+        loadCurrentTableData(true);
+        loadAllBadges();
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && currentUser) {
+        loadCurrentTableData(true);
+        loadAllBadges();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      if (currentUser) {
+        loadCurrentTableData(true);
+        loadAllBadges();
+      }
+    });
+
+    // Sondeo periódico suave en segundo plano cada 4 segundos
+    setInterval(() => {
+      if (!document.hidden && currentUser) {
+        loadCurrentTableData(true);
+        loadAllBadges();
+      }
+    }, 4000);
 
     function renderTableStructure() {
       const thead = document.getElementById('tableHead');
@@ -5264,6 +5308,11 @@ FIRMANTE: ${d.quien_ordena || ''}`;
         }
         closeDocModal();
         await loadCurrentTableData();
+        loadAllBadges();
+        if (window.BroadcastChannel) {
+          try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: currentTable }); } catch (_) {}
+        }
+        try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
       } catch (err) {
         alert('Error al guardar: ' + err.message);
       } finally {
@@ -5297,6 +5346,11 @@ FIRMANTE: ${d.quien_ordena || ''}`;
       try {
         await apiRequest(`${currentTable}?id=eq.${id}`, { method: 'DELETE' });
         await loadCurrentTableData();
+        loadAllBadges();
+        if (window.BroadcastChannel) {
+          try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: currentTable }); } catch (_) {}
+        }
+        try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
       } catch (err) {
         alert('Error al eliminar: ' + err.message);
       }
