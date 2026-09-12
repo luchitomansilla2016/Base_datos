@@ -4930,6 +4930,10 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
             return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><input id="${k}" type="text" value="${defVal}" /></div>`;
           }
 
+          if (k === 'documento_que_sustenta') {
+            return `<div class="field full" style="grid-column: 1 / -1 !important;"><label for="${k}">${meta.label}</label><input id="${k}" type="text" style="width: 100% !important;" /></div>`;
+          }
+
           if (k === 'incorp_motivo' || k === 'dest_incorp_motivo' || (currentTable === 'reasignados' && k === 'motivo') || (currentTable === 'personal' && k === 'motivo')) {
             const motivoList = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
             return `<div class="field ${meta.cls || ''}">
