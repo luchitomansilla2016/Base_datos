@@ -2032,6 +2032,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         </div>
         <div class="doc-modal-footer">
           <button type="button" class="btn-secondary-action" onclick="closeDocModal()">Cancelar</button>
+          <button type="button" class="btn-secondary-action" id="btnVerOrdenFromDocModal" onclick="verOrdenFromDocModal(event)" style="background:#e8f2ec; color:#0b5a3c; border: 1.5px solid #0b5a3c; font-weight:700; display:none;">👁️ Ver / Imprimir Orden</button>
           <button type="submit" class="btn-primary-action" id="btnSaveDoc">&#128190; Guardar Registro</button>
         </div>
       </form>
@@ -2914,7 +2915,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
             <td>${item.quien_ordena || '---'}</td>
             <td><small>${item.usuario_registra || '---'}</small></td>
             <td style="text-align:center; white-space:nowrap;">
-              <button class="action-btn" onclick="openOrdenDocumentFromRow(${item.id})" title="Ver / Imprimir Orden de Incorporación (Respaldo con fecha y hora)" style="background:#e8f2ec; color:#0b5a3c; border: 1.5px solid #0b5a3c; font-size:13px; font-weight:bold; cursor:pointer;">📑</button>
+              <button class="action-btn" onclick="openOrdenDocumentFromRow(${item.id})" title="Ver / Imprimir Orden de Incorporación (Respaldo con fecha y hora)" style="background:#0b5a3c; color:#ffffff; border: none; font-size:12px; font-weight:700; cursor:pointer; padding: 5px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(11,90,60,0.3);">👁️ Ver</button>
               ${admin ? `
               <button class="action-btn" onclick="editRecord(${item.id})" title="Editar">&#9999;</button>
               <button class="action-btn btn-del" onclick="deleteRecord(${item.id})" title="Eliminar">&#128465;</button>
@@ -3032,6 +3033,10 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       const conf = TABLES_CONFIG[currentTable];
       document.getElementById('docModalTitle').textContent = `Registrar en ${conf.title}`;
       buildModalForm();
+      
+      const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
+      if (btnVerOrden) btnVerOrden.style.display = conf.isOrdenIncorporacion ? 'inline-flex' : 'none';
+
       document.getElementById('docModal').classList.add('active');
 
       if (!conf.isUserTable) {
@@ -3067,6 +3072,12 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         }
 
         container.innerHTML = `
+          <div style="background:#e8f2ec; padding:10px 14px; border-radius:8px; border:1px solid #cce2d4; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <span style="font-weight:700; color:#0b5a3c; font-size:13px;">📑 Formulario de Orden de Incorporación</span>
+            <button type="button" onclick="verOrdenFromDocModal(event)" style="background:#0b5a3c; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 4px rgba(11,90,60,0.25);">
+              👁️ Ver / Imprimir Orden
+            </button>
+          </div>
           <div class="form-group">
             <label>N&uacute;mero de Documento</label>
             <input id="f_numero_documento" class="form-control" type="text" value="${numSugerido}" placeholder="Ej. 001-2026" required />
@@ -3300,7 +3311,51 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       const conf = TABLES_CONFIG[currentTable];
       document.getElementById('docModalTitle').textContent = `Editar Registro #${id} - ${conf.title}`;
       buildModalForm(found);
+
+      const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
+      if (btnVerOrden) btnVerOrden.style.display = conf.isOrdenIncorporacion ? 'inline-flex' : 'none';
+
       document.getElementById('docModal').classList.add('active');
+    }
+
+    function verOrdenFromDocModal(e) {
+      if (e) e.preventDefault();
+      const numDoc = document.getElementById('f_numero_documento')?.value || '001-2026';
+      const numPad = (numDoc.match(/^(\d+)/)?.[1] || '001').padStart(3, '0');
+      const descVal = document.getElementById('f_descripcion')?.value || '';
+      let cipVal = '---';
+      const cipM = descVal.match(/CIP\s*(\d+)/i);
+      if (cipM) cipVal = cipM[1];
+
+      let gradoVal = 'PNP';
+      let nombresVal = document.getElementById('f_grado_apellidos_nombres')?.value || '';
+      if (nombresVal) {
+        const parts = nombresVal.split(' ');
+        if (parts.length > 2 && (parts[0].includes('.') || parts[0].length <= 5)) {
+          gradoVal = parts[0];
+          nombresVal = parts.slice(1).join(' ');
+        }
+      }
+
+      const ordenData = {
+        id: editingId || '',
+        numero_documento: numDoc,
+        numPadded: numPad,
+        cip: cipVal,
+        grado: gradoVal,
+        apellidos_y_nombres: nombresVal || descVal,
+        unidad_anterior: 'DIVREINT HUANUCO',
+        destino: document.getElementById('f_destino')?.value || 'OFAD REGPOL HUANUCO',
+        lista_de_revista: document.getElementById('f_destino')?.value || 'OFAD REGPOL HUANUCO',
+        fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+        fecha_salida: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+        created_at: new Date().toISOString(),
+        documento_referencia: document.getElementById('f_documento_referencia')?.value || document.getElementById('f_numero_orden_incorporacion_dirrehum')?.value || '',
+        quien_ordena: document.getElementById('f_quien_ordena')?.value || '',
+        usuario_registra: getUsuarioRegistraNombre()
+      };
+
+      displayOrdenPreview(ordenData);
     }
 
     async function deleteRecord(id) {

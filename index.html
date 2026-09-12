@@ -1603,6 +1603,7 @@
         <div style="display:flex; gap:8px; align-items:center;">
           <button id="deletePermanentBtn" class="danger admin-only" onclick="deletePermanentCurrent(event)" style="display:none;">🗑️ Eliminar permanente</button>
           <button id="formFichaBtn" type="button" class="secondary" onclick="openFichaFromForm(event)" style="display:none;">📄 Ver Ficha</button>
+          <button id="btnVerOrdenFromForm" type="button" class="secondary" onclick="verOrdenFromForm(event)" style="background:#e8f2ec; color:#0b5a3c; border: 1.5px solid #0b5a3c; font-weight:700; display:none;">👁️ Ver Orden</button>
           <button id="btnSaveAndGenOrden" type="button" class="primary" onclick="saveRecordAndGenerateOrden(event)" style="background: linear-gradient(135deg, #0b5a3c 0%, #0a6370 100%); display:none;">📑 Guardar y Generar Orden</button>
           <button class="primary" onclick="saveRecord(event)">Guardar cambios</button>
         </div>
@@ -4931,7 +4932,21 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
           }
 
           if (k === 'documento_que_sustenta') {
-            return `<div class="field full" style="grid-column: 1 / -1 !important;"><label for="${k}">${meta.label}</label><input id="${k}" type="text" style="width: 100% !important;" /></div>`;
+            return `
+              <div class="field full" style="grid-column: 1 / -1 !important;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <label for="${k}" style="margin:0;">${meta.label}</label>
+                  <button type="button" onclick="verOrdenFromForm(event)" style="font-size:11px; padding:3px 10px; font-weight:700; background:#e8f2ec; color:#0b5a3c; border:1px solid #0b5a3c; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Ver e imprimir Orden de Incorporación con fecha y hora de respaldo">
+                    👁️ Ver / Imprimir Orden
+                  </button>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <input id="${k}" type="text" style="flex:1; width:100% !important;" placeholder="Ej. ORDEN DE INCORPORACION N° 001-2026-DIRREHUM..." />
+                  <button type="button" onclick="verOrdenFromForm(event)" style="padding: 8px 14px; background:#0b5a3c; color:#ffffff; border:none; border-radius:8px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(11,90,60,0.25);" title="Ver Orden de Incorporación generada con fecha y hora de respaldo">
+                    👁️ Ver Orden
+                  </button>
+                </div>
+              </div>`;
           }
 
           if (k === 'incorp_motivo' || k === 'dest_incorp_motivo' || (currentTable === 'reasignados' && k === 'motivo') || (currentTable === 'personal' && k === 'motivo')) {
@@ -5735,6 +5750,9 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       const fichaBtn = document.getElementById('formFichaBtn');
       if (fichaBtn) fichaBtn.style.display = current ? 'inline-block' : 'none';
 
+      const btnVerOrden = document.getElementById('btnVerOrdenFromForm');
+      if (btnVerOrden) btnVerOrden.style.display = (currentTable === 'personal') ? 'inline-flex' : 'none';
+
       const btnSaveGen = document.getElementById('btnSaveAndGenOrden');
       if (btnSaveGen) btnSaveGen.style.display = (currentTable === 'personal' && canEdit()) ? 'inline-block' : 'none';
 
@@ -5791,6 +5809,61 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       const id = current ? ((current.id !== undefined && current.id !== null && current.id !== '') ? current.id : firstValue(current, ['CIP', 'cip'])) : null;
       closeForm();
       if (id) openFicha(id);
+    }
+
+    async function verOrdenFromForm(e) {
+      if (e) e.preventDefault();
+      
+      const cipVal = document.getElementById('cip')?.value || (current ? firstValue(current, ['CIP', 'cip']) : '') || '---';
+      const gradoVal = document.getElementById('grado')?.value || (current ? firstValue(current, ['GRADO', 'grado']) : '') || 'PNP';
+      const nombresVal = document.getElementById('apellidos_y_nombres')?.value || (current ? firstValue(current, ['APELLIDOS Y NOMBRES', 'apellidos_y_nombres', 'apellidos_nombres']) : '') || '';
+      const destinoVal = document.getElementById('lista_de_revista')?.value || document.getElementById('unidad_de_origen')?.value || (current ? firstValue(current, ['LISTA DE REVISTA', 'lista_de_revista', 'UNIDAD DE ORIGEN', 'unidad_de_origen']) : '') || 'OFAD REGPOL HUANUCO';
+      const unidadAntVal = document.getElementById('unidad_anterior')?.value || document.getElementById('unidad_de_origen')?.value || (current ? firstValue(current, ['UNIDAD ANTERIOR', 'unidad_anterior', 'UNIDAD DE ORIGEN', 'unidad_de_origen']) : '') || 'DIVREINT HUANUCO';
+      const fechaIncorpVal = document.getElementById('fecha_de_incorporacion')?.value || (current ? firstValue(current, ['FECHA INCORPORACIÓN', 'fecha_de_incorporacion']) : '') || new Date().toISOString().split('T')[0];
+      const docSustVal = document.getElementById('documento_que_sustenta')?.value || (current ? firstValue(current, ['DOCUMENTO QUE SUSTENTA', 'documento_que_sustenta']) : '') || '';
+      const condicionVal = document.getElementById('condicion')?.value || (current ? firstValue(current, ['CONDICIÓN', 'condicion']) : '') || 'NATO';
+      const tipoIncVal = document.getElementById('incorp_tipo_incorporacion')?.value || (condicionVal === 'DESTACADO' ? 'DESTACADO' : 'REASIGNACIÓN');
+      const motivoVal = document.getElementById('incorp_motivo')?.value || document.getElementById('dest_incorp_motivo')?.value || 'NECESIDAD DEL SERVICIO';
+
+      let numPad = '001';
+      let formattedDoc = docSustVal;
+      const numMatch = (docSustVal || '').match(/N[°º\s]*(\d+)/i);
+      if (numMatch) {
+        numPad = numMatch[1].padStart(3, '0');
+      } else {
+        const nextCorr = await getNextOrdenCorrelative();
+        numPad = nextCorr.numPadded;
+        if (!formattedDoc) formattedDoc = nextCorr.formattedDocNum;
+      }
+
+      const usuarioReg = sessionStorage.getItem('pnp_user_fullname') || 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      const gTrim = String(gradoVal).trim();
+      const gradoClean = gTrim.replace(/\s*PNP\s*/gi, '').trim();
+      const gradoFormatted = gradoClean ? `${gradoClean} PNP` : (gTrim || 'EFECTIVO PNP');
+
+      const ordenData = {
+        id: current?.id || '',
+        numero_documento: formattedDoc || `${numPad}-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/SEC-OFAD.AREREHUM`,
+        numPadded: numPad,
+        fecha_documento: fechaIncorpVal,
+        destino: destinoVal,
+        documento_que_sustenta: docSustVal || formattedDoc,
+        grado: gradoFormatted,
+        apellidos_y_nombres: nombresVal,
+        cip: cipVal,
+        condicion: condicionVal,
+        fecha_salida: fechaIncorpVal,
+        unidad_anterior: unidadAntVal,
+        unidad_de_origen: document.getElementById('unidad_de_origen')?.value || unidadAntVal,
+        lista_de_revista: destinoVal,
+        tipo_incorporacion: tipoIncVal,
+        motivo: motivoVal,
+        motivo_destaque: motivoVal,
+        documento_referencia: docSustVal,
+        usuario_registra: usuarioReg
+      };
+
+      displayOrdenPreview(ordenData);
     }
 
     async function saveRecord(e) {
