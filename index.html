@@ -1794,7 +1794,11 @@
           </div>
           <div class="field wide" style="grid-column: span 2;">
             <label for="dest_motivo">MOTIVO</label>
-            <input id="dest_motivo" type="text" placeholder="Motivo o justificación del destacamento" />
+            <select id="dest_motivo">
+              <option value="NECESIDAD DEL SERVICIO">NECESIDAD DEL SERVICIO</option>
+              <option value="A SU SOLICITUD">A SU SOLICITUD</option>
+              <option value="PERMUTA">PERMUTA</option>
+            </select>
           </div>
           <div class="field">
             <label for="dest_fecha_incorp_salida">FECHA INCORP / SALIDA</label>
@@ -1969,7 +1973,11 @@
           </div>
           <div class="field wide" style="grid-column: span 2;">
             <label for="reasig_motivo">MOTIVO</label>
-            <input id="reasig_motivo" type="text" placeholder="Motivo o causal de la reasignación" />
+            <select id="reasig_motivo">
+              <option value="NECESIDAD DEL SERVICIO">NECESIDAD DEL SERVICIO</option>
+              <option value="A SU SOLICITUD">A SU SOLICITUD</option>
+              <option value="PERMUTA">PERMUTA</option>
+            </select>
           </div>
           <div class="field">
             <label for="reasig_fecha_salida">FECHA DE SALIDA</label>
@@ -2736,14 +2744,14 @@
       exclusion_inclusion: { label: 'Exclusión / Inclusión', type: 'text' },
       incorp_situacion: { label: 'SITUACIÓN', type: 'text' },
       incorp_tipo_incorporacion: { label: 'TIPO DE INCORPORACIÓN', type: 'text' },
-      incorp_motivo: { label: 'MOTIVO', type: 'text', cls: 'wide' },
+      incorp_motivo: { label: 'MOTIVO', type: 'select', cls: 'wide' },
       incorp_a_merito: { label: 'A MÉRITO', type: 'text', cls: 'wide' },
       incorp_numero_inclusion: { label: 'N° INCLUSIÓN', type: 'text' },
       incorp_fecha_inclusion: { label: 'FECHA INCLUSIÓN', type: 'date' },
       incorp_documento_pone_disposicion: { label: 'DOC. PONE A DISPOSICIÓN', type: 'text', cls: 'wide' },
       incorp_fecha_documento: { label: 'FECHA DOCUMENTO', type: 'date' },
       incorp_observacion: { label: 'OBSERVACIÓN', type: 'textarea', cls: 'full' },
-      dest_incorp_motivo: { label: 'MOTIVO', type: 'text', cls: 'wide' },
+      dest_incorp_motivo: { label: 'MOTIVO', type: 'select', cls: 'wide' },
       dest_incorp_documento_referencia: { label: 'DOC. REFERENCIA', type: 'text', cls: 'wide' },
       dest_incorp_lista_revista_anterior: { label: 'LISTA REVISTA ANTERIOR', type: 'text', cls: 'wide' },
       dest_incorp_numero_inclusion: { label: 'N° INCLUSIÓN', type: 'text' },
@@ -3032,6 +3040,9 @@
         catalogos['sexo'] = sexos.length ? sexos : ['M', 'F'];
         catalogos['hijos'] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
         catalogos['estado_civil'] = estadosCiviles;
+        catalogos['incorp_motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
+        catalogos['dest_incorp_motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
+        catalogos['motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
       } catch (err) {
         console.error('Error general cargando catalogos:', err);
       }
@@ -4782,11 +4793,27 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       const secIncorp = document.getElementById('sec_datos_incorporacion');
       const secDestaque = document.getElementById('sec_datos_destaque');
 
-      if (secIncorp) {
-        secIncorp.style.display = (condVal === 'NATO') ? 'contents' : 'none';
-      }
-      if (secDestaque) {
-        secDestaque.style.display = (condVal === 'DESTACADO') ? 'contents' : 'none';
+      const tipoIncorpEl = document.getElementById('incorp_tipo_incorporacion');
+      const motivoIncorpEl = document.getElementById('incorp_motivo');
+      const motivoDestEl = document.getElementById('dest_incorp_motivo');
+
+      if (condVal === 'NATO') {
+        if (secIncorp) secIncorp.style.display = 'contents';
+        if (secDestaque) secDestaque.style.display = 'none';
+        if (tipoIncorpEl) tipoIncorpEl.value = 'REASIGNADO';
+        if (motivoIncorpEl && (!motivoIncorpEl.value || motivoIncorpEl.value === '')) {
+          motivoIncorpEl.value = 'NECESIDAD DEL SERVICIO';
+        }
+      } else if (condVal === 'DESTACADO') {
+        if (secIncorp) secIncorp.style.display = 'none';
+        if (secDestaque) secDestaque.style.display = 'contents';
+        if (tipoIncorpEl) tipoIncorpEl.value = 'DESTACADO';
+        if (motivoDestEl && (!motivoDestEl.value || motivoDestEl.value === '')) {
+          motivoDestEl.value = 'NECESIDAD DEL SERVICIO';
+        }
+      } else {
+        if (secIncorp) secIncorp.style.display = 'none';
+        if (secDestaque) secDestaque.style.display = 'none';
       }
     }
 
@@ -6034,9 +6061,9 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
           unidad_de_origen: cleanObj['UNIDAD DE ORIGEN'] || getFieldValue('unidad_de_origen'),
           lista_de_revista: cleanObj['LISTA DE REVISTA'] || getFieldValue('lista_de_revista'),
           subunidad: cleanObj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO'] || getFieldValue('subunidad_donde_se_encuentra_por_curso_o_apoyo'),
-          tipo_incorporacion: getFieldValue('incorp_tipo_incorporacion') || 'REASIGNACIÓN',
+          tipo_incorporacion: getFieldValue('incorp_tipo_incorporacion') || ((cleanObj['CONDICIÓN'] || getFieldValue('condicion')) === 'DESTACADO' ? 'DESTACADO' : 'REASIGNADO'),
           motivo: getFieldValue('incorp_motivo') || getFieldValue('dest_incorp_motivo') || 'NECESIDAD DEL SERVICIO',
-          motivo_destaque: getFieldValue('dest_incorp_motivo') || '',
+          motivo_destaque: getFieldValue('dest_incorp_motivo') || 'NECESIDAD DEL SERVICIO',
           a_merito: getFieldValue('incorp_a_merito') || '',
           documento_referencia: getFieldValue('documento_que_sustenta') || getFieldValue('dest_incorp_documento_referencia') || '',
           usuario_registra: usuarioReg
