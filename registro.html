@@ -494,12 +494,30 @@
           <!-- CONDICIÓN (NATO / DESTACADO) -->
           <div class="form-group">
             <label for="condicion">Condición<span class="req">*</span></label>
-            <select id="condicion" name="condicion" class="form-control" required>
+            <select id="condicion" name="condicion" class="form-control" required onchange="handleCondicionChange(this.value)">
               <option value="">-- Seleccionar --</option>
               <option value="NATO">NATO</option>
               <option value="DESTACADO">DESTACADO</option>
             </select>
             <div class="field-error">Seleccione la condición (NATO o DESTACADO).</div>
+          </div>
+
+          <!-- TIPO DE INCORPORACIÓN -->
+          <div class="form-group">
+            <label for="tipo_incorporacion">Tipo de Incorporación<span class="req">*</span></label>
+            <input id="tipo_incorporacion" name="tipo_incorporacion" type="text" class="form-control uppercase" value="REASIGNADO" readonly />
+            <div class="field-hint">Automático: NATO &rarr; REASIGNADO | DESTACADO &rarr; DESTACADO</div>
+          </div>
+
+          <!-- MOTIVO -->
+          <div class="form-group col-span-2">
+            <label for="motivo">Motivo<span class="req">*</span></label>
+            <select id="motivo" name="motivo" class="form-control" required>
+              <option value="NECESIDAD DEL SERVICIO">NECESIDAD DEL SERVICIO</option>
+              <option value="A SU SOLICITUD">A SU SOLICITUD</option>
+              <option value="PERMUTA">PERMUTA</option>
+            </select>
+            <div class="field-error">Seleccione el motivo.</div>
           </div>
 
           <!-- SITUACIÓN ACTUAL (Fijo PRESENTE) -->
@@ -779,6 +797,13 @@
       }[m]));
     }
 
+    function handleCondicionChange(selectedCond) {
+      const tipoEl = document.getElementById('tipo_incorporacion');
+      if (tipoEl) {
+        tipoEl.value = (String(selectedCond).toUpperCase() === 'DESTACADO') ? 'DESTACADO' : 'REASIGNADO';
+      }
+    }
+
     // Validación del formulario
     function validateForm(data) {
       let isValid = true;
@@ -830,6 +855,10 @@
       // Condición (NATO o DESTACADO)
       check('condicion', data.condicion === 'NATO' || data.condicion === 'DESTACADO');
 
+      // Tipo Incorporación y Motivo
+      check('tipo_incorporacion', Boolean(data.tipo_incorporacion));
+      check('motivo', Boolean(data.motivo));
+
       // Aptitud
       check('aptitud_psicosomatico', Boolean(data.aptitud_psicosomatico));
 
@@ -856,11 +885,15 @@
       const form = document.getElementById('autoRegistroForm');
       const submitBtn = document.getElementById('submitBtn');
 
+      const condVal = document.getElementById('condicion').value.trim().toUpperCase();
+      const tipoIncorpVal = document.getElementById('tipo_incorporacion')?.value.trim().toUpperCase() || (condVal === 'DESTACADO' ? 'DESTACADO' : 'REASIGNADO');
+      const motivoVal = document.getElementById('motivo')?.value.trim().toUpperCase() || 'NECESIDAD DEL SERVICIO';
+
       const formData = {
         id: 'REQ-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         fecha_solicitud: new Date().toISOString(),
         estado_solicitud: 'PENDIENTE',
-        // 21 campos completos
+        // Datos policiales y personales
         cip: document.getElementById('cip').value.trim(),
         dni: document.getElementById('dni').value.trim(),
         tipo_dni: document.getElementById('tipo_dni').value.trim(),
@@ -872,7 +905,9 @@
         unidad_de_origen: document.getElementById('unidad_de_origen').value.trim(),
         lista_de_revista: document.getElementById('lista_de_revista').value.trim(),
         fecha_de_incorporacion: document.getElementById('fecha_de_incorporacion').value.trim(),
-        condicion: document.getElementById('condicion').value.trim(),
+        condicion: condVal,
+        tipo_incorporacion: tipoIncorpVal,
+        motivo: motivoVal,
         situacion_actual: 'PRESENTE',
         cargo: 'OPERATIVO',
         aptitud_psicosomatico: document.getElementById('aptitud_psicosomatico').value.trim(),
@@ -972,6 +1007,8 @@
         <div class="summary-row"><span class="summary-label">Unidad de Origen:</span><span class="summary-val">${escapeHtml(data.unidad_de_origen)}</span></div>
         <div class="summary-row"><span class="summary-label">Lista de Revista:</span><span class="summary-val">${escapeHtml(data.lista_de_revista)}</span></div>
         <div class="summary-row"><span class="summary-label">Condición:</span><span class="summary-val">${escapeHtml(data.condicion)}</span></div>
+        <div class="summary-row"><span class="summary-label">Tipo Incorporación:</span><span class="summary-val">${escapeHtml(data.tipo_incorporacion || (data.condicion === 'DESTACADO' ? 'DESTACADO' : 'REASIGNADO'))}</span></div>
+        <div class="summary-row"><span class="summary-label">Motivo:</span><span class="summary-val">${escapeHtml(data.motivo || 'NECESIDAD DEL SERVICIO')}</span></div>
         <div class="summary-row"><span class="summary-label">Situación Actual:</span><span class="summary-val">${escapeHtml(data.situacion_actual)}</span></div>
         <div class="summary-row"><span class="summary-label">Cargo:</span><span class="summary-val">${escapeHtml(data.cargo)}</span></div>
         <div class="summary-row"><span class="summary-label">Celular:</span><span class="summary-val">${escapeHtml(data.celular)}</span></div>

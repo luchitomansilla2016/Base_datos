@@ -4892,6 +4892,23 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
             return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><input id="${k}" type="text" value="INCORPORADO" /></div>`;
           }
 
+          if (k === 'incorp_tipo_incorporacion') {
+            const condEl = document.getElementById('condicion');
+            const condVal = String(condEl?.value || 'NATO').trim().toUpperCase();
+            const defVal = (condVal === 'DESTACADO') ? 'DESTACADO' : 'REASIGNADO';
+            return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><input id="${k}" type="text" value="${defVal}" /></div>`;
+          }
+
+          if (k === 'incorp_motivo' || k === 'dest_incorp_motivo' || (currentTable === 'reasignados' && k === 'motivo') || (currentTable === 'personal' && k === 'motivo')) {
+            const motivoList = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
+            return `<div class="field ${meta.cls || ''}">
+              <label for="${k}">${meta.label}</label>
+              <select id="${k}">
+                ${motivoList.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}
+              </select>
+            </div>`;
+          }
+
           if (k === 'lista_de_revista' || k === 'lista_revista') {
             return `
               <div class="field ${meta.cls || ''}" style="position:relative;">
@@ -6895,7 +6912,9 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
               <div><b>Unidad Anterior:</b> <span style="color:#0b5a3c; font-weight:600;">${esc(s.unidad_anterior || '—')}</span></div>
               <div><b>Unidad de Origen:</b> <span>${esc(s.unidad_de_origen || '—')}</span></div>
               <div><b>Lista Revista:</b> <span>${esc(s.lista_de_revista || '—')}</span></div>
-              <div><b>Condición:</b> <span>${esc(s.condicion || '—')}</span></div>
+              <div><b>Condición:</b> <span>${esc(s.condicion || 'NATO')}</span></div>
+              <div><b>Tipo Incorporación:</b> <span>${esc(s.tipo_incorporacion || (s.condicion === 'DESTACADO' ? 'DESTACADO' : 'REASIGNADO'))}</span></div>
+              <div><b>Motivo:</b> <span style="color:#0b5a3c; font-weight:600;">${esc(s.motivo || 'NECESIDAD DEL SERVICIO')}</span></div>
               <div><b>Situación / Cargo:</b> <span>${esc(s.situacion_actual || 'PRESENTE')} / ${esc(s.cargo || 'OPERATIVO')}</span></div>
               <div><b>Celular:</b> <span>${esc(s.celular || '—')}</span></div>
               <div><b>Correo:</b> <span style="word-break:break-all;">${esc(s.correo_personal || '—')}</span></div>
@@ -6934,6 +6953,10 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       // Abrir formulario en modo nuevo registro
       openForm(null);
 
+      const condVal = String(sol.condicion || 'NATO').trim().toUpperCase();
+      const tipoIncorpVal = String(sol.tipo_incorporacion || (condVal === 'DESTACADO' ? 'DESTACADO' : 'REASIGNADO')).trim().toUpperCase();
+      const motivoVal = String(sol.motivo || 'NECESIDAD DEL SERVICIO').trim().toUpperCase();
+
       // Pre-cargar los campos en el formulario con valores seguros
       const fieldMap = {
         cip: sol.cip || '',
@@ -6949,7 +6972,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         fecha_de_incorporacion: formatDateForInput(sol.fecha_de_incorporacion || new Date().toISOString()),
         documento_que_sustenta: sol.documento_que_sustenta || sol.cip || '',
         unidad_anterior: sol.unidad_anterior || '',
-        condicion: sol.condicion || 'NATO',
+        condicion: condVal,
         situacion_actual: sol.situacion_actual || 'PRESENTE',
         cargo: sol.cargo || 'OPERATIVO',
         aptitud_psicosomatico: sol.aptitud_psicosomatico || 'APTO',
@@ -6963,7 +6986,10 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         correo_personal: sol.correo_personal || '',
         celular: sol.celular || '',
         hijos: String(sol.hijos ?? '0'),
-        estado_civil: sol.estado_civil || 'SOLTERO(A)'
+        estado_civil: sol.estado_civil || 'SOLTERO(A)',
+        incorp_tipo_incorporacion: tipoIncorpVal,
+        incorp_motivo: motivoVal,
+        dest_incorp_motivo: motivoVal
       };
 
       Object.entries(fieldMap).forEach(([fieldId, val]) => {
@@ -7001,6 +7027,14 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
 
       // Actualizar dinámicamente las secciones según CONDICIÓN (NATO o DESTACADO)
       updateCondicionVisibility();
+
+      // Forzar valores en campos de incorporación según corresponda
+      const tipoEl = document.getElementById('incorp_tipo_incorporacion');
+      if (tipoEl) tipoEl.value = tipoIncorpVal;
+      const motIncEl = document.getElementById('incorp_motivo');
+      if (motIncEl) motIncEl.value = motivoVal;
+      const motDestEl = document.getElementById('dest_incorp_motivo');
+      if (motDestEl) motDestEl.value = motivoVal;
 
       // Marcar como procesado en la lista local
       sol.estado_solicitud = 'PROCESADO';
