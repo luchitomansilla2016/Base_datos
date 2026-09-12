@@ -466,6 +466,30 @@
         </div>
 
         <div class="form-grid">
+          <!-- DOCUMENTO DE REFERENCIA -->
+          <div class="form-group">
+            <label for="tipo_doc_referencia">Documento de Referencia<span class="req">*</span></label>
+            <select id="tipo_doc_referencia" name="tipo_doc_referencia" class="form-control" required onchange="handleTipoDocReferenciaChange()">
+              <option value="ORDEN DE INCORPORACION">ORDEN DE INCORPORACION</option>
+              <option value="OFICIO">OFICIO</option>
+            </select>
+          </div>
+
+          <!-- NÚMERO DE DOCUMENTO -->
+          <div class="form-group">
+            <label for="nro_doc_referencia" id="lbl_nro_doc_referencia">N° Orden de Incorporación<span class="req">*</span></label>
+            <input id="nro_doc_referencia" name="nro_doc_referencia" type="text" class="form-control uppercase" placeholder="Ej. 123" required autocomplete="off" oninput="updateDocumentoQueSustenta()" />
+            <div class="field-error">Ingrese el número de documento.</div>
+          </div>
+
+          <!-- DOCUMENTO QUE SUSTENTA (TEXTO RESULTANTE EDITABLE) -->
+          <div class="form-group col-span-2">
+            <label for="documento_que_sustenta">Documento que Sustenta<span class="req">*</span></label>
+            <input id="documento_que_sustenta" name="documento_que_sustenta" type="text" class="form-control uppercase" placeholder="Ej. ORDEN DE INCORPORACION N° 123-2026-DIRREHUM PNP/DIVCRH-DIRREHUM PNP" required autocomplete="off" oninput="this.value = this.value.toUpperCase()" />
+            <div class="field-hint" id="hint_doc_sustenta">Generado automáticamente según el número y tipo seleccionado (puede editarlo si es necesario).</div>
+            <div class="field-error">Ingrese o verifique el documento de referencia que sustenta.</div>
+          </div>
+
           <!-- UNIDAD DE ORIGEN -->
           <div class="form-group col-span-2">
             <label for="unidad_de_origen">Unidad de Origen<span class="req">*</span></label>
@@ -797,6 +821,37 @@
       }[m]));
     }
 
+    function handleTipoDocReferenciaChange() {
+      const tipo = document.getElementById('tipo_doc_referencia')?.value || 'ORDEN DE INCORPORACION';
+      const lbl = document.getElementById('lbl_nro_doc_referencia');
+      const nroInput = document.getElementById('nro_doc_referencia');
+      if (tipo === 'OFICIO') {
+        if (lbl) lbl.innerHTML = 'N° de Oficio<span class="req">*</span>';
+        if (nroInput) nroInput.placeholder = 'Ej. 456';
+      } else {
+        if (lbl) lbl.innerHTML = 'N° Orden de Incorporación<span class="req">*</span>';
+        if (nroInput) nroInput.placeholder = 'Ej. 123';
+      }
+      updateDocumentoQueSustenta();
+    }
+
+    function updateDocumentoQueSustenta() {
+      const tipo = document.getElementById('tipo_doc_referencia')?.value || 'ORDEN DE INCORPORACION';
+      const nro = (document.getElementById('nro_doc_referencia')?.value || '').trim();
+      const docEl = document.getElementById('documento_que_sustenta');
+      if (!docEl) return;
+      const year = new Date().getFullYear();
+      if (!nro) {
+        docEl.value = '';
+        return;
+      }
+      if (tipo === 'ORDEN DE INCORPORACION') {
+        docEl.value = `ORDEN DE INCORPORACION N° ${nro}-${year}-DIRREHUM PNP/DIVCRH-DIRREHUM PNP`;
+      } else {
+        docEl.value = `OFICIO N° ${nro}-${year}-DIRREHUM PNP/DIVCRH-DIRREHUM PNP`;
+      }
+    }
+
     function handleCondicionChange(selectedCond) {
       const tipoEl = document.getElementById('tipo_incorporacion');
       if (tipoEl) {
@@ -842,6 +897,10 @@
 
       // Unidad Anterior
       check('unidad_anterior', Boolean(data.unidad_anterior && data.unidad_anterior.trim().length >= 2));
+
+      // Documento de Referencia / Sustento
+      check('nro_doc_referencia', Boolean(document.getElementById('nro_doc_referencia')?.value.trim()));
+      check('documento_que_sustenta', Boolean(data.documento_que_sustenta && data.documento_que_sustenta.trim().length >= 3));
 
       // Unidad de Origen
       check('unidad_de_origen', Boolean(data.unidad_de_origen));
@@ -902,6 +961,9 @@
         jerarquia: document.getElementById('jerarquia').value.trim(),
         especialidad: document.getElementById('especialidad').value.trim(),
         unidad_anterior: document.getElementById('unidad_anterior').value.trim().toUpperCase(),
+        tipo_doc_referencia: document.getElementById('tipo_doc_referencia')?.value.trim().toUpperCase() || 'ORDEN DE INCORPORACION',
+        nro_doc_referencia: document.getElementById('nro_doc_referencia')?.value.trim().toUpperCase() || '',
+        documento_que_sustenta: document.getElementById('documento_que_sustenta')?.value.trim().toUpperCase() || '',
         unidad_de_origen: document.getElementById('unidad_de_origen').value.trim(),
         lista_de_revista: document.getElementById('lista_de_revista').value.trim(),
         fecha_de_incorporacion: document.getElementById('fecha_de_incorporacion').value.trim(),
@@ -1004,6 +1066,7 @@
         <div class="summary-row"><span class="summary-label">Apellidos y Nombres:</span><span class="summary-val">${escapeHtml(data.apellidos_y_nombres)}</span></div>
         <div class="summary-row"><span class="summary-label">Jerarquía / Especialidad:</span><span class="summary-val">${escapeHtml(data.jerarquia)} | ${escapeHtml(data.especialidad)}</span></div>
         <div class="summary-row"><span class="summary-label">Unidad Anterior:</span><span class="summary-val">${escapeHtml(data.unidad_anterior)}</span></div>
+        <div class="summary-row"><span class="summary-label">Doc. Referencia (Sustento):</span><span class="summary-val" style="color:var(--primary); font-weight:700;">${escapeHtml(data.documento_que_sustenta)}</span></div>
         <div class="summary-row"><span class="summary-label">Unidad de Origen:</span><span class="summary-val">${escapeHtml(data.unidad_de_origen)}</span></div>
         <div class="summary-row"><span class="summary-label">Lista de Revista:</span><span class="summary-val">${escapeHtml(data.lista_de_revista)}</span></div>
         <div class="summary-row"><span class="summary-label">Condición:</span><span class="summary-val">${escapeHtml(data.condicion)}</span></div>

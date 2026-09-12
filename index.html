@@ -6940,6 +6940,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px 12px; font-size: 12px;">
               <div><b>CIP:</b> <span style="color:#0b5a3c; font-weight:700;">${esc(s.cip || '—')}</span></div>
               <div><b>DNI:</b> <span>${esc(s.dni || '—')} (${esc(s.tipo_dni || '—')})</span></div>
+              <div><b>Doc. Sustento:</b> <span style="color:#0b5a3c; font-weight:600;">${esc(s.documento_que_sustenta || '—')}</span></div>
               <div><b>Unidad Anterior:</b> <span style="color:#0b5a3c; font-weight:600;">${esc(s.unidad_anterior || '—')}</span></div>
               <div><b>Unidad de Origen:</b> <span>${esc(s.unidad_de_origen || '—')}</span></div>
               <div><b>Lista Revista:</b> <span>${esc(s.lista_de_revista || '—')}</span></div>
@@ -6987,6 +6988,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       const condVal = String(sol.condicion || 'NATO').trim().toUpperCase();
       const tipoIncorpVal = String(sol.tipo_incorporacion || (condVal === 'DESTACADO' ? 'DESTACADO' : 'REASIGNADO')).trim().toUpperCase();
       const motivoVal = String(sol.motivo || 'NECESIDAD DEL SERVICIO').trim().toUpperCase();
+      const docSustVal = String(sol.documento_que_sustenta || sol.cip || '').trim().toUpperCase();
 
       // Pre-cargar los campos en el formulario con valores seguros
       const fieldMap = {
@@ -7001,7 +7003,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         unidad_de_origen: sol.unidad_de_origen || '',
         lista_de_revista: sol.lista_de_revista || '',
         fecha_de_incorporacion: formatDateForInput(sol.fecha_de_incorporacion || new Date().toISOString()),
-        documento_que_sustenta: sol.documento_que_sustenta || sol.cip || '',
+        documento_que_sustenta: docSustVal,
         unidad_anterior: sol.unidad_anterior || '',
         condicion: condVal,
         situacion_actual: sol.situacion_actual || 'PRESENTE',
@@ -7020,7 +7022,9 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         estado_civil: sol.estado_civil || 'SOLTERO(A)',
         incorp_tipo_incorporacion: tipoIncorpVal,
         incorp_motivo: motivoVal,
-        dest_incorp_motivo: motivoVal
+        dest_incorp_motivo: motivoVal,
+        dest_incorp_documento_referencia: docSustVal,
+        incorp_documento_pone_disposicion: docSustVal
       };
 
       Object.entries(fieldMap).forEach(([fieldId, val]) => {
