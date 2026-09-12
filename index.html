@@ -6865,7 +6865,8 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px 12px; font-size: 12px;">
               <div><b>CIP:</b> <span style="color:#0b5a3c; font-weight:700;">${esc(s.cip || '—')}</span></div>
               <div><b>DNI:</b> <span>${esc(s.dni || '—')} (${esc(s.tipo_dni || '—')})</span></div>
-              <div><b>Unidad:</b> <span>${esc(s.unidad_de_origen || '—')}</span></div>
+              <div><b>Unidad Anterior:</b> <span style="color:#0b5a3c; font-weight:600;">${esc(s.unidad_anterior || '—')}</span></div>
+              <div><b>Unidad de Origen:</b> <span>${esc(s.unidad_de_origen || '—')}</span></div>
               <div><b>Lista Revista:</b> <span>${esc(s.lista_de_revista || '—')}</span></div>
               <div><b>Condición:</b> <span>${esc(s.condicion || '—')}</span></div>
               <div><b>Situación / Cargo:</b> <span>${esc(s.situacion_actual || 'PRESENTE')} / ${esc(s.cargo || 'OPERATIVO')}</span></div>

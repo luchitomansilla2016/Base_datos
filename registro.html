@@ -447,6 +447,14 @@
             </select>
             <div class="field-error">Seleccione la especialidad policial.</div>
           </div>
+
+          <!-- UNIDAD ANTERIOR -->
+          <div class="form-group col-span-2">
+            <label for="unidad_anterior">Unidad Anterior<span class="req">*</span></label>
+            <input id="unidad_anterior" name="unidad_anterior" type="text" list="unidades_anteriores_list" class="form-control uppercase" placeholder="EJ. DIVREINT HUANUCO / DIRREHUM / COMISARIA HUANUCO" required autocomplete="off" oninput="this.value = this.value.toUpperCase()" />
+            <datalist id="unidades_anteriores_list"></datalist>
+            <div class="field-error">Ingrese su unidad anterior o de procedencia.</div>
+          </div>
         </div>
       </div>
 
@@ -719,11 +727,19 @@
 
     function populateUnidades() {
       const uSelect = document.getElementById('unidad_de_origen');
-      if (!uSelect) return;
+      const uList = document.getElementById('unidades_anteriores_list');
       const uNames = [...new Set(unidadesRaw.map(u => String(u.NIVEL1 || u.nivel_1 || '').trim()).filter(Boolean))];
       const filtered = uNames.filter(u => u.toUpperCase() !== 'TODOS');
-      uSelect.innerHTML = '<option value="">-- Seleccionar Unidad --</option>' + 
-        filtered.map(val => `<option value="${escapeHtml(val)}">${escapeHtml(val)}</option>`).join('');
+      
+      if (uSelect) {
+        uSelect.innerHTML = '<option value="">-- Seleccionar Unidad --</option>' + 
+          filtered.map(val => `<option value="${escapeHtml(val)}">${escapeHtml(val)}</option>`).join('');
+      }
+
+      if (uList) {
+        const allSuggestions = [...new Set(unidadesRaw.map(unidadNombreFinal).concat(filtered).filter(Boolean))];
+        uList.innerHTML = allSuggestions.map(val => `<option value="${escapeHtml(val)}"></option>`).join('');
+      }
     }
 
     function unidadNombreFinal(u) {
@@ -799,6 +815,9 @@
       // Especialidad
       check('especialidad', Boolean(data.especialidad));
 
+      // Unidad Anterior
+      check('unidad_anterior', Boolean(data.unidad_anterior && data.unidad_anterior.trim().length >= 2));
+
       // Unidad de Origen
       check('unidad_de_origen', Boolean(data.unidad_de_origen));
 
@@ -841,20 +860,21 @@
         id: 'REQ-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         fecha_solicitud: new Date().toISOString(),
         estado_solicitud: 'PENDIENTE',
-        // 20 campos solicitados
+        // 21 campos completos
         cip: document.getElementById('cip').value.trim(),
         dni: document.getElementById('dni').value.trim(),
         tipo_dni: document.getElementById('tipo_dni').value.trim(),
         grado: document.getElementById('grado').value.trim(),
         apellidos_y_nombres: document.getElementById('apellidos_y_nombres').value.trim().toUpperCase(),
+        jerarquia: document.getElementById('jerarquia').value.trim(),
+        especialidad: document.getElementById('especialidad').value.trim(),
+        unidad_anterior: document.getElementById('unidad_anterior').value.trim().toUpperCase(),
         unidad_de_origen: document.getElementById('unidad_de_origen').value.trim(),
         lista_de_revista: document.getElementById('lista_de_revista').value.trim(),
         fecha_de_incorporacion: document.getElementById('fecha_de_incorporacion').value.trim(),
         condicion: document.getElementById('condicion').value.trim(),
         situacion_actual: 'PRESENTE',
         cargo: 'OPERATIVO',
-        jerarquia: document.getElementById('jerarquia').value.trim(),
-        especialidad: document.getElementById('especialidad').value.trim(),
         aptitud_psicosomatico: document.getElementById('aptitud_psicosomatico').value.trim(),
         sexo: document.getElementById('sexo').value.trim(),
         fecha_de_nacimiento: document.getElementById('fecha_de_nacimiento').value.trim(),
@@ -947,6 +967,8 @@
         <div class="summary-row"><span class="summary-label">DNI (${escapeHtml(data.tipo_dni)}):</span><span class="summary-val">${escapeHtml(data.dni)}</span></div>
         <div class="summary-row"><span class="summary-label">Grado:</span><span class="summary-val">${escapeHtml(data.grado)}</span></div>
         <div class="summary-row"><span class="summary-label">Apellidos y Nombres:</span><span class="summary-val">${escapeHtml(data.apellidos_y_nombres)}</span></div>
+        <div class="summary-row"><span class="summary-label">Jerarquía / Especialidad:</span><span class="summary-val">${escapeHtml(data.jerarquia)} | ${escapeHtml(data.especialidad)}</span></div>
+        <div class="summary-row"><span class="summary-label">Unidad Anterior:</span><span class="summary-val">${escapeHtml(data.unidad_anterior)}</span></div>
         <div class="summary-row"><span class="summary-label">Unidad de Origen:</span><span class="summary-val">${escapeHtml(data.unidad_de_origen)}</span></div>
         <div class="summary-row"><span class="summary-label">Lista de Revista:</span><span class="summary-val">${escapeHtml(data.lista_de_revista)}</span></div>
         <div class="summary-row"><span class="summary-label">Condición:</span><span class="summary-val">${escapeHtml(data.condicion)}</span></div>
