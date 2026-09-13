@@ -2878,6 +2878,21 @@
       const todayYMD = new Date().toISOString().split('T')[0];
       const cipVal = inputObj['CIP'] || inputObj['cip'] || '';
       
+      const rawDocSust = String(inputObj['DOCUMENTO QUE SUSTENTA'] || inputObj['documento_que_sustenta'] || document.getElementById('documento_que_sustenta')?.value || '').trim();
+      const rawAMerito = String(inputObj['A MÉRITO'] || inputObj['a_merito'] || inputObj['incorp_a_merito'] || document.getElementById('incorp_a_merito')?.value || document.getElementById('a_merito')?.value || '').trim();
+
+      let combinedDocSustenta = rawDocSust;
+      if (rawAMerito) {
+        if (!combinedDocSustenta) {
+          combinedDocSustenta = rawAMerito;
+        } else {
+          const cleanDoc = combinedDocSustenta.replace(/\s*-\s*$/, '');
+          if (!cleanDoc.toLowerCase().includes(rawAMerito.toLowerCase())) {
+            combinedDocSustenta = `${cleanDoc} - ${rawAMerito}`;
+          }
+        }
+      }
+      
       const standardFields = [
         ['CIP', cipVal],
         ['TIPO DNI', inputObj['TIPO DNI'] || inputObj['tipo_dni'] || 'ELECTRONICO'],
@@ -2889,7 +2904,7 @@
         ['LISTA DE REVISTA', inputObj['LISTA DE REVISTA'] || inputObj['lista_de_revista'] || 'REGPOL HUANUCO'],
         ['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO', inputObj['SUBUNIDAD DONDE SE ENCUENTRA POR CURSO O APOYO'] || inputObj['subunidad_donde_se_encuentra_por_curso_o_apoyo'] || ''],
         ['FECHA INCORPORACIÓN', inputObj['FECHA INCORPORACIÓN'] || inputObj['fecha_de_incorporacion'] || todayYMD],
-        ['DOCUMENTO QUE SUSTENTA', inputObj['DOCUMENTO QUE SUSTENTA'] || inputObj['documento_que_sustenta'] || ''],
+        ['DOCUMENTO QUE SUSTENTA', combinedDocSustenta],
         ['UNIDAD ANTERIOR', inputObj['UNIDAD ANTERIOR'] || inputObj['unidad_anterior'] || ''],
         ['CONDICIÓN', inputObj['CONDICIÓN'] || inputObj['condicion'] || 'NATO'],
         ['SITUACIÓN ACTUAL', inputObj['SITUACIÓN ACTUAL'] || inputObj['situacion_actual'] || 'PRESENTE'],
@@ -6104,7 +6119,8 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
 
         const cleanObj = buildCleanPersonalPayload(obj);
         const docSustentaCol = getDbColumnKey('DOCUMENTO QUE SUSTENTA', tableSampleRows['personal'] || rows?.[0]);
-        cleanObj[docSustentaCol] = nextCorr.formattedDocNum;
+        const rawAMeritoGen = String(getFieldValue('incorp_a_merito') || getFieldValue('a_merito') || '').trim();
+        cleanObj[docSustentaCol] = rawAMeritoGen ? `${nextCorr.formattedDocNum} - ${rawAMeritoGen}` : nextCorr.formattedDocNum;
 
         toast('Guardando y generando orden...', 'info');
 
