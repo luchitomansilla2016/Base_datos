@@ -4932,21 +4932,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
           }
 
           if (k === 'documento_que_sustenta') {
-            return `
-              <div class="field full" style="grid-column: 1 / -1 !important;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                  <label for="${k}" style="margin:0;">${meta.label}</label>
-                  <button type="button" onclick="verOrdenFromForm(event)" style="font-size:11px; padding:3px 10px; font-weight:700; background:#e8f2ec; color:#0b5a3c; border:1px solid #0b5a3c; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Ver e imprimir Orden de Incorporación con fecha y hora de respaldo">
-                    👁️ Ver / Imprimir Orden
-                  </button>
-                </div>
-                <div style="display:flex; gap:8px; align-items:center;">
-                  <input id="${k}" type="text" style="flex:1; width:100% !important;" placeholder="Ej. ORDEN DE INCORPORACION N° 001-2026-DIRREHUM..." />
-                  <button type="button" onclick="verOrdenFromForm(event)" style="padding: 8px 14px; background:#0b5a3c; color:#ffffff; border:none; border-radius:8px; font-size:12.5px; font-weight:700; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px; box-shadow:0 2px 6px rgba(11,90,60,0.25);" title="Ver Orden de Incorporación generada con fecha y hora de respaldo">
-                    👁️ Ver Orden
-                  </button>
-                </div>
-              </div>`;
+            return `<div class="field full" style="grid-column: 1 / -1 !important;"><label for="${k}">${meta.label}</label><input id="${k}" type="text" style="width: 100% !important;" /></div>`;
           }
 
           if (k === 'incorp_motivo' || k === 'dest_incorp_motivo' || (currentTable === 'reasignados' && k === 'motivo') || (currentTable === 'personal' && k === 'motivo')) {
