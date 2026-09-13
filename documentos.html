@@ -1578,7 +1578,7 @@
   </div>
 
 
-  <div id="ordenPreviewModal" class="modal" style="z-index: 200;">
+  <div id="ordenPreviewModal" class="modal" style="z-index: 10000;">
     <div class="dialog" style="max-width: 960px; border-top: 5px solid #0b5a3c;">
       <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f2ec 100%);">
         <div>
@@ -1785,7 +1785,7 @@
     </div>
   </div>
   <!-- Modal de Gestion de Firmantes / Jefes de Orden -->
-  <div id="gestionJefesModal" class="modal" style="z-index: 300;">
+  <div id="gestionJefesModal" class="modal" style="z-index: 10050;">
     <div class="dialog" style="max-width: 720px; border-top: 5px solid #0b5a3c; max-height: 90vh; display: flex; flex-direction: column;">
       <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f2ec 100%);">
         <div>
@@ -2453,10 +2453,10 @@
             <td>${item.quien_ordena || '---'}</td>
             <td><small>${item.usuario_registra || '---'}</small></td>
             <td style="text-align:center; white-space:nowrap;">
-              <button class="action-btn" onclick="openOrdenDocumentFromRow(${item.id})" title="Ver / Imprimir Orden de Incorporación (Respaldo con fecha y hora)" style="background:#0b5a3c; color:#ffffff; border: none; font-size:12px; font-weight:700; cursor:pointer; padding: 5px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(11,90,60,0.3);">👁️ Ver</button>
+              <button class="action-btn" onclick="openOrdenDocumentFromRow('${item.id}')" title="Ver / Imprimir Orden de Incorporación (Respaldo con fecha y hora)" style="background:#0b5a3c; color:#ffffff; border: none; font-size:12px; font-weight:700; cursor:pointer; padding: 5px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(11,90,60,0.3);">👁️ Ver</button>
               ${admin ? `
-              <button class="action-btn" onclick="editRecord(${item.id})" title="Editar">&#9999;</button>
-              <button class="action-btn btn-del" onclick="deleteRecord(${item.id})" title="Eliminar">&#128465;</button>
+              <button class="action-btn" onclick="editRecord('${item.id}')" title="Editar">&#9999;</button>
+              <button class="action-btn btn-del" onclick="deleteRecord('${item.id}')" title="Eliminar">&#128465;</button>
               ` : ''}
             </td>
           </tr>
@@ -3050,6 +3050,8 @@
     // ==========================================
     // MÓDULO DE ORDEN DE INCORPORACIÓN Y JEFES
     // ==========================================
+    let jefesList = [];
+
     async function loadJefesList() {
       // 1. Cargar desde almacenamiento local (personalizado por usuario)
       try {
@@ -3068,7 +3070,7 @@
 
       // 2. Cargar desde Supabase si existe
       try {
-        const res = await req(API_JEFES + '?select=*&order=id.asc');
+        const res = await apiRequest('firmantes_jefes?select=*&order=id.asc');
         if (Array.isArray(res) && res.length > 0) {
           jefesList = res.filter(j => j.ACTIVO !== false);
         }
@@ -3081,7 +3083,7 @@
         jefesList = [
           { id: 1, CIP: '272624', GRADO: 'GRAL PNP', 'APELLIDOS Y NOMBRES': 'GONZALES QUINTERO JOSE LUIS', CARGO: 'JEFE REGPOL HUANUCO' },
           { id: 2, CIP: '297710', GRADO: 'CRNL PNP', 'APELLIDOS Y NOMBRES': 'VILCA CHAVEZ EDWIN HOMERO', CARGO: 'JEFE (E) ESTADO MAYOR' },
-          { id: 3, CIP: '240807', GRADO: 'CRNL PNP', 'APELLIDOS Y NOMBRES': 'ROLDAN ARGANDOÃ‘A FRANCISCO GABRIEL', CARGO: 'JEFE UNIDAD EJECUTORA NÂ°035' },
+          { id: 3, CIP: '240807', GRADO: 'CRNL PNP', 'APELLIDOS Y NOMBRES': 'ROLDAN ARGANDOÑA FRANCISCO GABRIEL', CARGO: 'JEFE UNIDAD EJECUTORA N°035' },
           { id: 4, CIP: '340850', GRADO: 'CMDTE PNP', 'APELLIDOS Y NOMBRES': 'CISNEROS APAZA RICKY FLORIAN', CARGO: 'JEFE OFAD' }
         ];
       }
@@ -3364,7 +3366,7 @@
     async function getNextOrdenCorrelative() {
       const currentYear = new Date().getFullYear();
       try {
-        const list = await docReq(`${API_ORDEN_INCORPORACION}?select=numero_documento,created_at&order=id.desc&limit=200`);
+        const list = await apiRequest('orden_incorporacion?select=numero_documento,created_at&order=id.desc&limit=200');
         let maxNum = 0;
         if (Array.isArray(list)) {
           list.forEach(item => {
@@ -3457,17 +3459,16 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
       });
     }
 
-
     function openOrdenDocumentFromRow(id) {
-      const item = (currentData || []).find(d => String(d.id) === String(id));
+      const item = (currentData || []).find(d => String(d.id) === String(id) || Number(d.id) === Number(id));
       if (!item) {
-        alert('No se encontrÃ³ el registro del documento.');
+        alert('No se encontró el registro del documento con ID: ' + id);
         return;
       }
 
-      const numPad = (item.numero_documento && item.numero_documento.match(/^(\d+)/)) ? item.numero_documento.match(/^(\d+)/)[1] : String(item.id).padStart(3, '0');
+      const numPad = (item.numero_documento && item.numero_documento.match(/^(\d+)/)) ? item.numero_documento.match(/^(\d+)/)[1].padStart(3, '0') : String(item.id).padStart(3, '0');
       
-      let cipVal = item.cip || '';
+      let cipVal = item.cip || item.CIP || '';
       if (!cipVal && item.descripcion) {
         const cipMatch = item.descripcion.match(/CIP\s*(\d+)/i);
         if (cipMatch) cipVal = cipMatch[1];
@@ -3484,7 +3485,7 @@ MOTIVO: ${buildMotivoText(currentOrdenData)}`;
         }
       }
 
-      const procedenciaVal = item.unidad_anterior || item.procedencia || 'DIVREINT HUANUCO';
+      const procedenciaVal = item.unidad_anterior || item.unidad_anterior_procedencia || item.procedencia || 'DIVREINT HUANUCO';
 
       const ordenData = {
         id: item.id,
