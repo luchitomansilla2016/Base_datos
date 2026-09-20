@@ -2561,11 +2561,19 @@
        compacta para mayor amplitud visual en pantallas móviles
        ======================================================== */
     @media screen and (max-width: 860px) {
-      /* Ajuste general del layout en pantallas móviles */
+      /* Permitir scroll vertical natural en toda la pantalla para celulares */
+      html, body {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
       .app-shell {
         grid-template-columns: 1fr !important;
-        height: 100vh !important;
-        height: 100dvh !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
       }
       .sidebar {
         position: fixed !important;
@@ -2593,12 +2601,16 @@
         display: block !important;
       }
       .main-area {
-        height: 100% !important;
-        min-height: 0 !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
       }
       .wrap {
         padding: 8px !important;
         gap: 8px !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
       }
 
       /* Tipografía más pequeña y compacta en móvil para ver con amplitud */
