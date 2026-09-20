@@ -885,6 +885,13 @@
     }
 
     @media (max-width: 980px) {
+      html, body {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
       .mobile-topbar {
         height: 60px;
         display: flex;
@@ -907,7 +914,7 @@
         font-weight: 900;
         font-size: 18px;
       }
-      .app-shell { display: block !important; height: auto; overflow: visible; }
+      .app-shell { display: block !important; height: auto !important; min-height: 100vh !important; overflow: visible !important; }
       .sidebar {
         position: fixed;
         inset: 0 auto 0 0;
@@ -925,15 +932,16 @@
       }
       .sidebar-backdrop.open { display: block; }
       header { display: none !important; }
-      .main-area { height: auto; overflow: visible; }
-      .wrap { padding: 14px; height: auto; overflow: visible; }
+      .main-area { height: auto !important; min-height: 100vh !important; overflow: visible !important; }
+      .wrap { padding: 10px !important; height: auto !important; min-height: auto !important; overflow: visible !important; }
       .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .toolbar { flex-direction: column; align-items: stretch; }
       .toolbar input#q, .module-select { width: 100%; max-width: none; }
       .filters-panel { grid-template-columns: 1fr 1fr !important; }
       .filter-actions { grid-column: span 2; }
+      .card { height: auto !important; min-height: auto !important; overflow: visible !important; display: block !important; flex: none !important; border: none !important; background: transparent !important; box-shadow: none !important; }
       .table-wrap { display: none; }
-      .mobile-cards { display: grid; gap: 12px; padding: 10px; background: #f8faf7; border-radius: 12px; }
+      .mobile-cards { display: grid !important; gap: 12px; padding: 4px; background: transparent; border-radius: 12px; height: auto !important; overflow: visible !important; }
       .person-card { border: 1px solid var(--v2-line); border-radius: 14px; background: #fff; padding: 14px; }
       .person-card h3 { margin: 0 0 8px; font-size: 15px; color: var(--v2-ink); }
       .person-card .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: var(--v2-muted); }
@@ -2610,6 +2618,24 @@
         gap: 8px !important;
         height: auto !important;
         min-height: auto !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+      .card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: auto !important;
+        display: block !important;
+        flex: none !important;
+      }
+      .mobile-cards {
+        display: grid !important;
+        gap: 10px !important;
+        padding: 2px !important;
+        height: auto !important;
         overflow: visible !important;
       }
 
