@@ -2627,23 +2627,28 @@
 
       /* Modales y Formularios: Scroll fluido (bajar y subir) en teléfonos */
       .modal {
-        padding: 8px !important;
+        padding: 6px !important;
         align-items: flex-start !important;
+        justify-content: center !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-y: contain !important;
       }
       .modal .dialog {
         width: 100% !important;
         max-width: 100% !important;
         max-height: 94vh !important;
         max-height: 94dvh !important;
-        margin: auto 0 !important;
+        margin: 10px auto !important;
         border-radius: 12px !important;
         display: flex !important;
         flex-direction: column !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
       }
       .modal header, .dialog-head {
         padding: 10px 14px !important;
+        flex-shrink: 0 !important;
       }
       .modal header h1, .dialog-head h1 {
         font-size: 14px !important;
@@ -2651,17 +2656,25 @@
       .modal .footer {
         padding: 10px 14px !important;
         flex-wrap: wrap !important;
+        flex-shrink: 0 !important;
       }
 
       /* Formularios: cuadrícula a 1 columna y scroll táctil */
-      .form {
+      .form,
+      form,
+      #form,
+      #generarDocNuevoPersonalModal .dialog > div:nth-child(2),
+      #exportModal .export-fields {
         grid-template-columns: 1fr !important;
         gap: 8px !important;
         padding: 12px 14px !important;
-        max-height: calc(90vh - 110px) !important;
-        max-height: calc(90dvh - 110px) !important;
+        flex: 1 1 auto !important;
+        max-height: calc(90vh - 120px) !important;
+        max-height: calc(90dvh - 120px) !important;
         overflow-y: auto !important;
+        overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
       }
       .form-section {
         grid-column: span 1 !important;
@@ -2680,7 +2693,9 @@
         padding: 8px !important;
         overflow: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y pan-x !important;
         max-height: calc(88vh - 100px) !important;
+        max-height: calc(88dvh - 100px) !important;
       }
 
       /* Tablas con scroll horizontal suave */

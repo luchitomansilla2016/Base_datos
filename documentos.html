@@ -893,33 +893,41 @@
 
       /* Modales y Formularios en Móvil: Desplazamiento Vertical Completo (Subir y Bajar) */
       .doc-modal {
-        padding: 8px !important;
+        padding: 6px !important;
         align-items: flex-start !important;
+        justify-content: center !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-y: contain !important;
       }
       .doc-dialog {
         width: 100% !important;
         max-width: 100% !important;
         max-height: 94vh !important;
         max-height: 94dvh !important;
-        margin: auto 0 !important;
+        margin: 10px auto !important;
         border-radius: 12px !important;
         display: flex !important;
         flex-direction: column !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
       }
       .doc-modal-header {
         padding: 10px 14px !important;
+        flex-shrink: 0 !important;
       }
       .doc-modal-header h3 {
         font-size: 14px !important;
       }
       .doc-modal-body {
         padding: 12px 14px !important;
-        max-height: calc(90vh - 110px) !important;
-        max-height: calc(90dvh - 110px) !important;
+        flex: 1 1 auto !important;
+        max-height: calc(90vh - 120px) !important;
+        max-height: calc(90dvh - 120px) !important;
         overflow-y: auto !important;
+        overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
         gap: 10px !important;
       }
       .doc-modal-body input, .doc-modal-body select, .doc-modal-body textarea {
@@ -928,6 +936,7 @@
       }
       .doc-modal-footer {
         padding: 10px 14px !important;
+        flex-shrink: 0 !important;
       }
       .doc-modal-footer button {
         font-size: 12px !important;
@@ -935,21 +944,28 @@
       }
 
       .modal {
-        padding: 8px !important;
+        padding: 6px !important;
         align-items: flex-start !important;
+        justify-content: center !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-y: contain !important;
       }
       .modal .dialog {
         width: 100% !important;
         max-width: 100% !important;
         max-height: 94vh !important;
         max-height: 94dvh !important;
-        margin: auto 0 !important;
+        margin: 10px auto !important;
         border-radius: 12px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
       }
       .modal header {
         padding: 10px 14px !important;
+        flex-shrink: 0 !important;
       }
       .modal header h1 {
         font-size: 14px !important;
@@ -958,7 +974,9 @@
         padding: 8px !important;
         overflow: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y pan-x !important;
         max-height: calc(88vh - 100px) !important;
+        max-height: calc(88dvh - 100px) !important;
       }
     }
 
