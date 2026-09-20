@@ -15529,24 +15529,12 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
        MÓDULO: AUTO-REGISTRO QR Y BANDEJA DE SOLICITUDES
        ============================================================ */
     const QR_STORAGE_KEY = 'pnp_qr_solicitudes';
-    const PUBLIC_TUNNEL_URL = 'https://luchitomansilla2016.github.io/Base_datos/registro.html';
-    const SERVER_LOCAL_IP = '192.168.101.12';
-    const SERVER_PORT = '8080';
+    const CLOUD_REGISTRO_URL = 'https://luchitomansilla2016.github.io/Base_datos/registro.html';
     let solicitudesList = [];
 
     function getQrTargetUrl() {
-      // Prioridad 1: URL pública HTTPS de Cloudflare Tunnel (funciona en 4G/5G/cualquier red)
-      if (PUBLIC_TUNNEL_URL && PUBLIC_TUNNEL_URL.startsWith('https://')) {
-        return PUBLIC_TUNNEL_URL;
-      }
-      const loc = window.location;
-      if (loc.protocol === 'file:' || loc.hostname === 'localhost' || loc.hostname === '127.0.0.1') {
-        return `http://${SERVER_LOCAL_IP}:${SERVER_PORT}/registro.html`;
-      }
-      const pathParts = loc.pathname.split('/');
-      pathParts.pop(); // remove index.html
-      const basePath = pathParts.join('/');
-      return `${loc.protocol}//${loc.host}${basePath}/registro.html`;
+      // Enlace 100% en la nube (accesible desde cualquier celular en todo el país)
+      return CLOUD_REGISTRO_URL;
     }
 
     function updateQrFromInput() {
