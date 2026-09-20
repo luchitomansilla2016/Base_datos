@@ -992,41 +992,58 @@
         return;
       }
 
+      const cloudPayload = {
+        id: formData.id,
+        fecha_solicitud: formData.fecha_solicitud,
+        estado_solicitud: 'PENDIENTE',
+        cip: formData.cip,
+        dni: formData.dni,
+        tipo_dni: formData.tipo_dni,
+        grado: formData.grado,
+        apellidos_y_nombres: formData.apellidos_y_nombres,
+        unidad_de_origen: formData.unidad_de_origen,
+        lista_de_revista: formData.lista_de_revista,
+        fecha_de_incorporacion: formData.fecha_de_incorporacion,
+        condicion: formData.condicion,
+        situacion_actual: 'PRESENTE',
+        cargo: 'OPERATIVO',
+        jerarquia: formData.jerarquia,
+        especialidad: formData.especialidad,
+        aptitud_psicosomatico: formData.aptitud_psicosomatico,
+        sexo: formData.sexo,
+        fecha_de_nacimiento: formData.fecha_de_nacimiento,
+        correo_personal: formData.correo_personal,
+        celular: formData.celular,
+        hijos: formData.hijos,
+        estado_civil: formData.estado_civil
+      };
+
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span>⏳</span><span>Procesando solicitud...</span>';
+      submitBtn.innerHTML = '<span>⏳</span><span>Enviando solicitud a la nube...</span>';
 
       try {
         // 1. Enviar directamente a Supabase Cloud (Accesible desde cualquier celular con 4G / 5G / Wi-Fi)
-        try {
-          await fetch(`${SUPABASE_URL}/rest/v1/solicitudes_registro`, {
-            method: 'POST',
-            headers: {
-              'apikey': KEY,
-              'Authorization': `Bearer ${KEY}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'return=representation'
-            },
-            body: JSON.stringify(formData)
-          });
-        } catch (cloudErr) {
-          console.warn('Supabase cloud fallback:', cloudErr);
+        const resCloud = await fetch(`${SUPABASE_URL}/rest/v1/solicitudes_registro`, {
+          method: 'POST',
+          headers: {
+            'apikey': KEY,
+            'Authorization': `Bearer ${KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify(cloudPayload)
+        });
+
+        if (!resCloud.ok) {
+          const errData = await resCloud.text();
+          console.error('Error al guardar en Supabase Cloud:', errData);
+          throw new Error('Error al conectar con la base de datos en la nube. ' + errData);
         }
 
-        // 2. Enviar también a la API local si está disponible
-        try {
-          await fetch('/api/solicitudes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-          });
-        } catch (apiErr) {
-          console.warn('API local fallback:', apiErr);
-        }
-
-        // 3. Guardar en localStorage para respaldo
+        // 2. Guardar en localStorage del dispositivo como respaldo
         saveToLocalStorage(formData);
 
-        // 4. Notificar mediante BroadcastChannel si está en la misma máquina
+        // 3. Notificar mediante BroadcastChannel si está en la misma máquina
         try {
           if (window.BroadcastChannel) {
             const bc = new BroadcastChannel('pnp_qr_channel');
@@ -1037,7 +1054,7 @@
         // Mostrar pantalla de éxito
         showSuccessView(formData);
       } catch (err) {
-        alert('Ocurrió un error al enviar el registro: ' + err.message);
+        alert('Ocurrió un problema al enviar el registro a la nube: ' + err.message);
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<span>📨</span><span>Enviar Registro a Verificación</span>';
       }

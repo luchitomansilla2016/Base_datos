@@ -15633,7 +15633,7 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
       try {
         let list = [];
 
-        // 1. Cargar desde Supabase Cloud (Accesible desde cualquier celular/red)
+        // 1. Cargar desde Supabase Cloud (Accesible en tiempo real desde PC y celular)
         try {
           const cloudRes = await req(SUPABASE_URL + '/rest/v1/solicitudes_registro?select=*&order=fecha_solicitud.desc');
           if (Array.isArray(cloudRes)) {
@@ -15643,36 +15643,18 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
           console.warn('Supabase cloud solicitudes error:', cloudErr);
         }
 
-        // 2. Cargar también desde la API local si está disponible y combinar
+        // 2. Si no hubo respuesta o para combinar, revisar localStorage de respaldo
         try {
-          const apiBase = (window.location.protocol === 'http:' || window.location.protocol === 'https:') ? '' : `http://${SERVER_LOCAL_IP}:${SERVER_PORT}`;
-          const res = await fetch(`${apiBase}/api/solicitudes`);
-          if (res.ok) {
-            const localList = await res.json();
-            if (Array.isArray(localList)) {
-              localList.forEach(item => {
-                if (!list.some(l => l.cip === item.cip)) {
-                  list.push(item);
-                }
+          const localStr = localStorage.getItem(QR_STORAGE_KEY);
+          if (localStr) {
+            const strList = JSON.parse(localStr);
+            if (Array.isArray(strList)) {
+              strList.forEach(item => {
+                if (!list.some(l => l.cip === item.cip || l.id === item.id)) list.push(item);
               });
             }
           }
         } catch (_) {}
-
-        // 3. Si no hubo respuesta o para combinar, revisar localStorage
-        if (!list || !list.length) {
-          try {
-            const localStr = localStorage.getItem(QR_STORAGE_KEY);
-            if (localStr) {
-              const strList = JSON.parse(localStr);
-              if (Array.isArray(strList)) {
-                strList.forEach(item => {
-                  if (!list.some(l => l.cip === item.cip)) list.push(item);
-                });
-              }
-            }
-          } catch (_) {}
-        }
 
         solicitudesList = Array.isArray(list) ? list : [];
         updateSolicitudesBadge();
