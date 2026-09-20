@@ -171,6 +171,7 @@
       color: var(--text);
       outline: none;
       transition: all 0.2s ease;
+      text-transform: uppercase;
     }
 
     .form-control:focus {
@@ -1093,6 +1094,29 @@
         <p style="font-size:15px; color:#2c4c3b; margin-top:12px;">Su solicitud ha sido registrada exitosamente.<br>Ya puede cerrar esta pestaña o salir del navegador.</p>
       `;
     }
+
+    // Convertir automáticamente todos los datos ingresados en inputs y textareas a MAYÚSCULAS en tiempo real
+    document.addEventListener('input', function(e) {
+      const el = e.target;
+      if (!el) return;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        const type = (el.type || '').toLowerCase();
+        if (type === 'password' || type === 'file' || type === 'color' || type === 'checkbox' || type === 'radio' || type === 'date' || type === 'time' || type === 'datetime-local') return;
+        
+        const start = el.selectionStart;
+        const end = el.selectionEnd;
+        const orig = el.value;
+        if (typeof orig === 'string') {
+          const upper = orig.toUpperCase();
+          if (orig !== upper) {
+            el.value = upper;
+            if (start !== null && end !== null) {
+              el.setSelectionRange(start, end);
+            }
+          }
+        }
+      }
+    }, true);
 
     // Inicializar al cargar la página
     document.addEventListener('DOMContentLoaded', initCatalogs);
