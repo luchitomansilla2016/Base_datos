@@ -2499,7 +2499,7 @@
         <div style="display:flex; flex-direction:column; gap:6px;">
           <label style="font-weight:700; color:#5e7166; font-size:11px; text-transform:uppercase;">Enlace directo a su Hoja de Google Sheets:</label>
           <div style="display:flex; gap:8px;">
-            <input id="customSheetsUrlInput" type="url" placeholder="Pegue el enlace https://docs.google.com/spreadsheets/d/..." style="flex:1; height:36px; font-size:12px; padding:6px 10px; border:1.5px solid #d4ded7; border-radius:8px;" />
+            <input id="customSheetsUrlInput" type="url" placeholder="Pegue el enlace https://docs.google.com/spreadsheets/d/..." style="flex:1; height:36px; font-size:12px; padding:6px 10px; border:1.5px solid #d4ded7; border-radius:8px; text-transform: none !important;" autocorrect="off" autocapitalize="none" spellcheck="false" />
             <button type="button" class="btn-primary-action" onclick="guardarYAbrirHojaCalculo()" style="height:36px; padding:0 14px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:5px;">
               <span>🚀</span> Abrir Hoja
             </button>
@@ -2705,7 +2705,7 @@
       if (!el) return;
       if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
         const type = (el.type || '').toLowerCase();
-        if (type === 'password' || type === 'file' || type === 'color' || type === 'checkbox' || type === 'radio' || type === 'date' || type === 'time' || type === 'datetime-local') return;
+        if (type === 'password' || type === 'file' || type === 'color' || type === 'checkbox' || type === 'radio' || type === 'date' || type === 'time' || type === 'datetime-local' || type === 'url' || type === 'email' || el.id === 'customSheetsUrlInput') return;
         
         const start = el.selectionStart;
         const end = el.selectionEnd;
@@ -3324,7 +3324,11 @@
     function openMasivoSheetsModal() {
       const modal = document.getElementById('masivoSheetsModal');
       if (modal) {
-        const savedUrl = localStorage.getItem('pnp_custom_sheets_url') || '';
+        let savedUrl = localStorage.getItem('pnp_custom_sheets_url') || '';
+        if (savedUrl.startsWith('HTTPS://DOCS.GOOGLE.COM') || savedUrl.startsWith('HTTPS://DRIVE.GOOGLE.COM') || savedUrl.includes('/SPREADSHEETS/D/')) {
+          savedUrl = '';
+          localStorage.removeItem('pnp_custom_sheets_url');
+        }
         const input = document.getElementById('customSheetsUrlInput');
         if (input) input.value = savedUrl;
         modal.classList.add('active');
