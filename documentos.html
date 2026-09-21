@@ -2406,7 +2406,119 @@
     </div>
   </div>
 
-  <!-- SCRIPTS Y L??GICA DE CONEXI??N CON REGLAS DE SEGURIDAD (RBAC) -->
+  <!-- Modal Selector de Tipo de Registro (Individual vs Masivo) -->
+  <div id="tipoRegistroModal" class="doc-modal" onclick="if(event.target===this) closeTipoRegistroModal()">
+    <div class="doc-dialog" style="max-width: 500px; border-radius: 14px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.25);">
+      <div class="doc-modal-header" style="background: linear-gradient(135deg, #0b5a3c 0%, #063d28 100%); color: #fff; padding: 14px 18px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size: 20px;">📑</span>
+          <div>
+            <h3 style="margin:0; font-size: 15px; font-weight:800; letter-spacing:0.02em;">Modo de Registro</h3>
+            <div style="font-size: 11.5px; opacity: 0.85;">Órdenes de Reincorporación</div>
+          </div>
+        </div>
+        <button class="doc-modal-close" onclick="closeTipoRegistroModal()">&times;</button>
+      </div>
+      <div class="doc-modal-body" style="padding: 18px; display: flex; flex-direction: column; gap: 12px; background: #f7faf8;">
+        
+        <p style="margin:0 0 4px; font-size: 12.5px; color: #32443a; line-height: 1.45;">
+          Seleccione el método con el que desea ingresar los registros de Órdenes de Reincorporación:
+        </p>
+
+        <!-- Opción 1: Registro Individual -->
+        <div onclick="seleccionarRegistroIndividual()" style="background: #ffffff; border: 1.5px solid #c8ded0; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(11,90,60,0.06);" onmouseover="this.style.borderColor='#0b5a3c'; this.style.transform='translateY(-1px)';" onmouseout="this.style.borderColor='#c8ded0'; this.style.transform='translateY(0)';">
+          <div style="width: 44px; height: 44px; border-radius: 10px; background: #e8f2ec; color: #0b5a3c; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
+            👤
+          </div>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 800; color: #0b5a3c; margin-bottom: 2px;">REGISTRO INDIVIDUAL</div>
+            <div style="font-size: 11.5px; color: #5e7166; line-height: 1.35;">Ingresar manualmente un solo efectivo en el formulario habitual del sistema.</div>
+          </div>
+          <div style="font-size: 16px; color: #0b5a3c; font-weight: 800;">&rarr;</div>
+        </div>
+
+        <!-- Opción 2: Registro Masivo (Google Sheets) -->
+        <div onclick="seleccionarRegistroMasivo()" style="background: #ffffff; border: 1.5px solid #d8b23f; border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 8px rgba(216,178,63,0.12);" onmouseover="this.style.borderColor='#b89224'; this.style.transform='translateY(-1px)';" onmouseout="this.style.borderColor='#d8b23f'; this.style.transform='translateY(0)';">
+          <div style="width: 44px; height: 44px; border-radius: 10px; background: #fff8e7; color: #9c7816; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;">
+            📊
+          </div>
+          <div style="flex: 1;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom: 2px;">
+              <span style="font-size: 14px; font-weight: 800; color: #1f3b2d;">REGISTRO MASIVO</span>
+              <span style="background: #d8b23f; color: #18372b; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px;">GOOGLE SHEETS</span>
+            </div>
+            <div style="font-size: 11.5px; color: #5e7166; line-height: 1.35;">Cargar múltiples efectivos desde Hoja de Cálculo en Drive y subir a la nube.</div>
+            <div style="font-size: 10.5px; color: #0b5a3c; font-weight: 700; margin-top: 4px;">📁 Carpeta: Mi Unidad &gt; PROGRAMAS &gt; SUPABASE</div>
+          </div>
+          <div style="font-size: 16px; color: #d8b23f; font-weight: 800;">&rarr;</div>
+        </div>
+
+      </div>
+      <div class="doc-modal-footer" style="padding: 10px 18px; background: #fff; border-top: 1px solid #e5ebe7; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn-secondary" onclick="closeTipoRegistroModal()" style="font-size: 12px; padding: 6px 14px;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Panel Informativo y Enlace de Registro Masivo -->
+  <div id="masivoSheetsModal" class="doc-modal" onclick="if(event.target===this) closeMasivoSheetsModal()">
+    <div class="doc-dialog" style="max-width: 580px; border-radius: 14px; overflow: hidden;">
+      <div class="doc-modal-header" style="background: linear-gradient(135deg, #0b5a3c 0%, #0a6370 100%); color: #fff; padding: 14px 18px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size: 20px;">📊</span>
+          <div>
+            <h3 style="margin:0; font-size: 15px; font-weight:800;">Carga Masiva de Órdenes de Reincorporación</h3>
+            <div style="font-size: 11.5px; opacity: 0.85;">Conexión Google Sheets &rarr; Supabase Cloud</div>
+          </div>
+        </div>
+        <button class="doc-modal-close" onclick="closeMasivoSheetsModal()">&times;</button>
+      </div>
+      <div class="doc-modal-body" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; font-size: 12.5px;">
+        
+        <div style="background: #edf6ef; border: 1.5px solid #b8dec4; border-radius: 10px; padding: 12px 14px; color: #0b5a3c;">
+          <div style="font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>📁</span> Ubicación Oficial en Google Drive:
+          </div>
+          <div style="font-weight: 700; color: #18372b; font-size: 13px; background: #fff; padding: 6px 10px; border-radius: 6px; border: 1px dashed #0b5a3c; margin-top: 4px;">
+            Mi Unidad &gt; PROGRAMAS &gt; SUPABASE
+          </div>
+        </div>
+
+        <div style="background: #fff; border: 1px solid #e0e7e2; border-radius: 10px; padding: 12px 14px;">
+          <div style="font-weight: 800; color: #18372b; margin-bottom: 8px;">Pasos para la Carga Masiva:</div>
+          <ol style="margin: 0; padding-left: 18px; color: #44564c; line-height: 1.6;">
+            <li>Abra su Hoja de Cálculo ubicada en la carpeta <b>PROGRAMAS &gt; SUPABASE</b>.</li>
+            <li>Ingrese o pegue las filas de los efectivos a reincorporar.</li>
+            <li>En el menú superior de Google Sheets, haga clic en <b>📌 PNP Reincorporaciones &gt; 🚀 Subir a Nube</b>.</li>
+            <li>El sistema asignará correlativos automáticos (ej. <i>001-2026</i>) y subirá los datos a Supabase.</li>
+            <li>Al regresar a esta página, presione <b>"Actualizar Tabla"</b> para ver las órdenes cargadas.</li>
+          </ol>
+        </div>
+
+        <!-- Botón para abrir la hoja configurada o ingresar URL -->
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <label style="font-weight:700; color:#5e7166; font-size:11px; text-transform:uppercase;">Enlace directo a su Hoja de Google Sheets:</label>
+          <div style="display:flex; gap:8px;">
+            <input id="customSheetsUrlInput" type="url" placeholder="Pegue el enlace https://docs.google.com/spreadsheets/d/..." style="flex:1; height:36px; font-size:12px; padding:6px 10px; border:1.5px solid #d4ded7; border-radius:8px;" />
+            <button type="button" class="btn-primary-action" onclick="guardarYAbrirHojaCalculo()" style="height:36px; padding:0 14px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:5px;">
+              <span>🚀</span> Abrir Hoja
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <div class="doc-modal-footer" style="padding: 10px 18px; background: #f9fbf9; border-top: 1px solid #e5ebe7; display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" class="btn-primary-action" onclick="refrescarDatosDesdeMasivo()" style="font-size: 12px; padding: 6px 14px; background: #0b5a3c;">
+          🔄 Actualizar Tabla Ahora
+        </button>
+        <button type="button" class="btn-secondary" onclick="closeMasivoSheetsModal()" style="font-size: 12px; padding: 6px 14px;">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPTS Y LÓGICA DE CONEXIÓN CON REGLAS DE SEGURIDAD (RBAC) -->
   <script>
     const SUPABASE_URL = 'https://ngsujkfmkgofngqwuqnf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nc3Vqa2Zta2dvZm5ncXd1cW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDk2MzQsImV4cCI6MjEwNDIyNTYzNH0.KL1YmWPLSkMHs9LCf4TC8quqo2G4cd8K0zaGxvoU3Vg';
@@ -3188,12 +3300,78 @@
       }
     }
 
+    /* Selector de Modo de Registro para Órdenes de Reincorporación */
+    function openTipoRegistroModal() {
+      const modal = document.getElementById('tipoRegistroModal');
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeTipoRegistroModal() {
+      const modal = document.getElementById('tipoRegistroModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function seleccionarRegistroIndividual() {
+      closeTipoRegistroModal();
+      openNewDocModalDirect();
+    }
+
+    function seleccionarRegistroMasivo() {
+      closeTipoRegistroModal();
+      openMasivoSheetsModal();
+    }
+
+    function openMasivoSheetsModal() {
+      const modal = document.getElementById('masivoSheetsModal');
+      if (modal) {
+        const savedUrl = localStorage.getItem('pnp_custom_sheets_url') || '';
+        const input = document.getElementById('customSheetsUrlInput');
+        if (input) input.value = savedUrl;
+        modal.classList.add('active');
+      }
+    }
+
+    function closeMasivoSheetsModal() {
+      const modal = document.getElementById('masivoSheetsModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function guardarYAbrirHojaCalculo() {
+      const input = document.getElementById('customSheetsUrlInput');
+      const url = input ? input.value.trim() : '';
+      if (url) {
+        localStorage.setItem('pnp_custom_sheets_url', url);
+        window.open(url, '_blank');
+      } else {
+        // Si aún no ingresó URL, abrir la carpeta o Google Drive
+        window.open('https://drive.google.com/drive/my-drive', '_blank');
+      }
+    }
+
+    async function refrescarDatosDesdeMasivo() {
+      closeMasivoSheetsModal();
+      await loadCurrentTableData();
+      await loadAllBadges();
+      if (typeof toast === 'function') toast('Tabla actualizada desde la nube', 'success');
+      else alert('Tabla de Órdenes de Reincorporación actualizada con éxito.');
+    }
+
     async function openNewDocModal() {
       if (currentTable === 'usuarios' && !isUserAdmin()) {
         alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede crear nuevos usuarios.');
         return;
       }
 
+      // Si estamos en Órdenes de Reincorporación, desplegar selector Individual vs Masivo
+      if (currentTable === 'orden_reincorporacion') {
+        openTipoRegistroModal();
+        return;
+      }
+
+      openNewDocModalDirect();
+    }
+
+    async function openNewDocModalDirect() {
       editingId = null;
       const conf = TABLES_CONFIG[currentTable];
       document.getElementById('docModalTitle').textContent = `Registrar en ${conf.title}`;
