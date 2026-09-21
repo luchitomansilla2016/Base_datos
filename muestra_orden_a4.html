@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muestra Oficial - Orden de Incorporación / Reincorporación (2 Copias A5 en A4)</title>
+  <style>
+    /* RESET & ESTILOS BASE */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Arial', 'Helvetica', sans-serif;
+      background: #3a4149;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #000;
+    }
+
+    /* BARRA SUPERIOR FLOTANTE DE CONTROL */
+    .controls-toolbar {
+      width: 210mm;
+      background: #ffffff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+    .controls-toolbar h2 {
+      font-size: 15px;
+      color: #0b5a3c;
+      font-weight: bold;
+    }
+    .btn-print {
+      background: #0b5a3c;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+    .btn-print:hover {
+      background: #08432c;
+    }
+
+    /* HOJA A4 (210mm x 297mm) */
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      height: 297mm;
+      background: #ffffff;
+      padding: 8mm 12mm;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    /* TARJETA DE CADA ORDEN (FORMATO A5 INDIVIDUAL) */
+    .orden-card {
+      width: 100%;
+      height: 136mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    /* ENCABEZADO INSTITUCIONAL */
+    .header-box {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 2px;
+    }
+    .escudo-img {
+      width: 44px;
+      height: auto;
+      object-fit: contain;
+    }
+    .institution-text {
+      font-size: 9px;
+      line-height: 1.15;
+      font-weight: bold;
+      color: #000;
+      text-transform: uppercase;
+    }
+    .institution-text .sub-inst {
+      font-size: 8px;
+    }
+
+    /* TÍTULO PRINCIPAL DE LA ORDEN */
+    .doc-title-container {
+      text-align: center;
+      margin: 4px 0 6px 0;
+    }
+    .doc-title {
+      font-size: 12px;
+      font-weight: 900;
+      text-decoration: underline;
+      letter-spacing: 0.2px;
+      line-height: 1.25;
+      color: #000;
+      text-transform: uppercase;
+    }
+
+    /* TABLA DE CAMPOS ESTRUCTURADOS */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 4px;
+      font-size: 10px;
+    }
+    .data-table tr {
+      vertical-align: top;
+    }
+    .data-label {
+      width: 170px;
+      font-weight: bold;
+      color: #000;
+      padding: 1.5px 0;
+      white-space: nowrap;
+    }
+    .data-sep {
+      width: 14px;
+      text-align: center;
+      font-weight: bold;
+      padding: 1.5px 0;
+    }
+    .data-val {
+      color: #000;
+      padding: 1.5px 0;
+      text-align: justify;
+      line-height: 1.2;
+    }
+    .data-val.bold {
+      font-weight: bold;
+    }
+
+    /* PÁRRAFO DE OBSERVACIÓN OFICIAL */
+    .obs-paragraph {
+      font-size: 9px;
+      line-height: 1.22;
+      text-align: justify;
+    }
+
+    /* LÍNEA DIVISORIA INFERIOR */
+    .divider-line {
+      width: 100%;
+      height: 1px;
+      background-color: #000;
+      margin: 3px 0 2px 0;
+    }
+
+    /* FECHA Y LUGAR */
+    .date-row {
+      text-align: right;
+      font-size: 9.5px;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    /* BLOQUE DE FIRMA Y SELLO */
+    .footer-sign-block {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 15px;
+      margin-top: 1px;
+    }
+    .sello-circular {
+      width: 76px;
+      height: 76px;
+      border: 1.5px solid #000;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4px;
+      position: relative;
+    }
+    .sello-circular .sello-text-top {
+      font-size: 6.5px;
+      font-weight: bold;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    .sello-circular .sello-escudo {
+      width: 22px;
+      height: auto;
+      margin: 2px 0;
+    }
+    .sello-circular .sello-text-bot {
+      font-size: 6.5px;
+      font-weight: bold;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .sign-container {
+      width: 210px;
+      text-align: center;
+    }
+    .sign-dots {
+      border-top: 1px dashed #000;
+      margin-bottom: 3px;
+    }
+    .sign-info {
+      font-size: 8.5px;
+      font-weight: bold;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    /* LÍNEA DE CORTE CENTRAL ENTRE AMBAS COPIAS */
+    .cut-line-container {
+      width: 100%;
+      text-align: center;
+      position: relative;
+      margin: 2mm 0;
+    }
+    .cut-line {
+      border-top: 1.5px dashed #444;
+      width: 100%;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      z-index: 1;
+    }
+    .cut-badge {
+      position: relative;
+      z-index: 2;
+      background: #ffffff;
+      padding: 0 12px;
+      font-size: 8.5px;
+      font-weight: bold;
+      color: #444;
+      letter-spacing: 1px;
+    }
+
+    /* CONFIGURACIÓN DE IMPRESIÓN OFICIAL EN HOJA A4 */
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .controls-toolbar {
+        display: none;
+      }
+      .a4-page {
+        box-shadow: none;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        padding: 6mm 10mm;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE ACCIÓN -->
+  <div class="controls-toolbar">
+    <div>
+      <h2>📄 Formato Oficial: Orden de Reincorporación (2 Copias por Hoja A4)</h2>
+      <div style="font-size: 12px; color: #555;">Diseño exacto idéntico al modelo institucional (A5 Duplicado)</div>
+    </div>
+    <button class="btn-print" onclick="window.print()">
+      <span>🖨️</span> Imprimir / Guardar como PDF
+    </button>
+  </div>
+
+  <!-- HOJA FÍSICA A4 -->
+  <div class="a4-page">
+
+    <!-- ===================== COPIA 1 (ORIGINAL - SUPERIOR) ===================== -->
+    <div class="orden-card">
+      <div>
+        <!-- Membrete Institucional -->
+        <div class="header-box">
+          <!-- Escudo Nacional Oficial Vector/PNG -->
+          <svg class="escudo-img" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 5 L85 20 V65 C85 92 50 115 50 115 C50 115 15 92 15 65 V20 L50 5 Z" stroke="#000" stroke-width="3" fill="#fff"/>
+            <path d="M50 5 V115 M15 55 H85" stroke="#000" stroke-width="2"/>
+            <circle cx="32" cy="30" r="10" stroke="#000" stroke-width="2" fill="#fff"/>
+            <path d="M68 25 L75 40 L60 40 Z" stroke="#000" stroke-width="2" fill="#fff"/>
+            <path d="M35 75 C35 75 45 95 50 95 C55 95 65 75 65 75" stroke="#000" stroke-width="2"/>
+            <text x="50" y="118" font-size="8" font-weight="bold" text-anchor="middle" fill="#000">REPUBLICA DEL PERU</text>
+          </svg>
+          <div class="institution-text">
+            <div>POLICÍA NACIONAL DEL PERÚ</div>
+            <div class="sub-inst">COMANDO OPERACIONES POLICIALES</div>
+            <div class="sub-inst">DIRECCIÓN NACIONAL DE ORDEN Y SEGURIDAD</div>
+            <div class="sub-inst">REGIÓN POLICIAL HUÁNUCO</div>
+            <div class="sub-inst">OFAD - AREREHUM</div>
+          </div>
+        </div>
+
+        <!-- Título Numerado -->
+        <div class="doc-title-container">
+          <div class="doc-title">
+            ÓRDEN DE INCORPORACION N°001-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+          </div>
+        </div>
+
+        <!-- Datos Estructurados -->
+        <table class="data-table">
+          <tr>
+            <td class="data-label">CIP</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">31245678</td>
+          </tr>
+          <tr>
+            <td class="data-label">APELLIDOS Y NOMBRES</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">LOPEZ SANCHEZ PEDRO ALBERTO</td>
+          </tr>
+          <tr>
+            <td class="data-label">PROCEDENCIA</td>
+            <td class="data-sep">:</td>
+            <td class="data-val">COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD</td>
+          </tr>
+          <tr>
+            <td class="data-label">UNIDAD DE DESTINO</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">COMISARIA SECTORIAL HUANUCO</td>
+          </tr>
+          <tr>
+            <td class="data-label">MOTIVO</td>
+            <td class="data-sep">:</td>
+            <td class="data-val">AL TÉRMINO DE: <b>VACACIONES</b></td>
+          </tr>
+          <tr>
+            <td class="data-label">OBSERVACIÓN</td>
+            <td class="data-sep">:</td>
+            <td class="data-val obs-paragraph">
+              SE PONE A DISPOSICIÓN AL ADMINISTRADO AL TÉRMINO DE SU PERMISO POR VACACIONES; CABE PRECISAR QUE SU REINCORPORACIÓN DEBERÁ SER COMUNICADO AL JEFE DE DIVISIÓN, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL ÁREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTRÓNICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACIÓN CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Pie de Página -->
+      <div>
+        <div class="divider-line"></div>
+        <div class="date-row">HUÁNUCO, 21 DE SETIEMBRE DE 2026</div>
+
+        <div class="footer-sign-block">
+          <!-- Sello Redondo Oficial -->
+          <div class="sello-circular">
+            <span class="sello-text-top">POLICIA NACIONAL DEL PERÚ</span>
+            <svg class="sello-escudo" viewBox="0 0 100 120" fill="none">
+              <path d="M50 5 L85 20 V65 C85 92 50 115 50 115 C50 115 15 92 15 65 V20 L50 5 Z" stroke="#000" stroke-width="4" fill="#fff"/>
+              <text x="50" y="65" font-size="16" font-weight="bold" text-anchor="middle" fill="#000">OFAD</text>
+            </svg>
+            <span class="sello-text-bot">REGPOL HUANUCO</span>
+          </div>
+
+          <!-- Firma -->
+          <div class="sign-container">
+            <div class="sign-dots"></div>
+            <div class="sign-info">CIP - 30894512</div>
+            <div class="sign-info">RICKY FLORIAN CISNEROS APAZA</div>
+            <div class="sign-info">CMTE PNP</div>
+            <div class="sign-info">JEFE OFAD REGPOL HUANUCO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== LÍNEA DE CORTE (SEPARADOR) ===================== -->
+    <div class="cut-line-container">
+      <div class="cut-line"></div>
+      <span class="cut-badge">✂ CORTE AQUÍ (FORMATO A5 DUPLICADO) ✂</span>
+    </div>
+
+    <!-- ===================== COPIA 2 (COPIA - INFERIOR) ===================== -->
+    <div class="orden-card">
+      <div>
+        <!-- Membrete Institucional -->
+        <div class="header-box">
+          <svg class="escudo-img" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 5 L85 20 V65 C85 92 50 115 50 115 C50 115 15 92 15 65 V20 L50 5 Z" stroke="#000" stroke-width="3" fill="#fff"/>
+            <path d="M50 5 V115 M15 55 H85" stroke="#000" stroke-width="2"/>
+            <circle cx="32" cy="30" r="10" stroke="#000" stroke-width="2" fill="#fff"/>
+            <path d="M68 25 L75 40 L60 40 Z" stroke="#000" stroke-width="2" fill="#fff"/>
+            <path d="M35 75 C35 75 45 95 50 95 C55 95 65 75 65 75" stroke="#000" stroke-width="2"/>
+            <text x="50" y="118" font-size="8" font-weight="bold" text-anchor="middle" fill="#000">REPUBLICA DEL PERU</text>
+          </svg>
+          <div class="institution-text">
+            <div>POLICÍA NACIONAL DEL PERÚ</div>
+            <div class="sub-inst">COMANDO OPERACIONES POLICIALES</div>
+            <div class="sub-inst">DIRECCIÓN NACIONAL DE ORDEN Y SEGURIDAD</div>
+            <div class="sub-inst">REGIÓN POLICIAL HUÁNUCO</div>
+            <div class="sub-inst">OFAD - AREREHUM</div>
+          </div>
+        </div>
+
+        <!-- Título Numerado -->
+        <div class="doc-title-container">
+          <div class="doc-title">
+            ÓRDEN DE INCORPORACION N°001-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+          </div>
+        </div>
+
+        <!-- Datos Estructurados -->
+        <table class="data-table">
+          <tr>
+            <td class="data-label">CIP</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">31245678</td>
+          </tr>
+          <tr>
+            <td class="data-label">APELLIDOS Y NOMBRES</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">LOPEZ SANCHEZ PEDRO ALBERTO</td>
+          </tr>
+          <tr>
+            <td class="data-label">PROCEDENCIA</td>
+            <td class="data-sep">:</td>
+            <td class="data-val">COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD</td>
+          </tr>
+          <tr>
+            <td class="data-label">UNIDAD DE DESTINO</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">COMISARIA SECTORIAL HUANUCO</td>
+          </tr>
+          <tr>
+            <td class="data-label">MOTIVO</td>
+            <td class="data-sep">:</td>
+            <td class="data-val">AL TÉRMINO DE: <b>VACACIONES</b></td>
+          </tr>
+          <tr>
+            <td class="data-label">OBSERVACIÓN</td>
+            <td class="data-sep">:</td>
+            <td class="data-val obs-paragraph">
+              SE PONE A DISPOSICIÓN AL ADMINISTRADO AL TÉRMINO DE SU PERMISO POR VACACIONES; CABE PRECISAR QUE SU REINCORPORACIÓN DEBERÁ SER COMUNICADO AL JEFE DE DIVISIÓN, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL ÁREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTRÓNICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACIÓN CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Pie de Página -->
+      <div>
+        <div class="divider-line"></div>
+        <div class="date-row">HUÁNUCO, 21 DE SETIEMBRE DE 2026</div>
+
+        <div class="footer-sign-block">
+          <!-- Sello Redondo Oficial -->
+          <div class="sello-circular">
+            <span class="sello-text-top">POLICIA NACIONAL DEL PERÚ</span>
+            <svg class="sello-escudo" viewBox="0 0 100 120" fill="none">
+              <path d="M50 5 L85 20 V65 C85 92 50 115 50 115 C50 115 15 92 15 65 V20 L50 5 Z" stroke="#000" stroke-width="4" fill="#fff"/>
+              <text x="50" y="65" font-size="16" font-weight="bold" text-anchor="middle" fill="#000">OFAD</text>
+            </svg>
+            <span class="sello-text-bot">REGPOL HUANUCO</span>
+          </div>
+
+          <!-- Firma -->
+          <div class="sign-container">
+            <div class="sign-dots"></div>
+            <div class="sign-info">CIP - 30894512</div>
+            <div class="sign-info">RICKY FLORIAN CISNEROS APAZA</div>
+            <div class="sign-info">CMTE PNP</div>
+            <div class="sign-info">JEFE OFAD REGPOL HUANUCO</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
