@@ -3157,7 +3157,225 @@
           e.preventDefault();
           const encodedNom = items[activeIndex].getAttribute('data-nom');
           const encodedDestino = items[activeIndex].getAttribute('data-destino');
-          selectPersonalReincorpOption(encodedNom, encodedDestino);
+          const encodedCip = items[activeIndex].getAttribute('data-cip');
+          selectPersonalReincorpOption(encodedNom, encodedDestino, encodedCip);
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
+    // --- FUNCIONES DE BÚSQUEDA Y AUTOCOMPLETADO PARA ORDEN DE INCORPORACIÓN ---
+    async function showPersonalIncorpDropdown(inputEl) {
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        await loadPersonalCatalogDoc();
+      }
+      if (inputEl.id === 'f_cip_incorp') {
+        filterPersonalIncorpByCip(inputEl);
+      } else {
+        filterPersonalIncorpByName(inputEl);
+      }
+    }
+
+    function filterPersonalIncorpByCip(inputEl) {
+      const dropEl = document.getElementById('f_cip_incorp_dropdown');
+      if (!dropEl) return;
+
+      const rawQuery = inputEl.value;
+      const q = normalizeSearchText(rawQuery);
+
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">Cargando padrón de personal policial...</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      const matches = personalCatalogDoc.filter(p => {
+        const cip = String(p.CIP || p.cip || '');
+        return cip.includes(q);
+      }).slice(0, 30);
+
+      if (matches.length === 0) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">No se encontró personal con CIP "' + (rawQuery || '') + '"</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((p, idx) => {
+        const cip = p.CIP || p.cip || '---';
+        const grd = p.GRADO || p.grado || '';
+        const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const lRevista = p['LISTA DE REVISTA'] || p.lista_de_revista || p.lista_revista || p['UNIDAD DE ORIGEN'] || p.unidad_de_origen || '';
+        const fullName = `${grd} ${nom}`.trim();
+        const safeNom = encodeURIComponent(fullName);
+        const safeDestino = encodeURIComponent(lRevista);
+        const safeCip = encodeURIComponent(cip);
+        const safeGrd = encodeURIComponent(grd);
+        const safeApellidosNom = encodeURIComponent(nom);
+
+        return `
+          <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
+               data-cip="${safeCip}" 
+               data-nom="${safeNom}" 
+               data-destino="${safeDestino}" 
+               data-grd="${safeGrd}"
+               data-apellidosnom="${safeApellidosNom}"
+               onmousedown="selectPersonalIncorpOption('${safeCip}', '${safeNom}', '${safeDestino}', '${safeGrd}', '${safeApellidosNom}')" 
+               style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
+            <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">CIP: ${cip} &bull; ${grd} ${nom}</div>
+            <div style="font-size:11px; color:#555; display:flex; gap:8px; margin-top:2px;">
+              ${lRevista ? `<span><b>Revista / Destino:</b> ${lRevista}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function filterPersonalIncorpByName(inputEl) {
+      const dropEl = document.getElementById('f_grado_apellidos_nombres_incorp_dropdown');
+      if (!dropEl) return;
+
+      const rawQuery = inputEl.value;
+      const q = normalizeSearchText(rawQuery);
+
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">Cargando padrón de personal policial...</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      const matches = personalCatalogDoc.filter(p => {
+        const nom = normalizeSearchText(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '');
+        const cip = String(p.CIP || p.cip || '');
+        return nom.includes(q) || cip.includes(q);
+      }).slice(0, 30);
+
+      if (matches.length === 0) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">No se encontró personal con "' + (rawQuery || '') + '"</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((p, idx) => {
+        const cip = p.CIP || p.cip || '---';
+        const grd = p.GRADO || p.grado || '';
+        const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const lRevista = p['LISTA DE REVISTA'] || p.lista_de_revista || p.lista_revista || p['UNIDAD DE ORIGEN'] || p.unidad_de_origen || '';
+        const fullName = `${grd} ${nom}`.trim();
+        const safeNom = encodeURIComponent(fullName);
+        const safeDestino = encodeURIComponent(lRevista);
+        const safeCip = encodeURIComponent(cip);
+        const safeGrd = encodeURIComponent(grd);
+        const safeApellidosNom = encodeURIComponent(nom);
+
+        return `
+          <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
+               data-cip="${safeCip}" 
+               data-nom="${safeNom}" 
+               data-destino="${safeDestino}" 
+               data-grd="${safeGrd}"
+               data-apellidosnom="${safeApellidosNom}"
+               onmousedown="selectPersonalIncorpOption('${safeCip}', '${safeNom}', '${safeDestino}', '${safeGrd}', '${safeApellidosNom}')" 
+               style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
+            <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">${grd} ${nom}</div>
+            <div style="font-size:11px; color:#555; display:flex; gap:8px; margin-top:2px;">
+              <span><b>CIP:</b> ${cip}</span>
+              ${lRevista ? `<span>&bull; <b>Revista / Destino:</b> ${lRevista}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function selectPersonalIncorpOption(encodedCip, encodedNom, encodedDestino, encodedGrd, encodedApellidosNom) {
+      const cip = decodeURIComponent(encodedCip);
+      const nom = decodeURIComponent(encodedNom);
+      const destino = decodeURIComponent(encodedDestino);
+      const grd = encodedGrd ? decodeURIComponent(encodedGrd) : '';
+      const apellidosNom = encodedApellidosNom ? decodeURIComponent(encodedApellidosNom) : '';
+
+      const inputCip = document.getElementById('f_cip_incorp');
+      if (inputCip) {
+        inputCip.value = (cip && cip !== '---') ? cip : '';
+        inputCip.dispatchEvent(new Event('input', { bubbles: true }));
+        inputCip.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const inputNom = document.getElementById('f_grado_apellidos_nombres_incorp');
+      if (inputNom) {
+        inputNom.value = nom;
+        if (grd) inputNom.setAttribute('data-grado', grd);
+        if (apellidosNom) inputNom.setAttribute('data-apellidos-nombres', apellidosNom);
+        if (cip && cip !== '---') inputNom.setAttribute('data-cip', cip);
+        inputNom.dispatchEvent(new Event('input', { bubbles: true }));
+        inputNom.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      if (destino) {
+        const inputDestino = document.getElementById('f_destino');
+        if (inputDestino) {
+          inputDestino.value = destino;
+          inputDestino.dispatchEvent(new Event('input', { bubbles: true }));
+          inputDestino.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      const descInput = document.getElementById('f_descripcion');
+      if (descInput && (!descInput.value || descInput.value.trim() === '' || descInput.value.trim() === 'SE INCORPORA POR')) {
+        descInput.value = 'SE INCORPORA POR ';
+      }
+
+      const dropCip = document.getElementById('f_cip_incorp_dropdown');
+      if (dropCip) dropCip.style.display = 'none';
+      const dropNom = document.getElementById('f_grado_apellidos_nombres_incorp_dropdown');
+      if (dropNom) dropNom.style.display = 'none';
+    }
+
+    function navigatePersonalIncorpDropdown(e, inputEl, type) {
+      const dropId = type === 'cip' ? 'f_cip_incorp_dropdown' : 'f_grado_apellidos_nombres_incorp_dropdown';
+      const dropEl = document.getElementById(dropId);
+      if (!dropEl || dropEl.style.display === 'none') return;
+
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          const encodedCip = items[activeIndex].getAttribute('data-cip');
+          const encodedNom = items[activeIndex].getAttribute('data-nom');
+          const encodedDestino = items[activeIndex].getAttribute('data-destino');
+          const encodedGrd = items[activeIndex].getAttribute('data-grd');
+          const encodedApellidosNom = items[activeIndex].getAttribute('data-apellidosnom');
+          selectPersonalIncorpOption(encodedCip, encodedNom, encodedDestino, encodedGrd, encodedApellidosNom);
         }
       } else if (e.key === 'Escape') {
         dropEl.style.display = 'none';
@@ -3887,7 +4105,7 @@
 
       document.getElementById('docModal').classList.add('active');
 
-      if (!conf.isUserTable && currentTable !== 'orden_reincorporacion') {
+      if (!conf.isUserTable && currentTable !== 'orden_reincorporacion' && currentTable !== 'orden_incorporacion') {
         const docNumInput = document.getElementById('f_numero_documento');
         if (docNumInput) {
           getNextDocCorrelative(currentTable).then(nextNum => {
@@ -3940,14 +4158,8 @@
       }
 
       if (conf.isOrdenIncorporacion) {
-        let numSugerido = existing.numero_documento || '';
-        if (!numSugerido && currentData.length > 0) {
-          const nextNum = String(currentData.length + 1).padStart(3, '0');
-          const year = new Date().getFullYear();
-          numSugerido = `ORDEN DE INCORPORACIÓN N°${nextNum}-${year}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
-        } else if (!numSugerido) {
-          numSugerido = `ORDEN DE INCORPORACIÓN N°001-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
-        }
+        let numDocVal = existing.numero_documento || '';
+        let descVal = existing.descripcion || 'SE INCORPORA POR ';
 
         container.innerHTML = `
           <div style="background:#e8f2ec; padding:10px 14px; border-radius:8px; border:1px solid #cce2d4; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -3958,15 +4170,25 @@
           </div>
           <div class="form-group">
             <label>N&deg; Documento</label>
-            <input id="f_numero_documento" class="form-control" type="text" value="${existing.numero_documento || numSugerido}" placeholder="Ej. ORDEN DE INCORPORACIÓN N°001-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM" required />
+            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al guardar" readonly style="background:#f1f5f9; cursor:not-allowed;" />
           </div>
           <div class="form-group">
             <label>F. Doc</label>
             <input id="f_fecha_documento" class="form-control" type="date" value="${existing.fecha_documento || today}" required />
           </div>
+          <div class="form-group" style="position:relative;">
+            <label>CIP (Buscar o ingresar CIP)</label>
+            <input id="f_cip_incorp" class="form-control" type="text" autocomplete="off" placeholder="Escriba CIP (ej. 31343925)..." value="${existing.cip || ''}" oninput="filterPersonalIncorpByCip(this)" onfocus="showPersonalIncorpDropdown(this)" onkeydown="navigatePersonalIncorpDropdown(event, this, 'cip')" />
+            <div id="f_cip_incorp_dropdown" class="autocomplete-dropdown" style="display:none; max-height:220px; overflow-y:auto;"></div>
+          </div>
+          <div class="form-group" style="position:relative;">
+            <label>Grado, Apellidos y Nombres (Buscar por Apellidos o Nombres)</label>
+            <input id="f_grado_apellidos_nombres_incorp" class="form-control" type="text" autocomplete="off" placeholder="Escriba apellidos o nombres..." value="${existing.grado_apellidos_nombres || existing.apellidos_nombres || ''}" oninput="filterPersonalIncorpByName(this)" onfocus="showPersonalIncorpDropdown(this)" onkeydown="navigatePersonalIncorpDropdown(event, this, 'name')" />
+            <div id="f_grado_apellidos_nombres_incorp_dropdown" class="autocomplete-dropdown" style="display:none; max-height:220px; overflow-y:auto;"></div>
+          </div>
           <div class="form-group">
             <label>Descripci&oacute;n</label>
-            <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Ej. PONE A DISPOSICIÓN AL CAP PNP PEREZ JUAN POR HABER SIDO REASIGNACIÓN MOTIVO: CAMBIO DE COLOCACIÓN" style="resize:vertical;" required>${existing.descripcion || ''}</textarea>
+            <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Ej. SE INCORPORA POR CAMBIO DE COLOCACIÓN" style="resize:vertical;" required>${descVal}</textarea>
           </div>
           <div class="form-group">
             <label>Documento de Referencia</label>
@@ -4176,9 +4398,23 @@
       }
 
       if (conf.isOrdenIncorporacion) {
-        payload.numero_documento = document.getElementById('f_numero_documento').value.trim();
+        let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
+        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
+          const nextCorr = await getNextDocCorrelative('orden_incorporacion');
+          const m = nextCorr.match(/(\d+)/);
+          const numPad = m ? m[1].padStart(3, '0') : '001';
+          const yearVal = new Date().getFullYear();
+          rawNum = `ORDEN DE INCORPORACIÓN N°${numPad}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+        } else if (!rawNum.toUpperCase().includes('COMOPPOL')) {
+          const mNum = rawNum.match(/(\d+)/);
+          const mYear = rawNum.match(/-(\d{4})/);
+          const numPadded = mNum ? mNum[1].padStart(3, '0') : '001';
+          const yearVal = mYear ? mYear[1] : String(new Date().getFullYear());
+          rawNum = `ORDEN DE INCORPORACIÓN N°${numPadded}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+        }
+        payload.numero_documento = rawNum;
         payload.fecha_documento = document.getElementById('f_fecha_documento').value;
-        payload.descripcion = document.getElementById('f_descripcion').value.trim();
+        payload.descripcion = document.getElementById('f_descripcion').value.trim() || 'SE INCORPORA POR ';
         payload.destino = document.getElementById('f_destino').value.trim();
         payload.numero_orden_incorporacion_dirrehum = (document.getElementById('f_numero_orden_incorporacion_dirrehum')?.value || '').trim() || null;
         payload.documento_referencia = payload.numero_orden_incorporacion_dirrehum;
@@ -4377,6 +4613,60 @@
           usuario_registra: getUsuarioRegistraNombre()
         };
         displayReincorporacionPreview(reincorpData);
+        return;
+      }
+
+      if (currentTable === 'orden_incorporacion') {
+        const inputCip = document.getElementById('f_cip_incorp');
+        const inputNom = document.getElementById('f_grado_apellidos_nombres_incorp');
+        let selCip = inputCip ? inputCip.value.trim() : '';
+        if (!selCip) selCip = inputNom ? (inputNom.getAttribute('data-cip') || '') : '';
+        if (!selCip) selCip = cipVal;
+
+        let fullNomVal = inputNom ? inputNom.value.trim() : '';
+        let selGrado = (inputNom && inputNom.getAttribute('data-grado')) || 'PNP';
+        let selApellidosNombres = (inputNom && inputNom.getAttribute('data-apellidos-nombres')) || fullNomVal;
+        if (!selApellidosNombres) selApellidosNombres = fullNomVal || descVal;
+
+        if (fullNomVal && (!inputNom || !inputNom.getAttribute('data-grado') || !inputNom.getAttribute('data-apellidos-nombres'))) {
+          const p = fullNomVal.split(' ');
+          if (p.length > 2 && (p[0].includes('.') || p[0].length <= 5)) {
+            selGrado = p[0];
+            selApellidosNombres = p.slice(1).join(' ');
+          }
+        }
+
+        let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
+        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
+          rawNum = `ORDEN DE INCORPORACIÓN N°001-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+        } else if (!rawNum.toUpperCase().includes('COMOPPOL')) {
+          const mNum = rawNum.match(/(\d+)/);
+          const mYear = rawNum.match(/-(\d{4})/);
+          const numPadded = mNum ? mNum[1].padStart(3, '0') : '001';
+          const yearVal = mYear ? mYear[1] : String(new Date().getFullYear());
+          rawNum = `ORDEN DE INCORPORACIÓN N°${numPadded}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+        }
+
+        const ordenData = {
+          id: editingId || '',
+          numero_documento: rawNum,
+          numPadded: (rawNum.match(/N[°º\s]*(\d+)/i) || rawNum.match(/(\d+)/))?.[1]?.padStart(3, '0') || numPad,
+          cip: selCip,
+          grado: selGrado,
+          apellidos_y_nombres: selApellidosNombres,
+          descripcion: descVal,
+          unidad_anterior: 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP',
+          destino: document.getElementById('f_destino')?.value || 'OFAD REGPOL HUANUCO',
+          lista_de_revista: document.getElementById('f_destino')?.value || 'OFAD REGPOL HUANUCO',
+          fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+          fecha_salida: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+          documento_referencia: document.getElementById('f_numero_orden_incorporacion_dirrehum')?.value || '',
+          quien_ordena: document.getElementById('f_quien_ordena')?.value || '',
+          usuario_registra: getUsuarioRegistraNombre()
+        };
+
+        displayOrdenPreview(ordenData);
         return;
       }
 
