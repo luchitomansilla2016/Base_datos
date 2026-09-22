@@ -63,7 +63,7 @@
       min-height: 297mm;
       height: 297mm;
       background: #ffffff;
-      padding: 8mm 12mm;
+      padding: 10mm 15mm;
       box-shadow: 0 0 20px rgba(0,0,0,0.4);
       display: flex;
       flex-direction: column;
@@ -74,47 +74,24 @@
     /* TARJETA DE CADA ORDEN (FORMATO A5 INDIVIDUAL) */
     .orden-card {
       width: 100%;
-      height: 136mm;
+      height: 132mm;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
     }
 
-    /* ENCABEZADO INSTITUCIONAL */
-    .header-box {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 2px;
-    }
-    .escudo-img {
-      width: 44px;
-      height: auto;
-      object-fit: contain;
-    }
-    .institution-text {
-      font-size: 9px;
-      line-height: 1.15;
-      font-weight: bold;
-      color: #000;
-      text-transform: uppercase;
-    }
-    .institution-text .sub-inst {
-      font-size: 8px;
-    }
-
     /* TÍTULO PRINCIPAL DE LA ORDEN */
     .doc-title-container {
       text-align: center;
-      margin: 4px 0 6px 0;
+      margin: 4px 0 10px 0;
     }
     .doc-title {
       font-size: 12px;
       font-weight: 900;
       text-decoration: underline;
       letter-spacing: 0.2px;
-      line-height: 1.25;
+      line-height: 1.3;
       color: #000;
       text-transform: uppercase;
     }
@@ -123,7 +100,7 @@
     .data-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       font-size: 10px;
     }
     .data-table tr {
@@ -133,20 +110,20 @@
       width: 170px;
       font-weight: bold;
       color: #000;
-      padding: 1.5px 0;
+      padding: 2.5px 0;
       white-space: nowrap;
     }
     .data-sep {
       width: 14px;
       text-align: center;
       font-weight: bold;
-      padding: 1.5px 0;
+      padding: 2.5px 0;
     }
     .data-val {
       color: #000;
-      padding: 1.5px 0;
+      padding: 2.5px 0;
       text-align: justify;
-      line-height: 1.2;
+      line-height: 1.25;
     }
     .data-val.bold {
       font-weight: bold;
@@ -154,8 +131,8 @@
 
     /* PÁRRAFO DE OBSERVACIÓN OFICIAL */
     .obs-paragraph {
-      font-size: 9px;
-      line-height: 1.22;
+      font-size: 9.5px;
+      line-height: 1.25;
       text-align: justify;
     }
 
@@ -164,7 +141,7 @@
       width: 100%;
       height: 1px;
       background-color: #000;
-      margin: 3px 0 2px 0;
+      margin: 6px 0 4px 0;
     }
 
     /* FECHA Y LUGAR */
@@ -173,60 +150,28 @@
       font-size: 9.5px;
       font-weight: bold;
       text-transform: uppercase;
-      margin-bottom: 2px;
+      margin-bottom: 8px;
     }
 
-    /* BLOQUE DE FIRMA Y SELLO */
+    /* BLOQUE DE FIRMA */
     .footer-sign-block {
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 15px;
-      margin-top: 1px;
+      margin-top: 2px;
     }
-    .sello-circular {
-      width: 76px;
-      height: 76px;
-      border: 1.5px solid #000;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 4px;
-      position: relative;
-    }
-    .sello-circular .sello-text-top {
-      font-size: 6.5px;
-      font-weight: bold;
-      line-height: 1;
-      text-transform: uppercase;
-    }
-    .sello-circular .sello-escudo {
-      width: 22px;
-      height: auto;
-      margin: 2px 0;
-    }
-    .sello-circular .sello-text-bot {
-      font-size: 6.5px;
-      font-weight: bold;
-      line-height: 1;
-      text-transform: uppercase;
-    }
-
     .sign-container {
-      width: 210px;
+      width: 250px;
       text-align: center;
     }
     .sign-dots {
       border-top: 1px dashed #000;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
     }
     .sign-info {
-      font-size: 8.5px;
+      font-size: 9px;
       font-weight: bold;
-      line-height: 1.2;
+      line-height: 1.25;
       text-transform: uppercase;
     }
 
@@ -270,7 +215,7 @@
         margin: 0;
         width: 100%;
         height: 100%;
-        padding: 6mm 10mm;
+        padding: 8mm 12mm;
       }
       @page {
         size: A4 portrait;
@@ -284,8 +229,8 @@
   <!-- BARRA DE ACCIÓN -->
   <div class="controls-toolbar">
     <div>
-      <h2>📄 Formato Oficial: Orden de Reincorporación (2 Copias por Hoja A4)</h2>
-      <div style="font-size: 12px; color: #555;">Diseño exacto idéntico al modelo institucional (A5 Duplicado)</div>
+      <h2>📄 Muestra de Prueba: Orden de Reincorporación (2 Copias en Hoja A4)</h2>
+      <div style="font-size: 12px; color: #555;">Sin membrete superior y sin sello redondo según lo solicitado</div>
     </div>
     <button class="btn-print" onclick="window.print()">
       <span>🖨️</span> Imprimir / Guardar como PDF
@@ -298,30 +243,10 @@
     <!-- ===================== COPIA 1 (ORIGINAL - SUPERIOR) ===================== -->
     <div class="orden-card">
       <div>
-        <!-- Membrete Institucional -->
-        <div class="header-box">
-          <!-- Escudo Nacional Oficial Vector/PNG -->
-          <svg class="escudo-img" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 5 L85 20 V65 C85 92 50 115 50 115 C50 115 15 92 15 65 V20 L50 5 Z" stroke="#000" stroke-width="3" fill="#fff"/>
-            <path d="M50 5 V115 M15 55 H85" stroke="#000" stroke-width="2"/>
-            <circle cx="32" cy="30" r="10" stroke="#000" stroke-width="2" fill="#fff"/>
-            <path d="M68 25 L75 40 L60 40 Z" stroke="#000" stroke-width="2" fill="#fff"/>
-            <path d="M35 75 C35 75 45 95 50 95 C55 95 65 75 65 75" stroke="#000" stroke-width="2"/>
-            <text x="50" y="118" font-size="8" font-weight="bold" text-anchor="middle" fill="#000">REPUBLICA DEL PERU</text>
-          </svg>
-          <div class="institution-text">
-            <div>POLICÍA NACIONAL DEL PERÚ</div>
-            <div class="sub-inst">COMANDO OPERACIONES POLICIALES</div>
-            <div class="sub-inst">DIRECCIÓN NACIONAL DE ORDEN Y SEGURIDAD</div>
-            <div class="sub-inst">REGIÓN POLICIAL HUÁNUCO</div>
-            <div class="sub-inst">OFAD - AREREHUM</div>
-          </div>
-        </div>
-
         <!-- Título Numerado -->
         <div class="doc-title-container">
           <div class="doc-title">
-            ÓRDEN DE INCORPORACION N°001-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+            ÓRDEN DE INCORPORACION N°(NUMERO GENERADO)-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
           </div>
         </div>
 
@@ -330,27 +255,27 @@
           <tr>
             <td class="data-label">CIP</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">31245678</td>
+            <td class="data-val bold">(CIP)</td>
           </tr>
           <tr>
             <td class="data-label">APELLIDOS Y NOMBRES</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">LOPEZ SANCHEZ PEDRO ALBERTO</td>
+            <td class="data-val bold">(APELLIDOS Y NOMBRES)</td>
           </tr>
           <tr>
             <td class="data-label">PROCEDENCIA</td>
             <td class="data-sep">:</td>
-            <td class="data-val">COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD</td>
+            <td class="data-val">(PROCEDENCIA)</td>
           </tr>
           <tr>
             <td class="data-label">UNIDAD DE DESTINO</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">COMISARIA SECTORIAL HUANUCO</td>
+            <td class="data-val bold">(DESTINO)</td>
           </tr>
           <tr>
             <td class="data-label">MOTIVO</td>
             <td class="data-sep">:</td>
-            <td class="data-val">AL TÉRMINO DE: <b>VACACIONES</b></td>
+            <td class="data-val">AL TÉRMINO DE: <b>(MOTIVO)</b></td>
           </tr>
           <tr>
             <td class="data-label">OBSERVACIÓN</td>
@@ -365,26 +290,16 @@
       <!-- Pie de Página -->
       <div>
         <div class="divider-line"></div>
-        <div class="date-row">HUÁNUCO, 21 DE SETIEMBRE DE 2026</div>
+        <div class="date-row">HUÁNUCO, (DIA, FECHA, MES Y AÑO)</div>
 
         <div class="footer-sign-block">
-          <!-- Sello Redondo Oficial -->
-          <div class="sello-circular">
-            <span class="sello-text-top">POLICIA NACIONAL DEL PERÚ</span>
-            <svg class="sello-escudo" viewBox="0 0 100 120" fill="none">
-              <path d="M50 5 L85 20 V65 C85 92 50 115 50 115 C50 115 15 92 15 65 V20 L50 5 Z" stroke="#000" stroke-width="4" fill="#fff"/>
-              <text x="50" y="65" font-size="16" font-weight="bold" text-anchor="middle" fill="#000">OFAD</text>
-            </svg>
-            <span class="sello-text-bot">REGPOL HUANUCO</span>
-          </div>
-
           <!-- Firma -->
           <div class="sign-container">
             <div class="sign-dots"></div>
-            <div class="sign-info">CIP - 30894512</div>
-            <div class="sign-info">RICKY FLORIAN CISNEROS APAZA</div>
-            <div class="sign-info">CMTE PNP</div>
-            <div class="sign-info">JEFE OFAD REGPOL HUANUCO</div>
+            <div class="sign-info">CIP - (CIP)</div>
+            <div class="sign-info">APELLIDOS Y NOMBRES</div>
+            <div class="sign-info">GRADO</div>
+            <div class="sign-info">CARGO</div>
           </div>
         </div>
       </div>
@@ -399,29 +314,10 @@
     <!-- ===================== COPIA 2 (COPIA - INFERIOR) ===================== -->
     <div class="orden-card">
       <div>
-        <!-- Membrete Institucional -->
-        <div class="header-box">
-          <svg class="escudo-img" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 5 L85 20 V65 C85 92 50 115 50 115 C50 115 15 92 15 65 V20 L50 5 Z" stroke="#000" stroke-width="3" fill="#fff"/>
-            <path d="M50 5 V115 M15 55 H85" stroke="#000" stroke-width="2"/>
-            <circle cx="32" cy="30" r="10" stroke="#000" stroke-width="2" fill="#fff"/>
-            <path d="M68 25 L75 40 L60 40 Z" stroke="#000" stroke-width="2" fill="#fff"/>
-            <path d="M35 75 C35 75 45 95 50 95 C55 95 65 75 65 75" stroke="#000" stroke-width="2"/>
-            <text x="50" y="118" font-size="8" font-weight="bold" text-anchor="middle" fill="#000">REPUBLICA DEL PERU</text>
-          </svg>
-          <div class="institution-text">
-            <div>POLICÍA NACIONAL DEL PERÚ</div>
-            <div class="sub-inst">COMANDO OPERACIONES POLICIALES</div>
-            <div class="sub-inst">DIRECCIÓN NACIONAL DE ORDEN Y SEGURIDAD</div>
-            <div class="sub-inst">REGIÓN POLICIAL HUÁNUCO</div>
-            <div class="sub-inst">OFAD - AREREHUM</div>
-          </div>
-        </div>
-
         <!-- Título Numerado -->
         <div class="doc-title-container">
           <div class="doc-title">
-            ÓRDEN DE INCORPORACION N°001-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+            ÓRDEN DE INCORPORACION N°(NUMERO GENERADO)-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
           </div>
         </div>
 
@@ -430,27 +326,27 @@
           <tr>
             <td class="data-label">CIP</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">31245678</td>
+            <td class="data-val bold">(CIP)</td>
           </tr>
           <tr>
             <td class="data-label">APELLIDOS Y NOMBRES</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">LOPEZ SANCHEZ PEDRO ALBERTO</td>
+            <td class="data-val bold">(APELLIDOS Y NOMBRES)</td>
           </tr>
           <tr>
             <td class="data-label">PROCEDENCIA</td>
             <td class="data-sep">:</td>
-            <td class="data-val">COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD</td>
+            <td class="data-val">(PROCEDENCIA)</td>
           </tr>
           <tr>
             <td class="data-label">UNIDAD DE DESTINO</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">COMISARIA SECTORIAL HUANUCO</td>
+            <td class="data-val bold">(DESTINO)</td>
           </tr>
           <tr>
             <td class="data-label">MOTIVO</td>
             <td class="data-sep">:</td>
-            <td class="data-val">AL TÉRMINO DE: <b>VACACIONES</b></td>
+            <td class="data-val">AL TÉRMINO DE: <b>(MOTIVO)</b></td>
           </tr>
           <tr>
             <td class="data-label">OBSERVACIÓN</td>
@@ -465,26 +361,16 @@
       <!-- Pie de Página -->
       <div>
         <div class="divider-line"></div>
-        <div class="date-row">HUÁNUCO, 21 DE SETIEMBRE DE 2026</div>
+        <div class="date-row">HUÁNUCO, (DIA, FECHA, MES Y AÑO)</div>
 
         <div class="footer-sign-block">
-          <!-- Sello Redondo Oficial -->
-          <div class="sello-circular">
-            <span class="sello-text-top">POLICIA NACIONAL DEL PERÚ</span>
-            <svg class="sello-escudo" viewBox="0 0 100 120" fill="none">
-              <path d="M50 5 L85 20 V65 C85 92 50 115 50 115 C50 115 15 92 15 65 V20 L50 5 Z" stroke="#000" stroke-width="4" fill="#fff"/>
-              <text x="50" y="65" font-size="16" font-weight="bold" text-anchor="middle" fill="#000">OFAD</text>
-            </svg>
-            <span class="sello-text-bot">REGPOL HUANUCO</span>
-          </div>
-
           <!-- Firma -->
           <div class="sign-container">
             <div class="sign-dots"></div>
-            <div class="sign-info">CIP - 30894512</div>
-            <div class="sign-info">RICKY FLORIAN CISNEROS APAZA</div>
-            <div class="sign-info">CMTE PNP</div>
-            <div class="sign-info">JEFE OFAD REGPOL HUANUCO</div>
+            <div class="sign-info">CIP - (CIP)</div>
+            <div class="sign-info">APELLIDOS Y NOMBRES</div>
+            <div class="sign-info">GRADO</div>
+            <div class="sign-info">CARGO</div>
           </div>
         </div>
       </div>
