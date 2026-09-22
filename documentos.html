@@ -3178,7 +3178,7 @@
     function getFirmantesOptionsHtml() {
       if (!jefesList || !jefesList.length) {
         return `
-          <option value="CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD">
+          <option value="CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD REGPOL HUANUCO">
           <option value="CRNL PNP VILCA CHAVEZ EDWIN HOMERO - JEFE (E) ESTADO MAYOR">
           <option value="CRNL PNP ROLDAN ARGANDO\u00d1A FRANCISCO GABRIEL - JEFE UNIDAD EJECUTORA N\u00b0035">
           <option value="GRAL PNP GONZALES QUINTERO JOSE LUIS - JEFE REGPOL HUANUCO">
@@ -4587,7 +4587,7 @@
           { id: 1, CIP: '272624', GRADO: 'GRAL PNP', 'APELLIDOS Y NOMBRES': 'GONZALES QUINTERO JOSE LUIS', CARGO: 'JEFE REGPOL HUANUCO' },
           { id: 2, CIP: '297710', GRADO: 'CRNL PNP', 'APELLIDOS Y NOMBRES': 'VILCA CHAVEZ EDWIN HOMERO', CARGO: 'JEFE (E) ESTADO MAYOR' },
           { id: 3, CIP: '240807', GRADO: 'CRNL PNP', 'APELLIDOS Y NOMBRES': 'ROLDAN ARGANDOÑA FRANCISCO GABRIEL', CARGO: 'JEFE UNIDAD EJECUTORA N°035' },
-          { id: 4, CIP: '340850', GRADO: 'CMDTE PNP', 'APELLIDOS Y NOMBRES': 'CISNEROS APAZA RICKY FLORIAN', CARGO: 'JEFE OFAD' }
+          { id: 4, CIP: '340850', GRADO: 'CMDTE PNP', 'APELLIDOS Y NOMBRES': 'CISNEROS APAZA RICKY FLORIAN', CARGO: 'JEFE OFAD REGPOL HUANUCO' }
         ];
       }
       populateJefesSelect();
@@ -5241,8 +5241,8 @@ MOTIVO: ${motivoText}`;
     function resolverFirmante(quienOrdenaRaw) {
       if (!quienOrdenaRaw || typeof quienOrdenaRaw !== 'string' || !quienOrdenaRaw.trim()) {
         return {
-          cip: '30894512',
-          grado: 'CMTE PNP',
+          cip: '340850',
+          grado: 'CMDTE PNP',
           nombres: 'Ricky Florian CISNEROS APAZA',
           cargo: 'JEFE OFAD REGPOL HUANUCO'
         };
@@ -5251,7 +5251,7 @@ MOTIVO: ${motivoText}`;
       const raw = String(quienOrdenaRaw).trim();
       const up = raw.toUpperCase();
 
-      // Caso 1: Si contiene guiones '-' separando campos (ej. CIP - GRADO - APELLIDOS Y NOMBRES - CARGO)
+      // Caso 1: Si contiene guiones '-' separando campos (ej. GRADO Y NOMBRES - CARGO o CIP - GRADO - NOMBRES - CARGO)
       if (raw.includes('-')) {
         const parts = raw.split('-').map(p => p.trim()).filter(p => p.length > 0);
         if (parts.length >= 4) {
@@ -5260,8 +5260,8 @@ MOTIVO: ${motivoText}`;
           let nomVal = formatNombrePostFirma(parts[2]);
           let cargoVal = parts.slice(3).join(' - ').toUpperCase().trim();
           return {
-            cip: cipVal,
-            grado: gradoVal,
+            cip: cipVal || '340850',
+            grado: gradoVal || 'CMDTE PNP',
             nombres: nomVal,
             cargo: cargoVal
           };
@@ -5271,7 +5271,7 @@ MOTIVO: ${motivoText}`;
             let cipVal = parts[0].replace(/^CIP\s*:?\s*/i, '').trim();
             let nomGrad = parts[1];
             let cargoVal = parts[2].toUpperCase().trim();
-            let gVal = 'CMTE PNP';
+            let gVal = 'CMDTE PNP';
             let nVal = nomGrad;
             const gradosList = ['GRAL PNP', 'CRNL PNP', 'CMDTE PNP', 'CMTE PNP', 'MAYOR PNP', 'MAY PNP', 'CAP PNP', 'TNTE PNP', 'ALFZ PNP', 'SS PNP', 'SB PNP', 'ST1 PNP', 'ST2 PNP', 'ST3 PNP', 'S1 PNP', 'S2 PNP', 'S3 PNP', 'SO PNP'];
             for (let i = 0; i < gradosList.length; i++) {
@@ -5290,7 +5290,7 @@ MOTIVO: ${motivoText}`;
           } else {
             let nomGrad = parts[0];
             let cargoVal = parts.slice(1).join(' - ').toUpperCase().trim();
-            let gVal = 'CMTE PNP';
+            let gVal = 'CMDTE PNP';
             let nVal = nomGrad;
             const gradosList = ['GRAL PNP', 'CRNL PNP', 'CMDTE PNP', 'CMTE PNP', 'MAYOR PNP', 'MAY PNP', 'CAP PNP', 'TNTE PNP', 'ALFZ PNP', 'SS PNP', 'SB PNP', 'ST1 PNP', 'ST2 PNP', 'ST3 PNP', 'S1 PNP', 'S2 PNP', 'S3 PNP', 'SO PNP'];
             for (let i = 0; i < gradosList.length; i++) {
@@ -5300,9 +5300,15 @@ MOTIVO: ${motivoText}`;
                 break;
               }
             }
-            let cipVal = '30894512';
+            let cipVal = '340850';
             const mC = raw.match(/\b(\d{6,8})\b/);
             if (mC) cipVal = mC[1];
+            else if (up.includes('CISNEROS')) cipVal = '340850';
+            else if (up.includes('GONZALES')) cipVal = '272624';
+            else if (up.includes('VILCA')) cipVal = '297710';
+            else if (up.includes('ROLDAN')) cipVal = '240807';
+            else if (up.includes('MANSILLA')) cipVal = '31390176';
+
             return {
               cip: cipVal,
               grado: gVal,
@@ -5314,7 +5320,7 @@ MOTIVO: ${motivoText}`;
         if (parts.length === 2) {
           let nomGrad = parts[0];
           let cargoVal = parts[1].toUpperCase().trim();
-          let gVal = 'CMTE PNP';
+          let gVal = 'CMDTE PNP';
           let nVal = nomGrad;
           const gradosList = ['GRAL PNP', 'CRNL PNP', 'CMDTE PNP', 'CMTE PNP', 'MAYOR PNP', 'MAY PNP', 'CAP PNP', 'TNTE PNP', 'ALFZ PNP', 'SS PNP', 'SB PNP', 'ST1 PNP', 'ST2 PNP', 'ST3 PNP', 'S1 PNP', 'S2 PNP', 'S3 PNP', 'SO PNP'];
           for (let i = 0; i < gradosList.length; i++) {
@@ -5324,10 +5330,10 @@ MOTIVO: ${motivoText}`;
               break;
             }
           }
-          let cipVal = '30894512';
+          let cipVal = '340850';
           const mC = raw.match(/\b(\d{6,8})\b/);
           if (mC) cipVal = mC[1];
-          else if (up.includes('CISNEROS')) cipVal = '30894512';
+          else if (up.includes('CISNEROS')) cipVal = '340850';
           else if (up.includes('GONZALES')) cipVal = '272624';
           else if (up.includes('VILCA')) cipVal = '297710';
           else if (up.includes('ROLDAN')) cipVal = '240807';
@@ -5342,8 +5348,8 @@ MOTIVO: ${motivoText}`;
         }
       }
 
-      // Caso 2: Reconocimiento por catálogo conocido de palabras clave
-      if (up.includes('GONZALES') || up.includes('QUINTERO') || up.includes('272624') || up.includes('JEFE REGPOL')) {
+      // Caso 2: Si no contiene '-', buscar coincidencia de jefe
+      if (up.includes('GONZALES') || up.includes('QUINTERO') || up.includes('272624')) {
         return {
           cip: '272624',
           grado: 'GRAL PNP',
@@ -5351,7 +5357,7 @@ MOTIVO: ${motivoText}`;
           cargo: 'JEFE REGPOL HUANUCO'
         };
       }
-      if (up.includes('VILCA') || up.includes('CHAVEZ') || up.includes('297710') || up.includes('ESTADO MAYOR')) {
+      if (up.includes('VILCA') || up.includes('CHAVEZ') || up.includes('297710')) {
         return {
           cip: '297710',
           grado: 'CRNL PNP',
@@ -5359,7 +5365,7 @@ MOTIVO: ${motivoText}`;
           cargo: 'JEFE (E) ESTADO MAYOR'
         };
       }
-      if (up.includes('ROLDAN') || up.includes('ARGANDOÑA') || up.includes('240807') || up.includes('EJECUTORA')) {
+      if (up.includes('ROLDAN') || up.includes('ARGANDOÑA') || up.includes('240807')) {
         return {
           cip: '240807',
           grado: 'CRNL PNP',
@@ -5367,10 +5373,10 @@ MOTIVO: ${motivoText}`;
           cargo: 'JEFE UNIDAD EJECUTORA N°035'
         };
       }
-      if (up.includes('CISNEROS') || up.includes('APAZA') || up.includes('30894512') || up.includes('340850') || up.includes('OFAD')) {
+      if (up.includes('CISNEROS') || up.includes('APAZA') || up.includes('30894512') || up.includes('340850')) {
         return {
-          cip: '30894512',
-          grado: 'CMTE PNP',
+          cip: '340850',
+          grado: 'CMDTE PNP',
           nombres: 'Ricky Florian CISNEROS APAZA',
           cargo: 'JEFE OFAD REGPOL HUANUCO'
         };
@@ -5385,9 +5391,9 @@ MOTIVO: ${motivoText}`;
       }
 
       return {
-        cip: '30894512',
-        grado: 'CMTE PNP',
-        nombres: 'Ricky Florian CISNEROS APAZA',
+        cip: '340850',
+        grado: 'CMDTE PNP',
+        nombres: formatNombrePostFirma(raw),
         cargo: 'JEFE OFAD REGPOL HUANUCO'
       };
     }
@@ -5446,9 +5452,9 @@ MOTIVO: ${motivoText}`;
       const motivoVal = formatMotivoReincorp(item.descripcion, item.motivo);
       const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
 
-      const sCip = signer?.cip || signer?.CIP || '30894512';
-      const sNom = formatNombrePostFirma(signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'Ricky Florian CISNEROS APAZA');
-      const sGrd = (signer?.grado || signer?.GRADO || 'CMTE PNP').toUpperCase();
+      const sCip = signer?.cip || signer?.CIP || '340850';
+      const sNom = formatNombrePostFirma(signer?.nombres || signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'Ricky Florian CISNEROS APAZA');
+      const sGrd = (signer?.grado || signer?.GRADO || 'CMDTE PNP').toUpperCase();
       const sCrg = (signer?.cargo || signer?.CARGO || 'JEFE OFAD REGPOL HUANUCO').toUpperCase();
 
       const obsHTML = `SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.`;
@@ -5603,24 +5609,24 @@ MOTIVO: ${motivoText}`;
     function displayReincorporacionPreview(item) {
       currentReincorpData = item;
       populateReincorpJefesSelect();
-      if (item && item.quien_ordena) {
+      let signer = null;
+      if (item && item.quien_ordena && String(item.quien_ordena).trim()) {
+        signer = resolverFirmante(item.quien_ordena);
         const qUpper = String(item.quien_ordena).toUpperCase();
         const sel = document.getElementById('reincorpJefeSelect');
         if (sel && jefesList && jefesList.length > 0) {
           const matchIdx = jefesList.findIndex(j => {
             const jNom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').toUpperCase();
-            const jCar = String(j.CARGO || j.cargo || '').toUpperCase();
-            const jCip = String(j.CIP || j.cip || '');
-            return (jNom && (qUpper.includes(jNom) || jNom.includes(qUpper))) || 
-                   (jCar && (qUpper.includes(jCar) || jCar.includes(qUpper))) || 
-                   (jCip && qUpper.includes(jCip));
+            return jNom && (qUpper.includes(jNom) || jNom.includes(qUpper));
           });
           if (matchIdx >= 0) {
             sel.value = String(matchIdx);
           }
         }
+      } else {
+        signer = getSelectedReincorpSigner();
       }
-      const signer = getSelectedReincorpSigner();
+
       const container = document.getElementById('reincorpSingleSheetContainer');
       if (container) {
         container.innerHTML = buildReincorporacionA4HTML(item, signer);
