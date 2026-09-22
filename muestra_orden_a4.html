@@ -198,6 +198,19 @@
       margin-top: 64px; /* Bajado 2 espacios adicionales */
       margin-right: 23px; /* Movido 1 espacio adicional a la izquierda */
     }
+    .footer-sign-block.has-cargo {
+      justify-content: space-between;
+    }
+    .sello-cargo-box {
+      display: flex;
+      align-items: flex-start;
+    }
+    .sello-cargo-img {
+      width: 52mm;
+      height: auto;
+      display: block;
+      margin-top: -12mm;
+    }
     .sello-sign-wrapper {
       display: flex;
       align-items: flex-start;
@@ -417,7 +430,12 @@
         <div class="divider-line"></div>
         <div class="date-row">HUÁNUCO, (DIA, FECHA, MES Y AÑO)</div>
 
-        <div class="footer-sign-block">
+        <div class="footer-sign-block has-cargo">
+          <!-- Sello de Cargo únicamente en la segunda copia (inferior) -->
+          <div class="sello-cargo-box">
+            <img src="sello_cargo_recepcion.png" class="sello-cargo-img" alt="Sello de Cargo" />
+          </div>
+
           <!-- Sello Redondo Oficial de 3cm pegado por su extremo derecho a la línea de post-firma -->
           <div class="sello-sign-wrapper">
             <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello Redondo Oficial" />
