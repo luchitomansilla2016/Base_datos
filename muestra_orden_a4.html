@@ -81,30 +81,35 @@
       position: relative;
     }
 
-    /* ENCABEZADO MEMBRETE OFICIAL */
-    .header-membrete-box {
-      margin-bottom: 2px;
+    /* ENCABEZADO: MEMBRETE IZQUIERDA + TÍTULO LATERAL DERECHO */
+    .header-row {
       display: flex;
+      align-items: center;
       justify-content: flex-start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .header-membrete-box {
+      flex-shrink: 0;
     }
     .membrete-img {
-      width: 155px;
+      width: 135px;
       height: auto;
       display: block;
     }
 
     /* TÍTULO PRINCIPAL DE LA ORDEN */
     .doc-title-container {
+      flex: 1;
       text-align: center;
-      margin: 0 0 6px 0;
     }
     .doc-title {
       font-family: 'Impact', 'Arial Black', sans-serif;
-      font-size: 16pt;
+      font-size: 14pt;
       font-weight: normal;
       text-decoration: underline;
-      letter-spacing: 0.5px;
-      line-height: 1.15;
+      letter-spacing: 0.3px;
+      line-height: 1.18;
       color: #000;
       text-transform: uppercase;
     }
@@ -267,15 +272,15 @@
     <!-- ===================== COPIA 1 (ORIGINAL - SUPERIOR) ===================== -->
     <div class="orden-card">
       <div>
-        <!-- Sello Membrete Oficial en la parte superior izquierda -->
-        <div class="header-membrete-box">
-          <img src="membrete_oficial_pnp.png" class="membrete-img" alt="Sello Membrete PNP" />
-        </div>
-
-        <!-- Título Numerado -->
-        <div class="doc-title-container">
-          <div class="doc-title">
-            ÓRDEN DE INCORPORACION N°(NUMERO GENERADO)-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+        <!-- Fila de Encabezado: Sello Membrete a la Izquierda y Título a la Derecha -->
+        <div class="header-row">
+          <div class="header-membrete-box">
+            <img src="membrete_oficial_pnp.png" class="membrete-img" alt="Sello Membrete PNP" />
+          </div>
+          <div class="doc-title-container">
+            <div class="doc-title">
+              ÓRDEN DE INCORPORACION N°(NUMERO GENERADO)-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+            </div>
           </div>
         </div>
 
@@ -343,15 +348,15 @@
     <!-- ===================== COPIA 2 (COPIA - INFERIOR) ===================== -->
     <div class="orden-card">
       <div>
-        <!-- Sello Membrete Oficial en la parte superior izquierda -->
-        <div class="header-membrete-box">
-          <img src="membrete_oficial_pnp.png" class="membrete-img" alt="Sello Membrete PNP" />
-        </div>
-
-        <!-- Título Numerado -->
-        <div class="doc-title-container">
-          <div class="doc-title">
-            ÓRDEN DE INCORPORACION N°(NUMERO GENERADO)-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+        <!-- Fila de Encabezado: Sello Membrete a la Izquierda y Título a la Derecha -->
+        <div class="header-row">
+          <div class="header-membrete-box">
+            <img src="membrete_oficial_pnp.png" class="membrete-img" alt="Sello Membrete PNP" />
+          </div>
+          <div class="doc-title-container">
+            <div class="doc-title">
+              ÓRDEN DE INCORPORACION N°(NUMERO GENERADO)-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+            </div>
           </div>
         </div>
 
