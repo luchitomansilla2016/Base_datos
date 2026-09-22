@@ -190,16 +190,34 @@
       margin-bottom: 6px;
     }
 
-    /* BLOQUE DE FIRMA */
+    /* BLOQUE DE FIRMA Y SELLO REDONDO */
     .footer-sign-block {
       display: flex;
       justify-content: flex-end;
-      align-items: center;
-      margin-top: 2px;
+      align-items: flex-start;
+      margin-top: 14px;
+    }
+    .sello-sign-wrapper {
+      display: flex;
+      align-items: flex-start;
+      position: relative;
+    }
+    .sello-redondo-img {
+      width: 30mm;
+      height: 30mm;
+      border-radius: 50%;
+      object-fit: contain;
+      display: block;
+      margin-right: -1px; /* Pegado directamente al extremo izquierdo de la línea de firma */
+      margin-top: -15mm; /* El centro derecho del sello de 3cm queda exactamente a la altura de la línea */
+      position: relative;
+      z-index: 2;
     }
     .sign-container {
       width: 250px;
       text-align: center;
+      position: relative;
+      z-index: 1;
     }
     .sign-dots {
       border-top: 1px dashed #000;
@@ -311,13 +329,16 @@
         <div class="date-row">HUÁNUCO, (DIA, FECHA, MES Y AÑO)</div>
 
         <div class="footer-sign-block">
-          <!-- Firma -->
-          <div class="sign-container">
-            <div class="sign-dots"></div>
-            <div class="sign-info">CIP - (CIP)</div>
-            <div class="sign-info">APELLIDOS Y NOMBRES</div>
-            <div class="sign-info">GRADO</div>
-            <div class="sign-info">CARGO</div>
+          <!-- Sello Redondo Oficial de 3cm pegado por su extremo derecho a la línea de post-firma -->
+          <div class="sello-sign-wrapper">
+            <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello Redondo Oficial" />
+            <div class="sign-container">
+              <div class="sign-dots"></div>
+              <div class="sign-info">CIP - (CIP)</div>
+              <div class="sign-info">APELLIDOS Y NOMBRES</div>
+              <div class="sign-info">GRADO</div>
+              <div class="sign-info">CARGO</div>
+            </div>
           </div>
         </div>
       </div>
@@ -381,13 +402,16 @@
         <div class="date-row">HUÁNUCO, (DIA, FECHA, MES Y AÑO)</div>
 
         <div class="footer-sign-block">
-          <!-- Firma -->
-          <div class="sign-container">
-            <div class="sign-dots"></div>
-            <div class="sign-info">CIP - (CIP)</div>
-            <div class="sign-info">APELLIDOS Y NOMBRES</div>
-            <div class="sign-info">GRADO</div>
-            <div class="sign-info">CARGO</div>
+          <!-- Sello Redondo Oficial de 3cm pegado por su extremo derecho a la línea de post-firma -->
+          <div class="sello-sign-wrapper">
+            <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello Redondo Oficial" />
+            <div class="sign-container">
+              <div class="sign-dots"></div>
+              <div class="sign-info">CIP - (CIP)</div>
+              <div class="sign-info">APELLIDOS Y NOMBRES</div>
+              <div class="sign-info">GRADO</div>
+              <div class="sign-info">CARGO</div>
+            </div>
           </div>
         </div>
       </div>
