@@ -2418,8 +2418,8 @@
           <button class="secondary" onclick="copyOrdenSummary(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px;">
             <span>&#128203;</span> Copiar datos
           </button>
-          <button class="print-a4-btn" onclick="printOrdenDocument(event)" style="height: 36px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
-            <span>&#128424;&#65039;</span> Imprimir / Guardar PDF (2 Copias en A4)
+          <button class="print-a4-btn" onclick="printOrdenDocument(event)" style="height: 36px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px; background: #0b5a3c; color: #fff; border-radius: 8px; border: none; padding: 0 16px; cursor: pointer; box-shadow: 0 2px 6px rgba(11,90,60,0.3);">
+            <span>&#128424;&#65039;</span> Guardar e Imprimir Orden (2 Copias en A4)
           </button>
         </div>
       </div>
@@ -4140,17 +4140,19 @@
         }
       } else if (conf.isOrdenIncorporacion) {
         if (saveBtn) {
-          saveBtn.innerHTML = '&#128190; Guardar Registro';
-          saveBtn.style.background = '';
+          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
+          saveBtn.style.background = '#0b5a3c';
+          saveBtn.style.color = '#ffffff';
         }
         if (btnVerOrden) {
           btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Ver / Imprimir Orden';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
         }
       } else {
         if (saveBtn) {
           saveBtn.innerHTML = '&#128190; Guardar Registro';
           saveBtn.style.background = '';
+          saveBtn.style.color = '';
         }
         if (btnVerOrden) {
           btnVerOrden.style.display = 'none';
@@ -4167,7 +4169,7 @@
           <div style="background:#e8f2ec; padding:10px 14px; border-radius:8px; border:1px solid #cce2d4; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <span style="font-weight:700; color:#0b5a3c; font-size:13px;">📑 Formulario de Orden de Incorporación</span>
             <button type="button" onclick="verOrdenFromDocModal(event)" style="background:#0b5a3c; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 4px rgba(11,90,60,0.25);">
-              👁️ Ver / Imprimir Orden
+              👁️ Vista Previa A4
             </button>
           </div>
           <div class="form-group">
@@ -4424,6 +4426,60 @@
         payload.documento_referencia = payload.numero_orden_incorporacion_dirrehum;
         payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
         payload.usuario_registra = getUsuarioRegistraNombre();
+
+        if (!payload.fecha_documento) {
+          toast('Por favor ingrese la fecha del documento', 'warning');
+          return;
+        }
+        if (!payload.destino) {
+          toast('Por favor ingrese el destino', 'warning');
+          return;
+        }
+
+        const inputCip = document.getElementById('f_cip_incorp');
+        const inputNom = document.getElementById('f_grado_apellidos_nombres_incorp');
+        let selCip = inputCip ? inputCip.value.trim() : '';
+        if (!selCip) selCip = inputNom ? (inputNom.getAttribute('data-cip') || '') : '';
+
+        let fullNomVal = inputNom ? inputNom.value.trim() : '';
+        let selGrado = (inputNom && inputNom.getAttribute('data-grado')) || 'PNP';
+        let selApellidosNombres = (inputNom && inputNom.getAttribute('data-apellidos-nombres')) || fullNomVal;
+        if (!selApellidosNombres) selApellidosNombres = fullNomVal || payload.descripcion;
+
+        if (fullNomVal && (!inputNom || !inputNom.getAttribute('data-grado') || !inputNom.getAttribute('data-apellidos-nombres'))) {
+          const p = fullNomVal.split(' ');
+          if (p.length > 2 && (p[0].includes('.') || p[0].length <= 5)) {
+            selGrado = p[0];
+            selApellidosNombres = p.slice(1).join(' ');
+          }
+        }
+
+        const numPad = (rawNum.match(/N[°º\s]*(\d+)/i) || rawNum.match(/(\d+)/))?.[1]?.padStart(3, '0') || '001';
+
+        const ordenData = {
+          id: editingId || '',
+          numero_documento: rawNum,
+          numPadded: numPad,
+          cip: selCip || '---',
+          grado: selGrado,
+          apellidos_y_nombres: selApellidosNombres,
+          descripcion: payload.descripcion,
+          unidad_anterior: 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP',
+          destino: payload.destino,
+          lista_de_revista: payload.destino,
+          fecha_documento: payload.fecha_documento,
+          fecha_salida: payload.fecha_documento,
+          created_at: new Date().toISOString(),
+          documento_referencia: payload.numero_orden_incorporacion_dirrehum || '',
+          quien_ordena: payload.quien_ordena || '',
+          usuario_registra: payload.usuario_registra,
+          _pendingSave: true,
+          _payload: payload,
+          _editingId: editingId
+        };
+
+        displayOrdenPreview(ordenData);
+        return;
       } else if (conf.isOrdenReincorporacion) {
         let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
         if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
@@ -4568,7 +4624,7 @@
       document.getElementById('docModal').classList.add('active');
     }
 
-    function verOrdenFromDocModal(e) {
+    async function verOrdenFromDocModal(e) {
       if (e) e.preventDefault();
       const numDoc = document.getElementById('f_numero_documento')?.value || '001-2026';
       const numPad = (numDoc.match(/^(\d+)/)?.[1] || '001').padStart(3, '0');
@@ -4642,7 +4698,15 @@
 
         let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
         if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
-          rawNum = `ORDEN DE INCORPORACIÓN N°001-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+          try {
+            const nextCorr = await getNextDocCorrelative('orden_incorporacion');
+            const m = nextCorr.match(/(\d+)/);
+            const numP = m ? m[1].padStart(3, '0') : '001';
+            const yearVal = new Date().getFullYear();
+            rawNum = `ORDEN DE INCORPORACIÓN N°${numP}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+          } catch (_) {
+            rawNum = `ORDEN DE INCORPORACIÓN N°001-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+          }
         } else if (!rawNum.toUpperCase().includes('COMOPPOL')) {
           const mNum = rawNum.match(/(\d+)/);
           const mYear = rawNum.match(/-(\d{4})/);
@@ -4651,23 +4715,39 @@
           rawNum = `ORDEN DE INCORPORACIÓN N°${numPadded}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
         }
 
+        const payloadToSave = {
+          numero_documento: rawNum,
+          fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+          descripcion: document.getElementById('f_descripcion')?.value?.trim() || 'SE INCORPORA POR ',
+          destino: document.getElementById('f_destino')?.value?.trim() || '',
+          numero_orden_incorporacion_dirrehum: (document.getElementById('f_numero_orden_incorporacion_dirrehum')?.value || '').trim() || null,
+          documento_referencia: (document.getElementById('f_numero_orden_incorporacion_dirrehum')?.value || '').trim() || null,
+          quien_ordena: (document.getElementById('f_quien_ordena')?.value || '').trim() || null,
+          usuario_registra: getUsuarioRegistraNombre()
+        };
+
+        const numPaddedVal = (rawNum.match(/N[°º\s]*(\d+)/i) || rawNum.match(/(\d+)/))?.[1]?.padStart(3, '0') || numPad;
+
         const ordenData = {
           id: editingId || '',
           numero_documento: rawNum,
-          numPadded: (rawNum.match(/N[°º\s]*(\d+)/i) || rawNum.match(/(\d+)/))?.[1]?.padStart(3, '0') || numPad,
-          cip: selCip,
+          numPadded: numPaddedVal,
+          cip: selCip || '---',
           grado: selGrado,
           apellidos_y_nombres: selApellidosNombres,
-          descripcion: descVal,
+          descripcion: payloadToSave.descripcion,
           unidad_anterior: 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP',
-          destino: document.getElementById('f_destino')?.value || 'OFAD REGPOL HUANUCO',
-          lista_de_revista: document.getElementById('f_destino')?.value || 'OFAD REGPOL HUANUCO',
-          fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
-          fecha_salida: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+          destino: payloadToSave.destino || 'OFAD REGPOL HUANUCO',
+          lista_de_revista: payloadToSave.destino || 'OFAD REGPOL HUANUCO',
+          fecha_documento: payloadToSave.fecha_documento,
+          fecha_salida: payloadToSave.fecha_documento,
           created_at: new Date().toISOString(),
-          documento_referencia: document.getElementById('f_numero_orden_incorporacion_dirrehum')?.value || '',
-          quien_ordena: document.getElementById('f_quien_ordena')?.value || '',
-          usuario_registra: getUsuarioRegistraNombre()
+          documento_referencia: payloadToSave.numero_orden_incorporacion_dirrehum || '',
+          quien_ordena: payloadToSave.quien_ordena || '',
+          usuario_registra: payloadToSave.usuario_registra,
+          _pendingSave: true,
+          _payload: payloadToSave,
+          _editingId: editingId
         };
 
         displayOrdenPreview(ordenData);
@@ -5375,8 +5455,74 @@
       document.body.classList.remove('printing-orden');
     }
 
-    function printOrdenDocument(e) {
+    async function printOrdenDocument(e) {
       if (e) e.preventDefault();
+
+      const printBtn = document.querySelector('#ordenPreviewModal .print-a4-btn');
+
+      if (currentOrdenData && currentOrdenData._pendingSave && currentOrdenData._payload) {
+        if (printBtn) {
+          printBtn.disabled = true;
+          printBtn.innerHTML = '<span>⏳</span> Guardando y procesando...';
+        }
+
+        try {
+          // Si el usuario modificó el firmante en el selector del modal de vista previa, actualizar quien_ordena
+          const selSigner = document.getElementById('ordenJefeSelect');
+          if (selSigner) {
+            if (selSigner.value !== 'custom' && jefesList && jefesList.length > 0) {
+              const idx = parseInt(selSigner.value, 10) || 0;
+              const j = jefesList[idx];
+              if (j) {
+                const jGrd = j.GRADO || j.grado || 'PNP';
+                const jNom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
+                const jCrg = j.CARGO || j.cargo || '';
+                currentOrdenData._payload.quien_ordena = `${jGrd} ${jNom} - ${jCrg}`;
+              }
+            }
+          }
+
+          if (currentOrdenData._editingId) {
+            await apiRequest(`orden_incorporacion?id=eq.${currentOrdenData._editingId}`, {
+              method: 'PATCH',
+              body: JSON.stringify(currentOrdenData._payload)
+            });
+          } else {
+            await apiRequest('orden_incorporacion', {
+              method: 'POST',
+              body: JSON.stringify(currentOrdenData._payload)
+            });
+          }
+
+          currentOrdenData._pendingSave = false;
+          currentOrdenData._payload = null;
+          closeDocModal();
+
+          // Notificar en tiempo real multi-pestaña y multi-dispositivo
+          if (typeof BroadcastChannel !== 'undefined') {
+            try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'orden_incorporacion' }); } catch (_) {}
+          }
+          try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
+
+          await loadCurrentTableData();
+          await loadAllBadges();
+
+          toast('Orden de Incorporación aprobada, guardada e impresa con éxito', 'success');
+        } catch (err) {
+          alert('Error al guardar la Orden de Incorporación: ' + err.message);
+          if (printBtn) {
+            printBtn.disabled = false;
+            printBtn.innerHTML = '<span>&#128424;&#65039;</span> Guardar e Imprimir Orden (2 Copias en A4)';
+          }
+          return;
+        } finally {
+          if (printBtn) {
+            printBtn.disabled = false;
+            printBtn.innerHTML = '<span>&#128424;&#65039;</span> Guardar e Imprimir Orden (2 Copias en A4)';
+          }
+        }
+      }
+
       document.body.classList.add('printing-orden');
       window.print();
       setTimeout(() => {
