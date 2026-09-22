@@ -3872,13 +3872,12 @@
             <td><b>${item.destino || '---'}</b></td>
             <td>${item.quien_ordena || '---'}</td>
             <td><small>${item.usuario_registra || '---'}</small></td>
+            ${admin ? `
             <td style="text-align:center; white-space:nowrap;">
-              <button class="action-btn" onclick="openOrdenDocumentFromRow('${item.id}')" title="Ver / Imprimir Orden" style="background:#0b5a3c; color:#ffffff; border: none; font-size:12px; font-weight:700; cursor:pointer; padding: 5px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(11,90,60,0.3); margin-right:4px;">👁️ Ver</button>
-              ${admin ? `
               <button class="action-btn" onclick="editRecord('${item.id}')" title="Editar">&#9999;</button>
               <button class="action-btn btn-del" onclick="deleteRecord('${item.id}')" title="Eliminar">&#128465;</button>
-              ` : ''}
             </td>
+            ` : ''}
           </tr>
         `).join('');
         return;
