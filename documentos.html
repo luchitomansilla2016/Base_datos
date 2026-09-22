@@ -3160,6 +3160,17 @@
       }
     }
 
+    function onSelectMotivoReincorp(motivo) {
+      const descEl = document.getElementById('f_descripcion');
+      if (!descEl) return;
+      if (motivo) {
+        descEl.value = `SE REINCORPORA AL TERMINO DE ${motivo.toUpperCase()}`;
+      } else {
+        descEl.value = 'SE REINCORPORA AL TERMINO DE ';
+      }
+      descEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
     function getFirmantesOptionsHtml() {
       if (!jefesList || !jefesList.length) {
         return `
@@ -3960,8 +3971,20 @@
             <input id="f_fecha_documento" class="form-control" type="date" value="${existing.fecha_documento || today}" required />
           </div>
           <div class="form-group">
-            <label>Descripci&oacute;n / Asunto</label>
-            <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Ej. SE REINCORPORA AL TERMINO DE SUS ATENCIONES MEDICAS" style="resize:vertical;" required>${descVal}</textarea>
+            <label>Motivo de Reincorporaci&oacute;n</label>
+            <select id="f_motivo_reincorp_select" class="form-control" onchange="onSelectMotivoReincorp(this.value)" style="margin-bottom:8px; font-weight:600; color:#0b5a3c; background:#f0f8f3;">
+              <option value="">-- Seleccione un motivo para autocompletar --</option>
+              <option value="COMISION DE SERVICIO">COMISIÓN DE SERVICIO</option>
+              <option value="VACACIONES">VACACIONES</option>
+              <option value="PERMISO A CUENTA DE VACACIONES">PERMISO A CUENTA DE VACACIONES</option>
+              <option value="PERMISO POR BIENESTAR">PERMISO POR BIENESTAR</option>
+              <option value="LICENCIA POR PATERNIDAD">LICENCIA POR PATERNIDAD</option>
+              <option value="LICENCIA POR ENFERMEDAD GRAVE">LICENCIA POR ENFERMEDAD GRAVE</option>
+              <option value="LICENCIA FALLECIMIENTO DE FAMILIAR DIRECTO">LICENCIA FALLECIMIENTO DE FAMILIAR DIRECTO</option>
+              <option value="LICENCIA POR GRAVIDEZ">LICENCIA POR GRAVIDEZ</option>
+            </select>
+            <label style="font-size:12px; color:#555; margin-top:2px;">Descripci&oacute;n / Asunto (Editable)</label>
+            <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Ej. SE REINCORPORA AL TERMINO DE VACACIONES" style="resize:vertical;" required>${descVal}</textarea>
           </div>
           <div class="form-group" style="position:relative;">
             <label>Grado, Apellidos y Nombres (Buscar por CIP o Apellidos)</label>
