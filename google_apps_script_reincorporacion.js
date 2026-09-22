@@ -370,7 +370,68 @@ function imprimirLoteMasivo() {
 }
 
 /**
- * Genera el HTML de una hoja física A4 (con 2 copias A5) para una fila de datos
+ * Formatea nombres de post-firma: Nombres en Tipo Oración / Inicial Mayúscula y Apellidos en MAYÚSCULAS
+ */
+function formatNombrePostFirma(rawName) {
+  if (!rawName) return "Ricky Florian CISNEROS APAZA";
+  let clean = String(rawName).trim().replace(/\s+/g, " ");
+  const up = clean.toUpperCase();
+
+  if (up.includes("CISNEROS") && up.includes("APAZA")) {
+    return "Ricky Florian CISNEROS APAZA";
+  }
+  if (up.includes("GONZALES") && up.includes("QUINTERO")) {
+    return "Jose Luis GONZALES QUINTERO";
+  }
+  if (up.includes("VILCA") && up.includes("CHAVEZ")) {
+    return "Edwin Homero VILCA CHAVEZ";
+  }
+  if (up.includes("ROLDAN") && up.includes("ARGANDOÑA")) {
+    return "Francisco Gabriel ROLDAN ARGANDOÑA";
+  }
+  if (up.includes("MANSILLA") && up.includes("SANTA MARIA")) {
+    return "Jose Luis MANSILLA SANTA MARIA";
+  }
+
+  const words = clean.split(" ");
+  if (words.length === 1) return words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
+  
+  const toTitle = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  const knownGivenNames = new Set([
+    "JOSE", "LUIS", "RICKY", "FLORIAN", "EDWIN", "HOMERO", "FRANCISCO", "GABRIEL",
+    "JUAN", "CARLOS", "JORGE", "MANUEL", "CESAR", "MIGUEL", "ANGEL", "VICTOR",
+    "RAUL", "PEDRO", "MARCO", "ANTONIO", "DAVID", "DANIEL", "OSCAR", "FERNANDO",
+    "HERNAN", "WALTER", "EDGAR", "RICHARD", "ELMER", "JAVIER", "ROBERTO", "JULIO",
+    "ALEX", "CHRISTIAN", "CRISTIAN", "DIEGO", "ALBERTO", "ARTURO", "SERGIO"
+  ]);
+
+  if (words.length >= 4) {
+    const lastTwoAreGiven = knownGivenNames.has(words[words.length - 2].toUpperCase()) && knownGivenNames.has(words[words.length - 1].toUpperCase());
+    const firstTwoAreGiven = knownGivenNames.has(words[0].toUpperCase()) && knownGivenNames.has(words[1].toUpperCase());
+
+    if (lastTwoAreGiven && !firstTwoAreGiven) {
+      const givenNames = words.slice(-2).map(toTitle).join(" ");
+      const surnames = words.slice(0, -2).map(w => w.toUpperCase()).join(" ");
+      return `${givenNames} ${surnames}`;
+    } else {
+      const givenNames = words.slice(0, 2).map(toTitle).join(" ");
+      const surnames = words.slice(2).map(w => w.toUpperCase()).join(" ");
+      return `${givenNames} ${surnames}`;
+    }
+  } else if (words.length === 3) {
+    const lastIsGiven = knownGivenNames.has(words[2].toUpperCase());
+    if (lastIsGiven) {
+      return `${toTitle(words[2])} ${words[0].toUpperCase()} ${words[1].toUpperCase()}`;
+    } else {
+      return `${toTitle(words[0])} ${words[1].toUpperCase()} ${words[2].toUpperCase()}`;
+    }
+  } else {
+    return `${toTitle(words[0])} ${words[1].toUpperCase()}`;
+  }
+}
+
+/**
+ * Genera el contenido HTML de una página A4 con 2 copias A5 idénticas
  */
 function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
   const yr = new Date().getFullYear();
@@ -418,6 +479,7 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
 
   const destino = String(rowVals[5] || "COMISARIA SECTORIAL HUANUCO").trim().toUpperCase();
   const procedencia = String(rowVals[6] || DEFAULT_PROCEDENCIA).trim().toUpperCase();
+  const nombreFirmante = formatNombrePostFirma(DEFAULT_FIRMANTE.nombres);
 
   const obsHTML = "SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.";
 
@@ -483,7 +545,7 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
             <div class="sign-container">
               <div class="sign-dots"></div>
               <div class="sign-info-main">CIP - ${DEFAULT_FIRMANTE.cip}</div>
-              <div class="sign-info-main">${DEFAULT_FIRMANTE.nombres}</div>
+              <div class="sign-info-main" style="text-transform: none !important;">${nombreFirmante}</div>
               <div class="sign-info-main">${DEFAULT_FIRMANTE.grado}</div>
               <div class="sign-info-cargo">${DEFAULT_FIRMANTE.cargo}</div>
             </div>
@@ -551,7 +613,7 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
             <div class="sign-container">
               <div class="sign-dots"></div>
               <div class="sign-info-main">CIP - ${DEFAULT_FIRMANTE.cip}</div>
-              <div class="sign-info-main">${DEFAULT_FIRMANTE.nombres}</div>
+              <div class="sign-info-main" style="text-transform: none !important;">${nombreFirmante}</div>
               <div class="sign-info-main">${DEFAULT_FIRMANTE.grado}</div>
               <div class="sign-info-cargo">${DEFAULT_FIRMANTE.cargo}</div>
             </div>
