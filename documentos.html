@@ -1751,6 +1751,274 @@
         page-break-after: avoid !important;
         break-inside: avoid !important;
       }
+
+      /* IMPRESIÓN EXCLUSIVA: ORDEN DE REINCORPORACIÓN INDIVIDUAL Y MASIVA */
+      body.printing-reincorporacion > *:not(#reincorporacionPreviewModal),
+      body.printing-reincorporacion-bulk > *:not(#reincorporacionBulkPrintContainer) {
+        display: none !important;
+      }
+      #reincorporacionPreviewModal {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+      }
+      #reincorporacionPreviewModal .dialog {
+        width: 100% !important;
+        max-width: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+      }
+      #reincorporacionPreviewModal header,
+      #reincorporacionPreviewModal .modal-controls-bar,
+      #reincorporacionPreviewModal .footer,
+      #reincorporacionPreviewModal .close-btn {
+        display: none !important;
+      }
+      #reincorporacionPreviewModal .a4-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        padding: 0 !important;
+      }
+      #reincorporacionBulkPrintContainer {
+        display: block !important;
+        position: static !important;
+        width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+      }
+      #reincorporacionBulkPrintContainer .a4-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
+        padding: 0 !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+    }
+
+    /* ESTILOS DE PANTALLA: PLANTILLA OFICIAL DE REINCORPORACIÓN A4 */
+    #reincorporacionPreviewModal .a4-page,
+    #reincorporacionBulkPrintContainer .a4-page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      background: #ffffff;
+      padding: 0;
+      box-shadow: 0 0 25px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      position: relative;
+      margin: 0 auto;
+    }
+    #reincorporacionPreviewModal .orden-card,
+    #reincorporacionBulkPrintContainer .orden-card {
+      width: 100%;
+      height: 148.5mm;
+      max-height: 148.5mm;
+      box-sizing: border-box;
+      padding: 10mm 12mm 0mm 25mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+      background: #ffffff;
+    }
+    #reincorporacionPreviewModal .orden-card.top-copy,
+    #reincorporacionBulkPrintContainer .orden-card.top-copy {
+      border-bottom: 1.5px dashed #555;
+    }
+    #reincorporacionPreviewModal .header-row,
+    #reincorporacionBulkPrintContainer .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+    #reincorporacionPreviewModal .membrete-img,
+    #reincorporacionBulkPrintContainer .membrete-img {
+      width: 135px;
+      height: auto;
+      display: block;
+    }
+    #reincorporacionPreviewModal .doc-title-container,
+    #reincorporacionBulkPrintContainer .doc-title-container {
+      flex: 1;
+      text-align: center;
+    }
+    #reincorporacionPreviewModal .doc-title,
+    #reincorporacionBulkPrintContainer .doc-title {
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: 14pt;
+      font-weight: normal;
+      text-decoration: underline;
+      letter-spacing: 0.3px;
+      line-height: 1.18;
+      color: #000;
+      text-transform: uppercase;
+    }
+    #reincorporacionPreviewModal .data-table,
+    #reincorporacionBulkPrintContainer .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2px;
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+    }
+    #reincorporacionPreviewModal .data-table tr,
+    #reincorporacionBulkPrintContainer .data-table tr {
+      vertical-align: top;
+    }
+    #reincorporacionPreviewModal .data-label,
+    #reincorporacionBulkPrintContainer .data-label {
+      width: 180px;
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      font-weight: bold;
+      color: #000;
+      padding: 1.5px 0;
+      white-space: nowrap;
+    }
+    #reincorporacionPreviewModal .data-sep,
+    #reincorporacionBulkPrintContainer .data-sep {
+      width: 14px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      font-weight: bold;
+      padding: 1.5px 0;
+    }
+    #reincorporacionPreviewModal .data-val,
+    #reincorporacionBulkPrintContainer .data-val {
+      color: #000;
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      padding: 1.5px 0;
+      text-align: justify;
+      line-height: 1.25;
+    }
+    #reincorporacionPreviewModal .data-val.bold,
+    #reincorporacionBulkPrintContainer .data-val.bold {
+      font-weight: bold;
+    }
+    #reincorporacionPreviewModal .obs-paragraph,
+    #reincorporacionBulkPrintContainer .obs-paragraph {
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      line-height: 1.25;
+      text-align: justify;
+    }
+    #reincorporacionPreviewModal .divider-line,
+    #reincorporacionBulkPrintContainer .divider-line {
+      width: 100%;
+      height: 1px;
+      background-color: #000;
+      margin: 6px 0 5px 0;
+    }
+    #reincorporacionPreviewModal .date-row,
+    #reincorporacionBulkPrintContainer .date-row {
+      text-align: right;
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    #reincorporacionPreviewModal .footer-sign-block,
+    #reincorporacionBulkPrintContainer .footer-sign-block {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      margin-top: 64px;
+      margin-right: 23px;
+    }
+    #reincorporacionPreviewModal .footer-sign-block.has-cargo,
+    #reincorporacionBulkPrintContainer .footer-sign-block.has-cargo {
+      justify-content: space-between;
+    }
+    #reincorporacionPreviewModal .sello-cargo-box,
+    #reincorporacionBulkPrintContainer .sello-cargo-box {
+      display: flex;
+      align-items: flex-start;
+    }
+    #reincorporacionPreviewModal .sello-cargo-img,
+    #reincorporacionBulkPrintContainer .sello-cargo-img {
+      width: 58mm;
+      height: auto;
+      display: block;
+      margin-top: -8mm;
+      margin-left: 2mm;
+    }
+    #reincorporacionPreviewModal .sello-sign-wrapper,
+    #reincorporacionBulkPrintContainer .sello-sign-wrapper {
+      display: flex;
+      align-items: flex-start;
+      position: relative;
+    }
+    #reincorporacionPreviewModal .sello-redondo-img,
+    #reincorporacionBulkPrintContainer .sello-redondo-img {
+      width: 30mm;
+      height: 30mm;
+      border-radius: 50%;
+      object-fit: contain;
+      display: block;
+      margin-right: -1px;
+      margin-top: -15mm;
+      position: relative;
+      z-index: 2;
+    }
+    #reincorporacionPreviewModal .sign-container,
+    #reincorporacionBulkPrintContainer .sign-container {
+      width: 40mm;
+      max-width: 40mm;
+      min-height: 15mm;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    #reincorporacionPreviewModal .sign-dots,
+    #reincorporacionBulkPrintContainer .sign-dots {
+      border-top: 1px dashed #000;
+      margin-bottom: 2px;
+      width: 100%;
+    }
+    #reincorporacionPreviewModal .sign-info-main,
+    #reincorporacionBulkPrintContainer .sign-info-main {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 9pt;
+      font-weight: bold;
+      line-height: 1.1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    #reincorporacionPreviewModal .sign-info-cargo,
+    #reincorporacionBulkPrintContainer .sign-info-cargo {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: bold;
+      line-height: 1.1;
+      text-transform: uppercase;
+      white-space: normal;
+    }
+    #reincorporacionBulkPrintContainer {
+      display: none;
     }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1926,7 +2194,7 @@
       <!-- Cuerpo -->
       <div class="content-body">
         
-        <!-- Barra de herramientas y b??squeda -->
+        <!-- Barra de herramientas y búsqueda -->
         <div class="toolbar-card">
           <div class="search-box">
             <span class="search-icon">&#128269;</span>
@@ -1934,6 +2202,25 @@
           </div>
           <div>
             <button class="btn-secondary-action" onclick="exportToExcel()">&#128190; Exportar Excel (.xlsx)</button>
+          </div>
+        </div>
+
+        <!-- Barra de Acciones Masivas EXCLUSIVA para Órdenes de Reincorporación -->
+        <div id="reincorpBulkToolbar" class="toolbar-card" style="display:none; background:#edf6ef; border:1.5px solid #0b5a3c; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:-2px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span style="font-weight:800; color:#0b5a3c; font-size:12.5px; display:flex; align-items:center; gap:5px;">
+              <span>📑</span> Reincorporaciones seleccionadas: <b id="reincorpSelectedCount" style="background:#0b5a3c; color:#fff; padding:1px 8px; border-radius:12px; font-size:11.5px;">0</b>
+            </span>
+            <button type="button" class="btn-secondary-action" onclick="seleccionarTodasReincorpFiltradas()" style="font-size:11px; padding:5px 9px;">☑️ Seleccionar visibles</button>
+            <button type="button" class="btn-secondary-action" onclick="deseleccionarTodasReincorp()" style="font-size:11px; padding:5px 9px;">⬜ Desmarcar</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="btn-primary-action" onclick="imprimirReincorporacionesSeleccionadas()" style="background:#0b5a3c; font-weight:700; font-size:12px; padding:6px 14px; display:flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(11,90,60,0.25);">
+              <span>🖨️</span> Imprimir Seleccionados en A4 (2 Copias c/u)
+            </button>
+            <button type="button" class="btn-primary-action" onclick="imprimirTodasReincorporaciones()" style="background:#063d28; font-weight:700; font-size:12px; padding:6px 14px; display:flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(6,61,40,0.25);">
+              <span>🚀</span> Imprimir TODOS en A4
+            </button>
           </div>
         </div>
 
@@ -2328,6 +2615,54 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal Oficial EXCLUSIVO de Vista Previa de Orden de Reincorporación (2 Copias A5 en Hoja A4) -->
+  <div id="reincorporacionPreviewModal" class="modal" style="z-index: 10000;">
+    <div class="dialog" style="max-width: 960px; border-top: 5px solid #0b5a3c;">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f2ec 100%);">
+        <div>
+          <h1 style="color: #0b5a3c; font-size: 18px; display:flex; align-items:center; gap:8px;">
+            <span>🔄</span> <span>Órden de Reincorporación (Formato A4 &middot; 2 Copias A5)</span>
+          </h1>
+          <div class="sub">Documento oficial de reincorporación &middot; Sello Membrete PNP, Sello Redondo OFAD y Cargo de Recepción</div>
+        </div>
+        <button class="close-btn" onclick="closeReincorporacionModal(event)" title="Cerrar">&times;</button>
+      </header>
+
+      <!-- Barra superior de controles del documento -->
+      <div class="modal-controls-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; background: #f7faf7; border-bottom: 1px solid var(--line);">
+        <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 280px;">
+          <label for="reincorpJefeSelect" style="font-size: 12px; font-weight: bold; color: #18372b; white-space: nowrap;">Firma la Orden:</label>
+          <select id="reincorpJefeSelect" onchange="updateReincorpSigner()" style="flex: 1; height: 36px; padding: 4px 10px; border-radius: 8px; border: 1.5px solid var(--line); font-size: 12.5px; font-weight: 600; background: #fff; color: #0b5a3c;"></select>
+          <button type="button" class="secondary" onclick="openGestionJefesModal(event)" title="Gestionar firmantes" style="height: 36px; padding: 0 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; border-radius: 8px; white-space: nowrap; background: #fff; border: 1.5px solid #0b5a3c; color: #0b5a3c; font-weight: 600; cursor: pointer;"><span>⚙️</span> Firmantes</button>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="secondary" onclick="copyReincorpSummary(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px;">
+            <span>📋</span> Copiar datos
+          </button>
+          <button class="print-a4-btn" onclick="printReincorporacionDocument(event)" style="height: 36px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+            <span>🖨️</span> Imprimir / Guardar PDF (2 Copias en A4)
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor del documento A4 con 2 copias A5 -->
+      <div class="orden-sheet-container" id="reincorpSingleSheetContainer">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <div class="footer" style="justify-content: space-between;">
+        <button class="secondary" onclick="closeReincorporacionModal(event)">Cerrar</button>
+        <div style="display:flex; gap:8px;">
+          <button class="print-a4-btn" onclick="printReincorporacionDocument(event)"><span>🖨️</span> Imprimir / Guardar en PDF (2 Copias en A4)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor EXCLUSIVO para Impresión Masiva / Bulk de Órdenes de Reincorporación -->
+  <div id="reincorporacionBulkPrintContainer"></div>
+
   <!-- Modal de Gestion de Firmantes / Jefes de Orden -->
   <div id="gestionJefesModal" class="modal" style="z-index: 10050;">
     <div class="dialog" style="max-width: 720px; border-top: 5px solid #0b5a3c; max-height: 90vh; display: flex; flex-direction: column;">
@@ -3001,6 +3336,11 @@
       const conf = TABLES_CONFIG[tableKey];
       document.getElementById('currentTableTitle').textContent = conf.title;
       
+      const bulkBar = document.getElementById('reincorpBulkToolbar');
+      if (bulkBar) {
+        bulkBar.style.display = (tableKey === 'orden_reincorporacion') ? 'flex' : 'none';
+      }
+
       // En dispositivos móviles, cerrar el menú lateral automáticamente al elegir una opción
       toggleMobileSidebar(false);
 
@@ -3026,6 +3366,7 @@
 
         renderTableStructure();
         renderTableRows(currentData);
+        updateReincorpBulkBar();
       } catch (err) {
         if (!silent) {
           tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--red); padding:30px;">Error al cargar datos: ${err.message}</td></tr>`;
@@ -3067,6 +3408,7 @@
       if (conf.isOrdenReincorporacion) {
         thead.innerHTML = `
           <tr>
+            <th style="width:38px; text-align:center;"><input type="checkbox" id="selectAllReincorp" onchange="toggleSelectAllReincorp(this)" title="Seleccionar / Desmarcar Todos" style="width:16px; height:16px; cursor:pointer;" /></th>
             <th style="width:60px;">ID</th>
             <th>N&deg; Documento</th>
             <th>Fecha Doc.</th>
@@ -3076,7 +3418,7 @@
             <th>Destino</th>
             <th>Quien Ordena</th>
             <th>Usuario Registra</th>
-            ${admin ? '<th style="width:100px; text-align:center;">Acciones</th>' : ''}
+            <th style="width:100px; text-align:center;">Acciones</th>
           </tr>
         `;
         return;
@@ -3169,6 +3511,7 @@
       if (conf.isOrdenReincorporacion) {
         tbody.innerHTML = items.map(item => `
           <tr>
+            <td style="text-align:center;"><input type="checkbox" class="reincorp-row-check" value="${item.id}" onchange="updateReincorpBulkBar()" style="width:16px; height:16px; cursor:pointer;" /></td>
             <td>${item.id}</td>
             <td><span class="badge-doc">${formatNumeroDocDisplay(item.numero_documento)}</span></td>
             <td>${item.fecha_documento || '---'}</td>
@@ -3179,7 +3522,7 @@
             <td>${item.quien_ordena || '---'}</td>
             <td><small>${item.usuario_registra || '---'}</small></td>
             <td style="text-align:center; white-space:nowrap;">
-              <button class="action-btn" onclick="openOrdenDocumentFromRow('${item.id}')" title="Ver / Imprimir Orden (Respaldo con fecha y hora)" style="background:#0b5a3c; color:#ffffff; border: none; font-size:12px; font-weight:700; cursor:pointer; padding: 5px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(11,90,60,0.3); margin-right:4px;">👁️ Ver</button>
+              <button class="action-btn" onclick="openReincorporacionModalFromRow('${item.id}')" title="Ver / Imprimir Orden Oficial (2 Copias en A4)" style="background:#0b5a3c; color:#ffffff; border: none; font-size:12px; font-weight:700; cursor:pointer; padding: 5px 9px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 4px rgba(11,90,60,0.3); margin-right:4px;">👁️ Ver</button>
               ${admin ? `
               <button class="action-btn" onclick="editRecord('${item.id}')" title="Editar">&#9999;</button>
               <button class="action-btn btn-del" onclick="deleteRecord('${item.id}')" title="Eliminar">&#128465;</button>
@@ -3266,12 +3609,14 @@
       const q = document.getElementById('searchInput').value.toLowerCase().trim();
       if (!q) {
         renderTableRows(currentData);
+        updateReincorpBulkBar();
         return;
       }
       const filtered = currentData.filter(item => {
         return Object.values(item).some(val => String(val || '').toLowerCase().includes(q));
       });
       renderTableRows(filtered);
+      updateReincorpBulkBar();
     }
 
     async function getNextDocCorrelative(tableKey) {
@@ -3770,6 +4115,24 @@
           gradoVal = parts[0];
           nombresVal = parts.slice(1).join(' ');
         }
+      }
+
+      if (currentTable === 'orden_reincorporacion') {
+        const reincorpData = {
+          id: editingId || '',
+          numero_documento: numDoc,
+          cip: cipVal,
+          grado_apellidos_nombres: nombresVal || descVal,
+          descripcion: descVal,
+          unidad_procedencia: document.getElementById('f_unidad_procedencia')?.value || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD',
+          destino: document.getElementById('f_destino')?.value || 'COMISARIA SECTORIAL HUANUCO',
+          fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+          created_at: new Date().toISOString(),
+          quien_ordena: document.getElementById('f_quien_ordena')?.value || '',
+          usuario_registra: getUsuarioRegistraNombre()
+        };
+        displayReincorporacionPreview(reincorpData);
+        return;
       }
 
       const ordenData = {
@@ -4513,6 +4876,404 @@ MOTIVO: ${motivoText}`;
       };
 
       displayOrdenPreview(ordenData);
+    }
+
+    // =========================================================================
+    // MÓDULO OFICIAL EXCLUSIVO DE REINCORPORACIÓN: INDIVIDUAL Y MASIVO (A4 / 2 A5)
+    // =========================================================================
+    let currentReincorpData = null;
+
+    function buildReincorporacionTitle(numeroDoc, yearFallback) {
+      const yr = yearFallback || new Date().getFullYear();
+      let numStr = '001';
+      let docYear = yr;
+      if (numeroDoc) {
+        const raw = String(numeroDoc).trim();
+        const mNum = raw.match(/N[°º\s]*(\d+)/i) || raw.match(/(\d+)/);
+        if (mNum) {
+          numStr = mNum[1].padStart(3, '0');
+        }
+        const mYear = raw.match(/-(\d{4})/);
+        if (mYear) docYear = mYear[1];
+      }
+      return `ÓRDEN DE REINCORPORACION N°${numStr}-${docYear}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+    }
+
+    function formatMotivoReincorp(rawMotivo) {
+      if (!rawMotivo) return 'SUS ATENCIONES MEDICAS';
+      let m = String(rawMotivo).trim().toUpperCase();
+      m = m.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*)?/i, '');
+      m = m.replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, '');
+      m = m.trim();
+      return m || 'SUS ATENCIONES MEDICAS';
+    }
+
+    function formatFechaOficialReincorp(rawDate) {
+      const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+      let d = rawDate ? new Date(rawDate) : new Date();
+      if (isNaN(d.getTime())) {
+        if (typeof rawDate === 'string' && rawDate.includes('-')) {
+          const parts = rawDate.split('T')[0].split('-');
+          if (parts.length === 3) {
+            d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+          }
+        }
+      }
+      if (isNaN(d.getTime())) d = new Date();
+      const dia = d.getDate();
+      const mes = meses[d.getMonth()];
+      const anio = d.getFullYear();
+      return `${dia} DE ${mes} DE ${anio}`;
+    }
+
+    function getSelectedReincorpSigner() {
+      const sel = document.getElementById('reincorpJefeSelect') || document.getElementById('ordenJefeSelect');
+      const idx = sel ? (parseInt(sel.value, 10) || 0) : 0;
+      return (jefesList && jefesList.length > 0) ? (jefesList[idx] || jefesList[0]) : {
+        CIP: '30894512',
+        'APELLIDOS Y NOMBRES': 'RICKY FLORIAN CISNEROS APAZA',
+        GRADO: 'CMTE PNP',
+        CARGO: 'JEFE OFAD REGPOL HUANUCO'
+      };
+    }
+
+    function populateReincorpJefesSelect() {
+      const sel = document.getElementById('reincorpJefeSelect');
+      if (!sel) return;
+      sel.innerHTML = jefesList.map((j, i) => `
+        <option value="${i}">${j.GRADO || j.grado || ''} ${j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || ''} - ${j.CARGO || j.cargo || ''}</option>
+      `).join('');
+      sel.value = (typeof currentSignerIndex === 'number' && currentSignerIndex >= 0 && currentSignerIndex < jefesList.length) ? currentSignerIndex : 0;
+    }
+
+    function buildReincorporacionA4HTML(item, signer) {
+      if (!signer) signer = getSelectedReincorpSigner();
+      const yr = new Date().getFullYear();
+      const tituloDoc = buildReincorporacionTitle(item.numero_documento, yr);
+
+      let cipVal = item.cip || item.CIP || '';
+      if (!cipVal && (item.descripcion || item.grado_apellidos_nombres)) {
+        const m = (String(item.descripcion || '') + ' ' + String(item.grado_apellidos_nombres || '')).match(/\b(\d{8})\b/);
+        if (m) cipVal = m[1];
+      }
+      if (!cipVal) cipVal = '---';
+
+      let nombresVal = (item.grado_apellidos_nombres || item.apellidos_nombres || item.apellidos_y_nombres || item.descripcion || '---').toUpperCase();
+      const procedenciaVal = (item.unidad_procedencia || item.unidad_anterior_procedencia || item.procedencia || item.unidad_anterior || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD').toUpperCase();
+      const destinoVal = (item.destino || item.unidad_destino || item.lista_de_revista || 'COMISARIA SECTORIAL HUANUCO').toUpperCase();
+      const motivoVal = formatMotivoReincorp(item.descripcion || item.motivo || 'SUS ATENCIONES MEDICAS');
+      const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
+
+      const sCip = signer?.cip || signer?.CIP || '30894512';
+      const sNom = (signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'RICKY FLORIAN CISNEROS APAZA').toUpperCase();
+      const sGrd = (signer?.grado || signer?.GRADO || 'CMTE PNP').toUpperCase();
+      const sCrg = (signer?.cargo || signer?.CARGO || 'JEFE OFAD REGPOL HUANUCO').toUpperCase();
+
+      const obsHTML = `SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.`;
+
+      return `
+      <div class="a4-page">
+        <!-- COPIA 1 (SUPERIOR 148.5mm) -->
+        <div class="orden-card top-copy">
+          <div>
+            <div class="header-row">
+              <div class="header-membrete-box">
+                <img src="membrete_oficial_pnp.png" class="membrete-img" alt="PNP" />
+              </div>
+              <div class="doc-title-container">
+                <div class="doc-title">${tituloDoc}</div>
+              </div>
+            </div>
+
+            <table class="data-table">
+              <tr>
+                <td class="data-label">CIP</td>
+                <td class="data-sep">:</td>
+                <td class="data-val bold">${cipVal}</td>
+              </tr>
+              <tr>
+                <td class="data-label">APELLIDOS Y NOMBRES</td>
+                <td class="data-sep">:</td>
+                <td class="data-val bold">${nombresVal}</td>
+              </tr>
+              <tr>
+                <td class="data-label">PROCEDENCIA</td>
+                <td class="data-sep">:</td>
+                <td class="data-val">${procedenciaVal}</td>
+              </tr>
+              <tr>
+                <td class="data-label">UNIDAD DE DESTINO</td>
+                <td class="data-sep">:</td>
+                <td class="data-val bold">${destinoVal}</td>
+              </tr>
+              <tr>
+                <td class="data-label">MOTIVO</td>
+                <td class="data-sep">:</td>
+                <td class="data-val">AL T&Eacute;RMINO DE: <b class="val-motivo">${motivoVal}</b></td>
+              </tr>
+              <tr>
+                <td class="data-label">OBSERVACI&Oacute;N</td>
+                <td class="data-sep">:</td>
+                <td class="data-val obs-paragraph">${obsHTML}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div>
+            <div class="divider-line"></div>
+            <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocVal}</span></div>
+
+            <div class="footer-sign-block">
+              <div class="sello-sign-wrapper">
+                <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello OFAD" />
+                <div class="sign-container">
+                  <div class="sign-dots"></div>
+                  <div class="sign-info-main">CIP - ${sCip}</div>
+                  <div class="sign-info-main">${sNom}</div>
+                  <div class="sign-info-main">${sGrd}</div>
+                  <div class="sign-info-cargo">${sCrg}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COPIA 2 (INFERIOR 148.5mm CON CARGO DE RECEPCION) -->
+        <div class="orden-card bottom-copy">
+          <div>
+            <div class="header-row">
+              <div class="header-membrete-box">
+                <img src="membrete_oficial_pnp.png" class="membrete-img" alt="PNP" />
+              </div>
+              <div class="doc-title-container">
+                <div class="doc-title">${tituloDoc}</div>
+              </div>
+            </div>
+
+            <table class="data-table">
+              <tr>
+                <td class="data-label">CIP</td>
+                <td class="data-sep">:</td>
+                <td class="data-val bold">${cipVal}</td>
+              </tr>
+              <tr>
+                <td class="data-label">APELLIDOS Y NOMBRES</td>
+                <td class="data-sep">:</td>
+                <td class="data-val bold">${nombresVal}</td>
+              </tr>
+              <tr>
+                <td class="data-label">PROCEDENCIA</td>
+                <td class="data-sep">:</td>
+                <td class="data-val">${procedenciaVal}</td>
+              </tr>
+              <tr>
+                <td class="data-label">UNIDAD DE DESTINO</td>
+                <td class="data-sep">:</td>
+                <td class="data-val bold">${destinoVal}</td>
+              </tr>
+              <tr>
+                <td class="data-label">MOTIVO</td>
+                <td class="data-sep">:</td>
+                <td class="data-val">AL T&Eacute;RMINO DE: <b class="val-motivo">${motivoVal}</b></td>
+              </tr>
+              <tr>
+                <td class="data-label">OBSERVACI&Oacute;N</td>
+                <td class="data-sep">:</td>
+                <td class="data-val obs-paragraph">${obsHTML}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div>
+            <div class="divider-line"></div>
+            <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocVal}</span></div>
+
+            <div class="footer-sign-block has-cargo">
+              <div class="sello-cargo-box">
+                <img src="sello_cargo_recepcion.png" class="sello-cargo-img" alt="Cargo Recepci&oacute;n" />
+              </div>
+              <div class="sello-sign-wrapper">
+                <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello OFAD" />
+                <div class="sign-container">
+                  <div class="sign-dots"></div>
+                  <div class="sign-info-main">CIP - ${sCip}</div>
+                  <div class="sign-info-main">${sNom}</div>
+                  <div class="sign-info-main">${sGrd}</div>
+                  <div class="sign-info-cargo">${sCrg}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      `;
+    }
+
+    function openReincorporacionModalFromRow(id) {
+      const item = (currentData || []).find(d => String(d.id) === String(id) || Number(d.id) === Number(id));
+      if (!item) {
+        alert('No se encontró el registro de Reincorporación con ID: ' + id);
+        return;
+      }
+      displayReincorporacionPreview(item);
+    }
+
+    function displayReincorporacionPreview(item) {
+      currentReincorpData = item;
+      populateReincorpJefesSelect();
+      const signer = getSelectedReincorpSigner();
+      const container = document.getElementById('reincorpSingleSheetContainer');
+      if (container) {
+        container.innerHTML = buildReincorporacionA4HTML(item, signer);
+      }
+      const modal = document.getElementById('reincorporacionPreviewModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function updateReincorpSigner() {
+      if (!currentReincorpData) return;
+      const signer = getSelectedReincorpSigner();
+      const container = document.getElementById('reincorpSingleSheetContainer');
+      if (container) {
+        container.innerHTML = buildReincorporacionA4HTML(currentReincorpData, signer);
+      }
+    }
+
+    function closeReincorporacionModal(e) {
+      if (e) e.preventDefault();
+      const modal = document.getElementById('reincorporacionPreviewModal');
+      if (modal) modal.classList.remove('open');
+      document.body.classList.remove('printing-reincorporacion');
+    }
+
+    function printReincorporacionDocument(e) {
+      if (e) e.preventDefault();
+      document.body.classList.add('printing-reincorporacion');
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-reincorporacion');
+      }, 1000);
+    }
+
+    function copyReincorpSummary(e) {
+      if (e) e.preventDefault();
+      if (!currentReincorpData) return;
+      const titulo = buildReincorporacionTitle(currentReincorpData.numero_documento);
+      let cipVal = currentReincorpData.cip || currentReincorpData.CIP || '---';
+      const nombresVal = currentReincorpData.grado_apellidos_nombres || currentReincorpData.apellidos_nombres || currentReincorpData.descripcion || '---';
+      const procedenciaVal = currentReincorpData.unidad_procedencia || currentReincorpData.procedencia || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
+      const destinoVal = currentReincorpData.destino || 'COMISARIA SECTORIAL HUANUCO';
+      const motivoVal = formatMotivoReincorp(currentReincorpData.descripcion || currentReincorpData.motivo);
+
+      const text = `${titulo}
+CIP: ${cipVal}
+EFECTIVO: ${nombresVal}
+PROCEDENCIA: ${procedenciaVal}
+DESTINO: ${destinoVal}
+MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        toast('Resumen copiado al portapapeles', 'success');
+      }).catch(() => {
+        toast('No se pudo copiar al portapapeles', 'warning');
+      });
+    }
+
+    // Funciones de selección y bulk printing exclusivo de Reincorporaciones
+    function toggleSelectAllReincorp(masterCheckbox) {
+      const isChecked = masterCheckbox.checked;
+      document.querySelectorAll('.reincorp-row-check').forEach(cb => {
+        cb.checked = isChecked;
+      });
+      updateReincorpBulkBar();
+    }
+
+    function updateReincorpBulkBar() {
+      const checks = document.querySelectorAll('.reincorp-row-check');
+      const checked = Array.from(checks).filter(cb => cb.checked);
+      const countEl = document.getElementById('reincorpSelectedCount');
+      if (countEl) countEl.textContent = checked.length;
+
+      const master = document.getElementById('selectAllReincorp');
+      if (master) {
+        if (checks.length === 0) {
+          master.checked = false;
+          master.indeterminate = false;
+        } else if (checked.length === checks.length) {
+          master.checked = true;
+          master.indeterminate = false;
+        } else if (checked.length > 0) {
+          master.checked = false;
+          master.indeterminate = true;
+        } else {
+          master.checked = false;
+          master.indeterminate = false;
+        }
+      }
+    }
+
+    function seleccionarTodasReincorpFiltradas() {
+      document.querySelectorAll('.reincorp-row-check').forEach(cb => {
+        cb.checked = true;
+      });
+      updateReincorpBulkBar();
+    }
+
+    function deseleccionarTodasReincorp() {
+      document.querySelectorAll('.reincorp-row-check').forEach(cb => {
+        cb.checked = false;
+      });
+      updateReincorpBulkBar();
+    }
+
+    function getSelectedReincorpItems() {
+      const selectedIds = Array.from(document.querySelectorAll('.reincorp-row-check:checked')).map(cb => cb.value);
+      return (currentData || []).filter(d => selectedIds.includes(String(d.id)));
+    }
+
+    function imprimirReincorporacionesSeleccionadas() {
+      const items = getSelectedReincorpItems();
+      if (items.length === 0) {
+        alert('Por favor, marque al menos una Orden de Reincorporación con la casilla de verificación (checkbox) para imprimir en lote.');
+        return;
+      }
+      ejecutarImpresionMasivaReincorp(items);
+    }
+
+    function imprimirTodasReincorporaciones() {
+      if (!currentData || currentData.length === 0) {
+        alert('No hay registros de Órdenes de Reincorporación para imprimir.');
+        return;
+      }
+      const q = document.getElementById('searchInput')?.value.toLowerCase().trim();
+      let itemsToPrint = currentData;
+      if (q) {
+        itemsToPrint = currentData.filter(item => Object.values(item).some(val => String(val || '').toLowerCase().includes(q)));
+      }
+      if (itemsToPrint.length === 0) {
+        alert('No hay registros visibles que coincidan con la búsqueda.');
+        return;
+      }
+      if (!confirm(`Se generará la impresión oficial de ${itemsToPrint.length} órdenes (1 hoja A4 con 2 copias A5 por cada efectivo).\n¿Desea continuar?`)) {
+        return;
+      }
+      ejecutarImpresionMasivaReincorp(itemsToPrint);
+    }
+
+    function ejecutarImpresionMasivaReincorp(items) {
+      const container = document.getElementById('reincorporacionBulkPrintContainer');
+      if (!container) return;
+
+      const signer = getSelectedReincorpSigner();
+      const pagesHTML = items.map(item => buildReincorporacionA4HTML(item, signer)).join('\n');
+      container.innerHTML = pagesHTML;
+
+      document.body.classList.add('printing-reincorporacion-bulk');
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-reincorporacion-bulk');
+        container.innerHTML = '';
+      }, 1200);
     }
 
     // ========================================================
