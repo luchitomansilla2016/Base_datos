@@ -2,28 +2,37 @@
  * =========================================================================================
  * POLICÍA NACIONAL DEL PERÚ - REGIÓN POLICIAL HUÁNUCO
  * SISTEMA DE GESTIÓN DOCUMENTARIA Y PERSONAL
- * SCRIPT OFICIAL: CARGA MASIVA DE ÓRDENES DE REINCORPORACIÓN (GOOGLE APPS SCRIPT)
+ * SCRIPT OFICIAL: CARGA MASIVA DE ÓRDENES DE REINCORPORACIÓN
  * =========================================================================================
  * 
- * INSTRUCCIONES DE INSTALACIÓN EN GOOGLE SHEETS:
- * 1. Abra su Hoja de Cálculo en Google Drive (Mi Unidad > PROGRAMAS > SUPABASE).
- * 2. En el menú superior de Google Sheets, haga clic en: Extensiones > Apps Script.
- * 3. Borre cualquier código anterior y pegue todo este archivo.
- * 4. Haga clic en el ícono de Guardar (Disquete) y recargue su Hoja de Cálculo (F5).
- * 5. Aparecerá el menú "📌 PNP Reincorporaciones" en la parte superior.
+ * ORDEN EXACTO DE COLUMNAS DE LA HOJA:
+ * Col A (1) : FECHA DOCUMENTO
+ * Col B (2) : CIP
+ * Col C (3) : GRADO
+ * Col D (4) : APELLIDOS Y NOMBRES
+ * Col E (5) : MOTIVO
+ * Col F (6) : DESTINO
+ * Col G (7) : UNIDAD DE PROCEDENCIA
+ * Col H (8) : DESCRIPCION
+ * Col I (9) : QUIEN ORDENA
+ * Col J (10): USUARIO REGISTRA
+ * Col K (11): ESTADO
+ * Col L (12): NUMERO DOCUMENTO
+ * Col M (13): ID NUBE
+ * =========================================================================================
  */
 
 const SUPABASE_URL = "https://ngsujkfmkgofngqwuqnf.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nc3Vqa2Zta2dvZm5ncXd1cW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDk2MzQsImV4cCI6MjEwNDIyNTYzNH0.KL1YmWPLSkMHs9LCf4TC8quqo2G4cd8K0zaGxvoU3Vg";
 
-// Valores predeterminados oficiales requeridos por el sistema
+// Valores predeterminados oficiales requeridos
 const DEFAULT_PROCEDENCIA = "COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD";
 const DEFAULT_QUIEN_ORDENA = "JEFE OFAD REGPOL HUANUCO";
 const DEFAULT_USUARIO_REGISTRA = "ST2 PNP MANSILLA SANTA MARIA JOSE LUIS";
 const DEFAULT_DESCRIPCION_PRE = "PONE A DISPOSICION AL TERMINO DE:";
 
 /**
- * Crea el menú superior oficial en Google Sheets al abrir la hoja
+ * Crea el menú superior oficial en Google Sheets
  */
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
@@ -37,14 +46,7 @@ function onOpen() {
 }
 
 /**
- * Disparador automático que se ejecuta en tiempo real al escribir en la hoja.
- * Al ingresar datos en CIP, GRADO, APELLIDOS Y NOMBRES o DESTINO:
- * - Pone automáticamente la FECHA de hoy.
- * - Pone en UNIDAD DE PROCEDENCIA: COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD.
- * - Pone en DESCRIPCIÓN: PONE A DISPOSICION AL TERMINO DE: <MOTIVO>.
- * - Pone en QUIEN ORDENA: JEFE OFAD REGPOL HUANUCO.
- * - Pone en USUARIO REGISTRA: ST2 PNP MANSILLA SANTA MARIA JOSE LUIS.
- * - Asigna el ESTADO "PENDIENTE DE SUBIR" y genera el correlativo.
+ * Disparador automático que se ejecuta en tiempo real al escribir en la hoja
  */
 function onEdit(e) {
   if (!e || !e.range) return;
@@ -52,7 +54,7 @@ function onEdit(e) {
   const startRow = e.range.getRow();
   const numRows = e.range.getNumRows();
 
-  // Ignorar fila 1 de encabezados
+  // Ignorar fila de encabezados (Fila 1)
   if (startRow < 2) return;
 
   for (let r = 0; r < numRows; r++) {
@@ -62,55 +64,56 @@ function onEdit(e) {
 }
 
 /**
- * Llena automáticamente los campos predeterminados de una fila si tiene datos de efectivo
+ * Autocompleta automáticamente los campos de una fila específica
  */
 function autoCompletarFila(sheet, fila) {
   const rowVals = sheet.getRange(fila, 1, 1, 13).getValues()[0];
   
-  let fecha = rowVals[0];                                      // Col A (1): FECHA
-  let cip = String(rowVals[1] || "").trim();                   // Col B (2): CIP
-  let grado = String(rowVals[2] || "").trim().toUpperCase();   // Col C (3): GRADO
-  let nombres = String(rowVals[3] || "").trim().toUpperCase(); // Col D (4): APELLIDOS Y NOMBRES
-  let destino = String(rowVals[4] || "").trim().toUpperCase(); // Col E (5): DESTINO
-  let procedencia = String(rowVals[5] || "").trim().toUpperCase(); // Col F (6): UNIDAD DE PROCEDENCIA
-  let motivo = String(rowVals[6] || "").trim().toUpperCase();  // Col G (7): MOTIVO
-  let descripcion = String(rowVals[7] || "").trim();           // Col H (8): DESCRIPCIÓN
-  let quienOrdena = String(rowVals[8] || "").trim().toUpperCase(); // Col I (9): QUIEN ORDENA
-  let usuarioRegistra = String(rowVals[9] || "").trim();       // Col J (10): USUARIO REGISTRA
-  let estado = String(rowVals[10] || "").trim().toUpperCase(); // Col K (11): ESTADO
-  let numDoc = String(rowVals[11] || "").trim();               // Col L (12): N° DOCUMENTO
+  let fecha = rowVals[0];                                          // Col A (1) : FECHA DOCUMENTO
+  let cip = String(rowVals[1] || "").trim();                       // Col B (2) : CIP
+  let grado = String(rowVals[2] || "").trim().toUpperCase();       // Col C (3) : GRADO
+  let nombres = String(rowVals[3] || "").trim().toUpperCase();     // Col D (4) : APELLIDOS Y NOMBRES
+  let motivo = String(rowVals[4] || "").trim().toUpperCase();      // Col E (5) : MOTIVO
+  let destino = String(rowVals[5] || "").trim().toUpperCase();     // Col F (6) : DESTINO
+  let procedencia = String(rowVals[6] || "").trim().toUpperCase(); // Col G (7) : UNIDAD DE PROCEDENCIA
+  let descripcion = String(rowVals[7] || "").trim();               // Col H (8) : DESCRIPCION
+  let quienOrdena = String(rowVals[8] || "").trim().toUpperCase(); // Col I (9) : QUIEN ORDENA
+  let usuarioRegistra = String(rowVals[9] || "").trim();           // Col J (10): USUARIO REGISTRA
+  let estado = String(rowVals[10] || "").trim().toUpperCase();     // Col K (11): ESTADO
+  let numDoc = String(rowVals[11] || "").trim();                   // Col L (12): NUMERO DOCUMENTO
 
-  // Si toda la fila está vacía, no hacer nada
-  if (!cip && !nombres && !destino && !grado) return;
+  // Si toda la fila de datos está vacía, no hacer nada
+  if (!cip && !nombres && !destino && !grado && !motivo) return;
 
   const todayStr = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
 
-  // 1. FECHA (Columna A)
+  // 1. FECHA DOCUMENTO (Columna A)
   if (!fecha) {
     sheet.getRange(fila, 1).setValue(todayStr);
   }
 
-  // 2. GRADO & NOMBRES en Mayúsculas (Cols C y D)
+  // 2. GRADO (Columna C) & APELLIDOS Y NOMBRES (Columna D) en Mayúsculas
   if (grado) sheet.getRange(fila, 3).setValue(grado);
   if (nombres) sheet.getRange(fila, 4).setValue(nombres);
 
-  // 3. DESTINO en Mayúsculas (Col E)
-  if (destino) sheet.getRange(fila, 5).setValue(destino);
+  // 3. MOTIVO (Columna E) en Mayúsculas
+  if (motivo) sheet.getRange(fila, 5).setValue(motivo);
 
-  // 4. UNIDAD DE PROCEDENCIA (Columna F)
+  // 4. DESTINO (Columna F) en Mayúsculas
+  if (destino) sheet.getRange(fila, 6).setValue(destino);
+
+  // 5. UNIDAD DE PROCEDENCIA (Columna G)
   if (!procedencia) {
-    sheet.getRange(fila, 6).setValue(DEFAULT_PROCEDENCIA);
+    sheet.getRange(fila, 7).setValue(DEFAULT_PROCEDENCIA);
   } else {
-    sheet.getRange(fila, 6).setValue(procedencia);
+    sheet.getRange(fila, 7).setValue(procedencia);
   }
 
-  // 5. MOTIVO (Columna G)
-  if (motivo) sheet.getRange(fila, 7).setValue(motivo);
-
-  // 6. DESCRIPCIÓN / ASUNTO (Columna H)
-  if (!descripcion || descripcion === DEFAULT_DESCRIPCION_PRE) {
-    const detalle = motivo ? motivo : "SUS ATENCIONES MEDICAS";
-    sheet.getRange(fila, 8).setValue(DEFAULT_DESCRIPCION_PRE + " " + detalle);
+  // 6. DESCRIPCION (Columna H)
+  const detalleMotivo = motivo ? motivo : "SUS ATENCIONES MEDICAS";
+  const textoEsperado = DEFAULT_DESCRIPCION_PRE + " " + detalleMotivo;
+  if (!descripcion || descripcion === DEFAULT_DESCRIPCION_PRE || descripcion.startsWith(DEFAULT_DESCRIPCION_PRE)) {
+    sheet.getRange(fila, 8).setValue(textoEsperado);
   }
 
   // 7. QUIEN ORDENA (Columna I)
@@ -131,7 +134,7 @@ function autoCompletarFila(sheet, fila) {
     sheet.getRange(fila, 11).setBackground("#fff3cd").setFontColor("#856404").setFontWeight("bold");
   }
 
-  // 10. CORRELATIVO / NUMERO DOCUMENTO (Columna L)
+  // 10. NUMERO DOCUMENTO (Columna L)
   if (!numDoc) {
     const yr = new Date().getFullYear();
     const correlativoFila = String(fila - 1).padStart(3, "0");
@@ -141,7 +144,7 @@ function autoCompletarFila(sheet, fila) {
 }
 
 /**
- * Recorre todas las filas de la hoja para autocompletar campos faltantes y asignar correlativos
+ * Recorre todas las filas para autocompletar campos faltantes y asignar correlativos
  */
 function autocompletarTodo() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -185,17 +188,17 @@ function subirANube() {
     autoCompletarFila(sheet, fila);
     const rowVals = sheet.getRange(fila, 1, 1, 13).getValues()[0];
 
-    const fecha = rowVals[0];
-    const cip = String(rowVals[1] || "").trim();
-    const grado = String(rowVals[2] || "").trim().toUpperCase();
-    const nombres = String(rowVals[3] || "").trim().toUpperCase();
-    const destino = String(rowVals[4] || "").trim().toUpperCase();
-    const procedencia = String(rowVals[5] || "").trim().toUpperCase() || DEFAULT_PROCEDENCIA;
-    const motivo = String(rowVals[6] || "").trim().toUpperCase();
-    const descripcion = String(rowVals[7] || "").trim() || (DEFAULT_DESCRIPCION_PRE + " " + (motivo || "SUS ATENCIONES MEDICAS"));
-    const quienOrdena = String(rowVals[8] || "").trim().toUpperCase() || DEFAULT_QUIEN_ORDENA;
-    const usuarioRegistra = String(rowVals[9] || "").trim() || DEFAULT_USUARIO_REGISTRA;
-    const estado = String(rowVals[10] || "").trim().toUpperCase();
+    const fecha = rowVals[0];                                          // Col A (1) : FECHA DOCUMENTO
+    const cip = String(rowVals[1] || "").trim();                       // Col B (2) : CIP
+    const grado = String(rowVals[2] || "").trim().toUpperCase();       // Col C (3) : GRADO
+    const nombres = String(rowVals[3] || "").trim().toUpperCase();     // Col D (4) : APELLIDOS Y NOMBRES
+    const motivo = String(rowVals[4] || "").trim().toUpperCase();      // Col E (5) : MOTIVO
+    const destino = String(rowVals[5] || "").trim().toUpperCase();     // Col F (6) : DESTINO
+    const procedencia = String(rowVals[6] || "").trim().toUpperCase() || DEFAULT_PROCEDENCIA; // Col G (7): UNIDAD PROCEDENCIA
+    const descripcion = String(rowVals[7] || "").trim() || (DEFAULT_DESCRIPCION_PRE + " " + (motivo || "SUS ATENCIONES MEDICAS")); // Col H (8): DESCRIPCION
+    const quienOrdena = String(rowVals[8] || "").trim().toUpperCase() || DEFAULT_QUIEN_ORDENA; // Col I (9): QUIEN ORDENA
+    const usuarioRegistra = String(rowVals[9] || "").trim() || DEFAULT_USUARIO_REGISTRA; // Col J (10): USUARIO REGISTRA
+    const estado = String(rowVals[10] || "").trim().toUpperCase();     // Col K (11): ESTADO
 
     // Solo procesar filas con datos que no hayan sido subidas
     if ((cip || nombres) && estado !== "REGISTRADO EN NUBE") {
@@ -270,10 +273,9 @@ function subirANube() {
 }
 
 /**
- * Obtiene el último número correlativo registrado en la tabla orden_reincorporacion de Supabase
+ * Consulta el último correlativo registrado en la tabla orden_reincorporacion de Supabase
  */
 function obtenerUltimoCorrelativoSupabase() {
-  const currentYear = new Date().getFullYear();
   try {
     const url = SUPABASE_URL + "/rest/v1/orden_reincorporacion?select=numero_documento&order=id.desc&limit=100";
     const options = {
@@ -301,7 +303,7 @@ function obtenerUltimoCorrelativoSupabase() {
       return max;
     }
   } catch (e) {
-    Logger.log("Error al consultar último correlativo: " + e.message);
+    Logger.log("Error al consultar correlativo: " + e.message);
   }
   return 0;
 }
@@ -326,24 +328,24 @@ function marcarTodoPendiente() {
 }
 
 /**
- * Crea o restablece los encabezados oficiales en la Fila 1
+ * Crea o restablece los encabezados oficiales exactamente en el orden de la hoja
  */
 function crearEncabezadosOficiales() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   const headers = [
-    "FECHA",
+    "FECHA DOCUMENTO",
     "CIP",
     "GRADO",
     "APELLIDOS Y NOMBRES",
+    "MOTIVO",
     "DESTINO",
     "UNIDAD DE PROCEDENCIA",
-    "MOTIVO",
-    "DESCRIPCIÓN / ASUNTO",
+    "DESCRIPCION",
     "QUIEN ORDENA",
     "USUARIO REGISTRA",
     "ESTADO",
-    "N° DOCUMENTO (CORRELATIVO)",
-    "ID SUPABASE"
+    "NUMERO DOCUMENTO",
+    "ID NUBE"
   ];
 
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
