@@ -4165,6 +4165,7 @@
     async function saveDocRecord() {
       const conf = TABLES_CONFIG[currentTable];
       const payload = {};
+      let cipParaPlantilla = '';
 
       if (editingId && !isUserAdmin()) {
         alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede modificar registros existentes.');
@@ -4205,9 +4206,7 @@
         payload.usuario_registra = getUsuarioRegistraNombre();
 
         const inputNom = document.getElementById('f_grado_apellidos_nombres');
-        if (inputNom && inputNom.getAttribute('data-cip')) {
-          payload.cip = inputNom.getAttribute('data-cip');
-        }
+        cipParaPlantilla = (inputNom && inputNom.getAttribute('data-cip')) ? inputNom.getAttribute('data-cip') : '';
       } else if (conf.isUserTable) {
         if (!isUserAdmin()) {
           alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede gestionar usuarios.');
@@ -4291,7 +4290,8 @@
         await loadAllBadges();
 
         if (conf.isOrdenReincorporacion) {
-          displayReincorporacionPreview(payload);
+          const previewItem = Object.assign({}, payload, { cip: cipParaPlantilla });
+          displayReincorporacionPreview(previewItem);
         }
       } catch (err) {
         alert('Error al guardar: ' + err.message);
