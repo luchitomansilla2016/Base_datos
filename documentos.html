@@ -3022,10 +3022,11 @@
     async function loadPersonalCatalogDoc() {
       if (personalCatalogDoc && personalCatalogDoc.length > 0) return;
       try {
-        const res = await fetch(`${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=id,cip,grado,apellidos_y_nombres,lista_de_revista,unidad_de_origen&order=id.asc`, {
+        const res = await fetch(`${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=id,CIP,GRADO,APELLIDOS%20Y%20NOMBRES,LISTA%20DE%20REVISTA,UNIDAD%20DE%20ORIGEN&order=id.asc`, {
           headers: {
             'apikey': PERSONAL_SUPABASE_KEY,
-            'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY
+            'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY,
+            'Range': '0-4999'
           }
         });
         if (res.ok) {
@@ -3064,8 +3065,8 @@
       }
 
       const matches = personalCatalogDoc.filter(p => {
-        const cip = String(p.cip || p.CIP || '');
-        const nom = normalizeSearchText(p.apellidos_y_nombres || p['APELLIDOS Y NOMBRES'] || '');
+        const cip = String(p.CIP || p.cip || '');
+        const nom = normalizeSearchText(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '');
         return cip.includes(q) || nom.includes(q);
       }).slice(0, 30);
 
@@ -3076,10 +3077,10 @@
       }
 
       dropEl.innerHTML = matches.map((p, idx) => {
-        const cip = p.cip || p.CIP || '---';
-        const grd = p.grado || p.GRADO || '';
-        const nom = p.apellidos_y_nombres || p['APELLIDOS Y NOMBRES'] || '';
-        const lRevista = p.lista_de_revista || p['LISTA DE REVISTA'] || p.lista_revista || p.unidad_de_origen || p['UNIDAD DE ORIGEN'] || '';
+        const cip = p.CIP || p.cip || '---';
+        const grd = p.GRADO || p.grado || '';
+        const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const lRevista = p['LISTA DE REVISTA'] || p.lista_de_revista || p.lista_revista || p['UNIDAD DE ORIGEN'] || p.unidad_de_origen || '';
         const fullName = `${grd} ${nom}`.trim();
         const safeNom = encodeURIComponent(fullName);
         const safeDestino = encodeURIComponent(lRevista);
@@ -3952,7 +3953,7 @@
         container.innerHTML = `
           <div class="form-group">
             <label>N&uacute;mero de Documento</label>
-            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="Ej. 067-2026" />
+            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al guardar si se deja vacío" />
           </div>
           <div class="form-group">
             <label>Fecha del Documento</label>
@@ -4117,7 +4118,21 @@
         payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
         payload.usuario_registra = getUsuarioRegistraNombre();
       } else if (conf.isOrdenReincorporacion) {
-        payload.numero_documento = document.getElementById('f_numero_documento').value.trim();
+        let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
+        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
+          const nextCorr = await getNextDocCorrelative('orden_reincorporacion');
+          const m = nextCorr.match(/(\d+)/);
+          const numPad = m ? m[1].padStart(3, '0') : '001';
+          const yearVal = new Date().getFullYear();
+          rawNum = `ORDEN DE REINCORPORACIÓN N°${numPad}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+        } else if (!rawNum.toUpperCase().includes('COMOPPOL')) {
+          const mNum = rawNum.match(/(\d+)/);
+          const mYear = rawNum.match(/-(\d{4})/);
+          const numPadded = mNum ? mNum[1].padStart(3, '0') : '001';
+          const yearVal = mYear ? mYear[1] : String(new Date().getFullYear());
+          rawNum = `ORDEN DE REINCORPORACIÓN N°${numPadded}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+        }
+        payload.numero_documento = rawNum;
         payload.fecha_documento = document.getElementById('f_fecha_documento').value;
         payload.descripcion = document.getElementById('f_descripcion').value.trim() || 'SE REINCORPORA AL TERMINO DE ';
         payload.grado_apellidos_nombres = (document.getElementById('f_grado_apellidos_nombres')?.value || '').trim() || null;
