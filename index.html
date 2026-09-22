@@ -1193,7 +1193,7 @@
     .orden-sign-name {
       font-weight: bold;
       font-size: 8pt !important;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.01em;
     }
     .orden-sign-grade {
@@ -7464,6 +7464,64 @@
       updateOrdenSigner();
     }
 
+    function formatNombrePostFirma(rawName) {
+      if (!rawName) return 'Ricky Florian CISNEROS APAZA';
+      let clean = String(rawName).trim().replace(/\s+/g, ' ');
+      const up = clean.toUpperCase();
+
+      if (up.includes('CISNEROS') && up.includes('APAZA')) {
+        return 'Ricky Florian CISNEROS APAZA';
+      }
+      if (up.includes('GONZALES') && up.includes('QUINTERO')) {
+        return 'Jose Luis GONZALES QUINTERO';
+      }
+      if (up.includes('VILCA') && up.includes('CHAVEZ')) {
+        return 'Edwin Homero VILCA CHAVEZ';
+      }
+      if (up.includes('ROLDAN') && up.includes('ARGANDOÑA')) {
+        return 'Francisco Gabriel ROLDAN ARGANDOÑA';
+      }
+      if (up.includes('MANSILLA') && up.includes('SANTA MARIA')) {
+        return 'Jose Luis MANSILLA SANTA MARIA';
+      }
+
+      const words = clean.split(' ');
+      if (words.length === 1) return words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
+      
+      const toTitle = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+      const knownGivenNames = new Set([
+        'JOSE', 'LUIS', 'RICKY', 'FLORIAN', 'EDWIN', 'HOMERO', 'FRANCISCO', 'GABRIEL',
+        'JUAN', 'CARLOS', 'JORGE', 'MANUEL', 'CESAR', 'MIGUEL', 'ANGEL', 'VICTOR',
+        'RAUL', 'PEDRO', 'MARCO', 'ANTONIO', 'DAVID', 'DANIEL', 'OSCAR', 'FERNANDO',
+        'HERNAN', 'WALTER', 'EDGAR', 'RICHARD', 'ELMER', 'JAVIER', 'ROBERTO', 'JULIO',
+        'ALEX', 'CHRISTIAN', 'CRISTIAN', 'DIEGO', 'ALBERTO', 'ARTURO', 'SERGIO'
+      ]);
+
+      if (words.length >= 4) {
+        const lastTwoAreGiven = knownGivenNames.has(words[words.length - 2].toUpperCase()) && knownGivenNames.has(words[words.length - 1].toUpperCase());
+        const firstTwoAreGiven = knownGivenNames.has(words[0].toUpperCase()) && knownGivenNames.has(words[1].toUpperCase());
+
+        if (lastTwoAreGiven && !firstTwoAreGiven) {
+          const givenNames = words.slice(-2).map(toTitle).join(' ');
+          const surnames = words.slice(0, -2).map(w => w.toUpperCase()).join(' ');
+          return `${givenNames} ${surnames}`;
+        } else {
+          const givenNames = words.slice(0, 2).map(toTitle).join(' ');
+          const surnames = words.slice(2).map(w => w.toUpperCase()).join(' ');
+          return `${givenNames} ${surnames}`;
+        }
+      } else if (words.length === 3) {
+        const lastIsGiven = knownGivenNames.has(words[2].toUpperCase());
+        if (lastIsGiven) {
+          return `${toTitle(words[2])} ${words[0].toUpperCase()} ${words[1].toUpperCase()}`;
+        } else {
+          return `${toTitle(words[0])} ${words[1].toUpperCase()} ${words[2].toUpperCase()}`;
+        }
+      } else {
+        return `${toTitle(words[0])} ${words[1].toUpperCase()}`;
+      }
+    }
+
     function updateOrdenSigner() {
       const sel = document.getElementById('ordenJefeSelect');
       if (!sel || !jefesList.length) return;
@@ -7477,7 +7535,7 @@
       const crg = j.CARGO || j.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO';
 
       document.querySelectorAll('.orden-val-signercip').forEach(el => el.textContent = cipFormatted);
-      document.querySelectorAll('.orden-val-signername').forEach(el => el.textContent = nom);
+      document.querySelectorAll('.orden-val-signername').forEach(el => el.textContent = formatNombrePostFirma(nom));
       document.querySelectorAll('.orden-val-signergrade').forEach(el => el.textContent = grd);
       document.querySelectorAll('.orden-val-signercargo').forEach(el => el.textContent = crg);
     }

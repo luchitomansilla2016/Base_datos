@@ -1335,7 +1335,7 @@
     .orden-sign-name {
       font-weight: bold;
       font-size: 8pt !important;
-      text-transform: uppercase;
+      text-transform: none;
       letter-spacing: 0.01em;
     }
     .orden-sign-grade {
@@ -4406,7 +4406,7 @@
       const crg = j.CARGO || j.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO';
 
       document.querySelectorAll('.orden-val-signercip').forEach(el => el.textContent = cipFormatted);
-      document.querySelectorAll('.orden-val-signername').forEach(el => el.textContent = nom);
+      document.querySelectorAll('.orden-val-signername').forEach(el => el.textContent = formatNombrePostFirma(nom));
       document.querySelectorAll('.orden-val-signergrade').forEach(el => el.textContent = grd);
       document.querySelectorAll('.orden-val-signercargo').forEach(el => el.textContent = crg);
     }
