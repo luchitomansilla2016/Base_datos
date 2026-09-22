@@ -5188,6 +5188,23 @@ MOTIVO: ${motivoText}`;
     function displayReincorporacionPreview(item) {
       currentReincorpData = item;
       populateReincorpJefesSelect();
+      if (item && item.quien_ordena) {
+        const qUpper = String(item.quien_ordena).toUpperCase();
+        const sel = document.getElementById('reincorpJefeSelect');
+        if (sel && jefesList && jefesList.length > 0) {
+          const matchIdx = jefesList.findIndex(j => {
+            const jNom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').toUpperCase();
+            const jCar = String(j.CARGO || j.cargo || '').toUpperCase();
+            const jCip = String(j.CIP || j.cip || '');
+            return (jNom && (qUpper.includes(jNom) || jNom.includes(qUpper))) || 
+                   (jCar && (qUpper.includes(jCar) || jCar.includes(qUpper))) || 
+                   (jCip && qUpper.includes(jCip));
+          });
+          if (matchIdx >= 0) {
+            sel.value = String(matchIdx);
+          }
+        }
+      }
       const signer = getSelectedReincorpSigner();
       const container = document.getElementById('reincorpSingleSheetContainer');
       if (container) {

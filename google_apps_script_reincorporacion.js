@@ -431,6 +431,111 @@ function formatNombrePostFirma(rawName) {
 }
 
 /**
+ * Resuelve y formatea automáticamente los datos del firmante para la post-firma
+ * a partir de lo registrado en la columna QUIEN ORDENA / QUIEN AUTORIZA (Col I / rowVals[8])
+ */
+function resolverFirmante(quienOrdenaRaw) {
+  const text = String(quienOrdenaRaw || "").trim();
+  const up = text.toUpperCase();
+
+  // 1. Catálogo oficial de Jefes de la REGPOL Huánuco por palabras clave
+  if (up.includes("GONZALES") || up.includes("QUINTERO") || up.includes("272624") || up.includes("JEFE REGPOL")) {
+    return {
+      cip: "272624",
+      grado: "GRAL PNP",
+      nombres: "Jose Luis GONZALES QUINTERO",
+      cargo: "JEFE REGPOL HUANUCO"
+    };
+  }
+  if (up.includes("VILCA") || up.includes("CHAVEZ") || up.includes("297710") || up.includes("ESTADO MAYOR")) {
+    return {
+      cip: "297710",
+      grado: "CRNL PNP",
+      nombres: "Edwin Homero VILCA CHAVEZ",
+      cargo: "JEFE (E) ESTADO MAYOR"
+    };
+  }
+  if (up.includes("ROLDAN") || up.includes("ARGANDOÑA") || up.includes("240807") || up.includes("EJECUTORA")) {
+    return {
+      cip: "240807",
+      grado: "CRNL PNP",
+      nombres: "Francisco Gabriel ROLDAN ARGANDOÑA",
+      cargo: "JEFE UNIDAD EJECUTORA N°035"
+    };
+  }
+  if (up.includes("CISNEROS") || up.includes("APAZA") || up.includes("30894512") || up.includes("340850") || up.includes("OFAD")) {
+    return {
+      cip: "30894512",
+      grado: "CMTE PNP",
+      nombres: "Ricky Florian CISNEROS APAZA",
+      cargo: "JEFE OFAD REGPOL HUANUCO"
+    };
+  }
+  if (up.includes("MANSILLA") || up.includes("SANTA MARIA") || up.includes("31390176")) {
+    return {
+      cip: "31390176",
+      grado: "ST2 PNP",
+      nombres: "Jose Luis MANSILLA SANTA MARIA",
+      cargo: "ENCARGADO DE RECURSOS HUMANOS"
+    };
+  }
+
+  // 2. Si viene texto estructurado libre (ej. "CMDTE PNP PEREZ GOMEZ JUAN - JEFE...")
+  if (text.length > 0) {
+    let cip = DEFAULT_FIRMANTE.cip;
+    let grado = DEFAULT_FIRMANTE.grado;
+    let nombres = DEFAULT_FIRMANTE.nombres;
+    let cargo = DEFAULT_FIRMANTE.cargo;
+
+    const mCip = text.match(/\b(\d{6,8})\b/);
+    if (mCip) cip = mCip[1];
+
+    let namePart = text;
+    if (text.includes("-")) {
+      const parts = text.split("-");
+      namePart = parts[0].trim();
+      cargo = parts.slice(1).join("-").trim().toUpperCase();
+    } else if (text.includes("/")) {
+      const parts = text.split("/");
+      namePart = parts[0].trim();
+      cargo = parts.slice(1).join("/").trim().toUpperCase();
+    }
+
+    const gradosList = [
+      "GRAL PNP", "CRNL PNP", "CMDTE PNP", "CMTE PNP", "MAYOR PNP", "MAY PNP",
+      "CAP PNP", "TNTE PNP", "ALFZ PNP", "SS PNP", "SB PNP", "ST1 PNP", "ST2 PNP", "ST3 PNP", "S1 PNP", "S2 PNP", "S3 PNP", "SO PNP"
+    ];
+    for (let i = 0; i < gradosList.length; i++) {
+      const g = gradosList[i];
+      if (namePart.toUpperCase().startsWith(g)) {
+        grado = g;
+        namePart = namePart.substring(g.length).trim();
+        break;
+      }
+    }
+
+    if (namePart) {
+      nombres = formatNombrePostFirma(namePart);
+    }
+
+    return {
+      cip: cip,
+      grado: grado,
+      nombres: nombres,
+      cargo: cargo
+    };
+  }
+
+  // 3. Fallback oficial
+  return {
+    cip: DEFAULT_FIRMANTE.cip,
+    grado: DEFAULT_FIRMANTE.grado,
+    nombres: formatNombrePostFirma(DEFAULT_FIRMANTE.nombres),
+    cargo: DEFAULT_FIRMANTE.cargo
+  };
+}
+
+/**
  * Genera el contenido HTML de una página A4 con 2 copias A5 idénticas
  */
 function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
@@ -479,7 +584,10 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
 
   const destino = String(rowVals[5] || "COMISARIA SECTORIAL HUANUCO").trim().toUpperCase();
   const procedencia = String(rowVals[6] || DEFAULT_PROCEDENCIA).trim().toUpperCase();
-  const nombreFirmante = formatNombrePostFirma(DEFAULT_FIRMANTE.nombres);
+  
+  // Extraer y resolver automáticamente los datos del firmante desde QUIEN ORDENA (Col I / rowVals[8])
+  const quienOrdenaRaw = String(rowVals[8] || "").trim();
+  const firmanteObj = resolverFirmante(quienOrdenaRaw);
 
   const obsHTML = "SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.";
 
@@ -544,10 +652,10 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
             <img src="${imgSelloOfad}" class="sello-redondo-img" alt="Sello OFAD" />
             <div class="sign-container">
               <div class="sign-dots"></div>
-              <div class="sign-info-main">CIP - ${DEFAULT_FIRMANTE.cip}</div>
-              <div class="sign-info-main" style="text-transform: none !important;">${nombreFirmante}</div>
-              <div class="sign-info-main">${DEFAULT_FIRMANTE.grado}</div>
-              <div class="sign-info-cargo">${DEFAULT_FIRMANTE.cargo}</div>
+              <div class="sign-info-main">CIP - ${firmanteObj.cip}</div>
+              <div class="sign-info-main" style="text-transform: none !important;">${firmanteObj.nombres}</div>
+              <div class="sign-info-main">${firmanteObj.grado}</div>
+              <div class="sign-info-cargo">${firmanteObj.cargo}</div>
             </div>
           </div>
         </div>
@@ -612,10 +720,10 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
             <img src="${imgSelloOfad}" class="sello-redondo-img" alt="Sello OFAD" />
             <div class="sign-container">
               <div class="sign-dots"></div>
-              <div class="sign-info-main">CIP - ${DEFAULT_FIRMANTE.cip}</div>
-              <div class="sign-info-main" style="text-transform: none !important;">${nombreFirmante}</div>
-              <div class="sign-info-main">${DEFAULT_FIRMANTE.grado}</div>
-              <div class="sign-info-cargo">${DEFAULT_FIRMANTE.cargo}</div>
+              <div class="sign-info-main">CIP - ${firmanteObj.cip}</div>
+              <div class="sign-info-main" style="text-transform: none !important;">${firmanteObj.nombres}</div>
+              <div class="sign-info-main">${firmanteObj.grado}</div>
+              <div class="sign-info-cargo">${firmanteObj.cargo}</div>
             </div>
           </div>
         </div>
