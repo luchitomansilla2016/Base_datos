@@ -81,6 +81,18 @@
       position: relative;
     }
 
+    /* ENCABEZADO MEMBRETE OFICIAL */
+    .header-membrete-box {
+      margin-bottom: 2px;
+      display: flex;
+      justify-content: flex-start;
+    }
+    .membrete-img {
+      width: 155px;
+      height: auto;
+      display: block;
+    }
+
     /* TÍTULO PRINCIPAL DE LA ORDEN */
     .doc-title-container {
       text-align: center;
@@ -242,7 +254,7 @@
   <div class="controls-toolbar">
     <div>
       <h2>📄 Muestra de Prueba: Orden de Reincorporación (2 Copias en Hoja A4)</h2>
-      <div style="font-size: 12px; color: #555;">Sin membrete superior y sin sello redondo según lo solicitado</div>
+      <div style="font-size: 12px; color: #555;">Con sello membrete oficial en la parte superior izquierda</div>
     </div>
     <button class="btn-print" onclick="window.print()">
       <span>🖨️</span> Imprimir / Guardar como PDF
@@ -255,6 +267,11 @@
     <!-- ===================== COPIA 1 (ORIGINAL - SUPERIOR) ===================== -->
     <div class="orden-card">
       <div>
+        <!-- Sello Membrete Oficial en la parte superior izquierda -->
+        <div class="header-membrete-box">
+          <img src="membrete_oficial_pnp.png" class="membrete-img" alt="Sello Membrete PNP" />
+        </div>
+
         <!-- Título Numerado -->
         <div class="doc-title-container">
           <div class="doc-title">
@@ -326,6 +343,11 @@
     <!-- ===================== COPIA 2 (COPIA - INFERIOR) ===================== -->
     <div class="orden-card">
       <div>
+        <!-- Sello Membrete Oficial en la parte superior izquierda -->
+        <div class="header-membrete-box">
+          <img src="membrete_oficial_pnp.png" class="membrete-img" alt="Sello Membrete PNP" />
+        </div>
+
         <!-- Título Numerado -->
         <div class="doc-title-container">
           <div class="doc-title">
