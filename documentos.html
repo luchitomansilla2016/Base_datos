@@ -4157,6 +4157,8 @@
         }
       }
 
+      const firmantesOptions = getFirmantesOptionsHtml();
+
       if (conf.isOrdenIncorporacion) {
         let numDocVal = existing.numero_documento || '';
         let descVal = existing.descripcion || 'SE INCORPORA POR ';
@@ -4199,9 +4201,12 @@
             <input id="f_destino" class="form-control" type="text" autocomplete="off" placeholder="Ej. OFAD REGPOL HUÁNUCO / COMISARÍA HUÁNUCO" value="${existing.destino || ''}" oninput="filterUnidadesDocDropdown(this)" onfocus="showUnidadesDocDropdown(this)" onkeydown="navigateUnidadesDocDropdown(event, this)" required />
             <div id="f_destino_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
           </div>
-          <div class="form-group">
-            <label>Quien Ordena</label>
-            <input id="f_quien_ordena" class="form-control" type="text" placeholder="Ej. CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD" value="${existing.quien_ordena || ''}" />
+          <div class="form-group" style="position:relative;">
+            <label>Quien Ordena / Dispone</label>
+            <input id="f_quien_ordena" class="form-control" type="text" list="firmantesIncorpDatalist" placeholder="Seleccione o escriba quien ordena..." value="${existing.quien_ordena || ''}" />
+            <datalist id="firmantesIncorpDatalist">
+              ${firmantesOptions}
+            </datalist>
           </div>
           <div class="form-group">
             <label>Usuario que Registra</label>
@@ -4215,7 +4220,6 @@
         let numDocVal = existing.numero_documento || '';
         let descVal = existing.descripcion || 'SE REINCORPORA AL TERMINO DE ';
         let procVal = existing.unidad_procedencia || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP';
-        let firmantesOptions = getFirmantesOptionsHtml();
 
         container.innerHTML = `
           <div style="background:#e8f2ec; padding:10px 14px; border-radius:8px; border:1px solid #cce2d4; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -4899,20 +4903,37 @@
       renderJefesAdminTable();
     }
 
-    function populateJefesSelect() {
+    function populateJefesSelect(quienOrdenaParam) {
+      const targetQuienOrdena = quienOrdenaParam || (currentOrdenData ? currentOrdenData.quien_ordena : '');
       const sel = document.getElementById('ordenJefeSelect');
       if (sel) {
-        const prevVal = sel.value;
         sel.innerHTML = jefesList.map((j, idx) => {
           const nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
           const grd = j.GRADO || j.grado || 'PNP';
           const crg = j.CARGO || j.cargo || 'JEFE';
           return `<option value="${idx}">${grd} ${nom} - ${crg}</option>`;
         }).join('');
-        if (prevVal !== '' && parseInt(prevVal, 10) < jefesList.length) {
-          sel.value = prevVal;
+
+        if (targetQuienOrdena) {
+          const qUpper = String(targetQuienOrdena).toUpperCase();
+          const matchIdx = jefesList.findIndex(j => {
+            const jNom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').toUpperCase();
+            const jCip = String(j.CIP || j.cip || '');
+            const jCrg = String(j.CARGO || j.cargo || '').toUpperCase();
+            return (jNom && qUpper.includes(jNom)) || (jCip && qUpper.includes(jCip)) || (jCrg && qUpper.includes(jCrg));
+          });
+          if (matchIdx >= 0) {
+            sel.value = String(matchIdx);
+          } else {
+            const res = resolverFirmante(targetQuienOrdena);
+            const opt = document.createElement('option');
+            opt.value = 'custom';
+            opt.textContent = `${res.grado} ${res.nombres} - ${res.cargo}`;
+            opt.selected = true;
+            sel.appendChild(opt);
+          }
         }
-        updateOrdenSigner();
+        updateOrdenSigner(targetQuienOrdena);
       }
 
       const selOfc = document.getElementById('oficioJefeSelect');
@@ -4934,17 +4955,34 @@
       }
     }
 
-    function updateOrdenSigner() {
+    function updateOrdenSigner(quienOrdenaFallback) {
       const sel = document.getElementById('ordenJefeSelect');
-      if (!sel || !jefesList.length) return;
-      const idx = parseInt(sel.value, 10) || 0;
-      const j = jefesList[idx] || jefesList[0];
-      if (!j) return;
-      const rawCip = j.CIP || j.cip || '31343925';
+      if (!sel) return;
+
+      let rawCip = '340850';
+      let nom = 'Ricky Florian CISNEROS APAZA';
+      let grd = 'CMDTE PNP';
+      let crg = 'JEFE OFAD REGPOL HUANUCO';
+
+      if (sel.value === 'custom') {
+        const qTarget = quienOrdenaFallback || (currentOrdenData ? currentOrdenData.quien_ordena : '');
+        const res = resolverFirmante(qTarget);
+        rawCip = res.cip;
+        nom = res.nombres;
+        grd = res.grado;
+        crg = res.cargo;
+      } else if (jefesList.length > 0) {
+        const idx = parseInt(sel.value, 10) || 0;
+        const j = jefesList[idx] || jefesList[0];
+        if (j) {
+          rawCip = j.CIP || j.cip || '340850';
+          nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || 'Ricky Florian CISNEROS APAZA';
+          grd = j.GRADO || j.grado || 'CMDTE PNP';
+          crg = j.CARGO || j.cargo || 'JEFE OFAD REGPOL HUANUCO';
+        }
+      }
+
       const cipFormatted = String(rawCip).trim().toUpperCase().startsWith('CIP') ? String(rawCip).trim() : `CIP ${String(rawCip).trim()}`;
-      const nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || 'Luis Enrique VERAMENDI MAZZA';
-      const grd = j.GRADO || j.grado || 'ST2 PNP';
-      const crg = j.CARGO || j.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO';
 
       document.querySelectorAll('.orden-val-signercip').forEach(el => el.textContent = cipFormatted);
       document.querySelectorAll('.orden-val-signername').forEach(el => el.textContent = formatNombrePostFirma(nom));
@@ -5327,7 +5365,7 @@
         }
       });
 
-      populateJefesSelect();
+      populateJefesSelect(data.quien_ordena);
       document.getElementById('ordenPreviewModal').classList.add('open');
     }
 
