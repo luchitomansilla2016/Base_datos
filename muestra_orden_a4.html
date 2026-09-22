@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Muestra Oficial - Orden de Incorporación / Reincorporación (2 Copias A5 en A4)</title>
+  <title>Muestra Oficial de Prueba - Orden de Incorporación / Reincorporación (2 Copias A5 en A4)</title>
   <style>
     /* RESET & ESTILOS BASE */
     * {
@@ -12,8 +12,8 @@
       padding: 0;
     }
     body {
-      font-family: 'Arial', 'Helvetica', sans-serif;
-      background: #3a4149;
+      font-family: Arial, sans-serif;
+      background: #2f3640;
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -21,31 +21,40 @@
       color: #000;
     }
 
-    /* BARRA SUPERIOR FLOTANTE DE CONTROL */
+    /* BARRA SUPERIOR DE PRUEBAS / CONTROL (NO SE IMPRIME) */
     .controls-toolbar {
       width: 210mm;
       background: #ffffff;
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .toolbar-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 15px;
+      border-bottom: 1.5px solid #e1e8e4;
+      padding-bottom: 10px;
     }
-    .controls-toolbar h2 {
-      font-size: 15px;
+    .toolbar-header h2 {
+      font-size: 16px;
       color: #0b5a3c;
       font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .btn-print {
       background: #0b5a3c;
       color: #ffffff;
       border: none;
-      padding: 10px 20px;
+      padding: 9px 18px;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
@@ -57,7 +66,61 @@
       background: #08432c;
     }
 
-    /* HOJA A4 (210mm x 297mm) DIVIDIDA EXACTAMENTE EN 2 PARTES DE 148.5mm */
+    /* FORMULARIO DE PRUEBA DE CAMPOS DE LA HOJA DE CÁLCULO */
+    .test-form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      background: #f4f8f5;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #c8ded1;
+    }
+    .test-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .test-input-group label {
+      font-size: 11px;
+      font-weight: bold;
+      color: #18372b;
+    }
+    .test-input-group input, .test-input-group select {
+      height: 30px;
+      padding: 4px 8px;
+      font-size: 11.5px;
+      border: 1.5px solid #b2cfbe;
+      border-radius: 5px;
+      outline: none;
+      background: #fff;
+    }
+    .test-input-group input:focus, .test-input-group select:focus {
+      border-color: #0b5a3c;
+    }
+    .test-presets-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-preset {
+      background: #e8f2ec;
+      border: 1px solid #0b5a3c;
+      color: #0b5a3c;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-preset:hover {
+      background: #0b5a3c;
+      color: #fff;
+    }
+
+    /* HOJA FÍSICA A4 (210mm x 297mm) DIVIDIDA EXACTAMENTE EN 2 PARTES DE 148.5mm */
     .a4-page {
       width: 210mm;
       height: 297mm;
@@ -65,7 +128,7 @@
       max-height: 297mm;
       background: #ffffff;
       padding: 0;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
@@ -78,7 +141,7 @@
       height: 148.5mm;
       max-height: 148.5mm;
       box-sizing: border-box;
-      /* Márgenes de cada copia: Superior 1.0cm, Derecha 1.2cm, Inferior 0cm, Izquierdo 2.5cm */
+      /* Márgenes oficiales: Superior 1.0cm, Derecha 1.2cm, Inferior 0cm, Izquierdo 2.5cm */
       padding: 10mm 12mm 0mm 25mm;
       display: flex;
       flex-direction: column;
@@ -195,8 +258,8 @@
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
-      margin-top: 64px; /* Bajado 2 espacios adicionales */
-      margin-right: 23px; /* Movido 1 espacio adicional a la izquierda */
+      margin-top: 64px;
+      margin-right: 23px;
     }
     .footer-sign-block.has-cargo {
       justify-content: space-between;
@@ -206,10 +269,10 @@
       align-items: flex-start;
     }
     .sello-cargo-img {
-      width: 58mm; /* Ampliado 0.5cm */
+      width: 58mm;
       height: auto;
       display: block;
-      margin-top: -8mm; /* Bajado un espacio */
+      margin-top: -8mm;
       margin-left: 2mm;
     }
     .sello-sign-wrapper {
@@ -223,8 +286,8 @@
       border-radius: 50%;
       object-fit: contain;
       display: block;
-      margin-right: -1px; /* Pegado directamente al extremo izquierdo de la línea de firma */
-      margin-top: -15mm; /* El centro derecho del sello de 3cm queda exactamente a la altura de la línea */
+      margin-right: -1px;
+      margin-top: -15mm;
       position: relative;
       z-index: 2;
     }
@@ -273,7 +336,7 @@
         padding: 0;
       }
       .controls-toolbar {
-        display: none;
+        display: none !important;
       }
       .a4-page {
         box-shadow: none;
@@ -287,15 +350,55 @@
 </head>
 <body>
 
-  <!-- BARRA DE ACCIÓN -->
+  <!-- BARRA DE ACCIÓN Y SIMULADOR DE PRUEBAS DE HOJA DE CÁLCULO -->
   <div class="controls-toolbar">
-    <div>
-      <h2>📄 Muestra de Prueba: Orden de Reincorporación (2 Copias en Hoja A4)</h2>
-      <div style="font-size: 12px; color: #555;">Con sello membrete oficial en la parte superior izquierda</div>
+    <div class="toolbar-header">
+      <div>
+        <h2><span>🧪</span> Simulador de Prueba: Llenado desde Hoja de Cálculo</h2>
+        <div style="font-size: 12px; color: #555;">Prueba cómo se completan ambas copias A5 con datos reales (sin tocar la base de datos oficial)</div>
+      </div>
+      <button class="btn-print" onclick="window.print()">
+        <span>🖨️</span> Imprimir Hoja A4
+      </button>
     </div>
-    <button class="btn-print" onclick="window.print()">
-      <span>🖨️</span> Imprimir / Guardar como PDF
-    </button>
+
+    <!-- Controles para probar campos en vivo -->
+    <div class="test-form-grid">
+      <div class="test-input-group">
+        <label>Correlativo (Número):</label>
+        <input type="text" id="in_num" value="001" oninput="actualizarCamposEnVivo()" />
+      </div>
+      <div class="test-input-group">
+        <label>CIP:</label>
+        <input type="text" id="in_cip" value="31245678" oninput="actualizarCamposEnVivo()" />
+      </div>
+      <div class="test-input-group">
+        <label>Grado y Nombres:</label>
+        <input type="text" id="in_nombres" value="ST3 PNP LOPEZ SANCHEZ PEDRO ALBERTO" oninput="actualizarCamposEnVivo()" />
+      </div>
+      <div class="test-input-group">
+        <label>Motivo:</label>
+        <input type="text" id="in_motivo" value="VACACIONES" oninput="actualizarCamposEnVivo()" />
+      </div>
+      <div class="test-input-group" style="grid-column: span 2;">
+        <label>Unidad de Procedencia:</label>
+        <input type="text" id="in_procedencia" value="COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD" oninput="actualizarCamposEnVivo()" />
+      </div>
+      <div class="test-input-group" style="grid-column: span 2;">
+        <label>Unidad de Destino:</label>
+        <input type="text" id="in_destino" value="COMISARIA SECTORIAL HUANUCO" oninput="actualizarCamposEnVivo()" />
+      </div>
+    </div>
+
+    <div class="test-presets-row">
+      <div style="display:flex; gap:6px; align-items:center;">
+        <span style="font-size:11.5px; font-weight:bold; color:#18372b;">Ejemplos rápidos:</span>
+        <button class="btn-preset" onclick="cargarEjemplo(1)">👤 Ejemplo 1 (Vacaciones)</button>
+        <button class="btn-preset" onclick="cargarEjemplo(2)">👤 Ejemplo 2 (Permiso)</button>
+        <button class="btn-preset" onclick="cargarEjemplo(3)">👤 Ejemplo 3 (Comisión)</button>
+      </div>
+      <div style="font-size:11px; color:#666; font-style:italic;">* Al hacer clic en Imprimir, esta barra no saldrá en el papel.</div>
+    </div>
   </div>
 
   <!-- HOJA FÍSICA A4 -->
@@ -311,7 +414,7 @@
           </div>
           <div class="doc-title-container">
             <div class="doc-title">
-              ÓRDEN DE INCORPORACION N°(NUMERO GENERADO)-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+              ÓRDEN DE INCORPORACION N°<span class="val-num">001</span>-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
             </div>
           </div>
         </div>
@@ -321,27 +424,27 @@
           <tr>
             <td class="data-label">CIP</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">(CIP)</td>
+            <td class="data-val bold val-cip">31245678</td>
           </tr>
           <tr>
             <td class="data-label">APELLIDOS Y NOMBRES</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">(APELLIDOS Y NOMBRES)</td>
+            <td class="data-val bold val-nombres">ST3 PNP LOPEZ SANCHEZ PEDRO ALBERTO</td>
           </tr>
           <tr>
             <td class="data-label">PROCEDENCIA</td>
             <td class="data-sep">:</td>
-            <td class="data-val">(PROCEDENCIA)</td>
+            <td class="data-val val-procedencia">COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD</td>
           </tr>
           <tr>
             <td class="data-label">UNIDAD DE DESTINO</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">(DESTINO)</td>
+            <td class="data-val bold val-destino">COMISARIA SECTORIAL HUANUCO</td>
           </tr>
           <tr>
             <td class="data-label">MOTIVO</td>
             <td class="data-sep">:</td>
-            <td class="data-val">AL TÉRMINO DE: <b>(MOTIVO)</b></td>
+            <td class="data-val">AL TÉRMINO DE: <b class="val-motivo">VACACIONES</b></td>
           </tr>
           <tr>
             <td class="data-label">OBSERVACIÓN</td>
@@ -356,7 +459,7 @@
       <!-- Pie de Página -->
       <div>
         <div class="divider-line"></div>
-        <div class="date-row">HUÁNUCO, (DIA, FECHA, MES Y AÑO)</div>
+        <div class="date-row">HUÁNUCO, <span class="val-fecha">21 DE SETIEMBRE DE 2026</span></div>
 
         <div class="footer-sign-block">
           <!-- Sello Redondo Oficial de 3cm pegado por su extremo derecho a la línea de post-firma -->
@@ -364,10 +467,10 @@
             <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello Redondo Oficial" />
             <div class="sign-container">
               <div class="sign-dots"></div>
-              <div class="sign-info-main">CIP - (CIP)</div>
-              <div class="sign-info-main">APELLIDOS Y NOMBRES</div>
-              <div class="sign-info-main">GRADO</div>
-              <div class="sign-info-cargo">CARGO</div>
+              <div class="sign-info-main val-firmante-cip">CIP - 30894512</div>
+              <div class="sign-info-main val-firmante-nombre">RICKY FLORIAN CISNEROS APAZA</div>
+              <div class="sign-info-main val-firmante-grado">CMTE PNP</div>
+              <div class="sign-info-cargo val-firmante-cargo">JEFE OFAD REGPOL HUANUCO</div>
             </div>
           </div>
         </div>
@@ -384,7 +487,7 @@
           </div>
           <div class="doc-title-container">
             <div class="doc-title">
-              ÓRDEN DE INCORPORACION N°(NUMERO GENERADO)-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+              ÓRDEN DE INCORPORACION N°<span class="val-num">001</span>-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
             </div>
           </div>
         </div>
@@ -394,27 +497,27 @@
           <tr>
             <td class="data-label">CIP</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">(CIP)</td>
+            <td class="data-val bold val-cip">31245678</td>
           </tr>
           <tr>
             <td class="data-label">APELLIDOS Y NOMBRES</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">(APELLIDOS Y NOMBRES)</td>
+            <td class="data-val bold val-nombres">ST3 PNP LOPEZ SANCHEZ PEDRO ALBERTO</td>
           </tr>
           <tr>
             <td class="data-label">PROCEDENCIA</td>
             <td class="data-sep">:</td>
-            <td class="data-val">(PROCEDENCIA)</td>
+            <td class="data-val val-procedencia">COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD</td>
           </tr>
           <tr>
             <td class="data-label">UNIDAD DE DESTINO</td>
             <td class="data-sep">:</td>
-            <td class="data-val bold">(DESTINO)</td>
+            <td class="data-val bold val-destino">COMISARIA SECTORIAL HUANUCO</td>
           </tr>
           <tr>
             <td class="data-label">MOTIVO</td>
             <td class="data-sep">:</td>
-            <td class="data-val">AL TÉRMINO DE: <b>(MOTIVO)</b></td>
+            <td class="data-val">AL TÉRMINO DE: <b class="val-motivo">VACACIONES</b></td>
           </tr>
           <tr>
             <td class="data-label">OBSERVACIÓN</td>
@@ -429,7 +532,7 @@
       <!-- Pie de Página -->
       <div>
         <div class="divider-line"></div>
-        <div class="date-row">HUÁNUCO, (DIA, FECHA, MES Y AÑO)</div>
+        <div class="date-row">HUÁNUCO, <span class="val-fecha">21 DE SETIEMBRE DE 2026</span></div>
 
         <div class="footer-sign-block has-cargo">
           <!-- Sello de Cargo únicamente en la segunda copia (inferior) -->
@@ -442,10 +545,10 @@
             <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello Redondo Oficial" />
             <div class="sign-container">
               <div class="sign-dots"></div>
-              <div class="sign-info-main">CIP - (CIP)</div>
-              <div class="sign-info-main">APELLIDOS Y NOMBRES</div>
-              <div class="sign-info-main">GRADO</div>
-              <div class="sign-info-cargo">CARGO</div>
+              <div class="sign-info-main val-firmante-cip">CIP - 30894512</div>
+              <div class="sign-info-main val-firmante-nombre">RICKY FLORIAN CISNEROS APAZA</div>
+              <div class="sign-info-main val-firmante-grado">CMTE PNP</div>
+              <div class="sign-info-cargo val-firmante-cargo">JEFE OFAD REGPOL HUANUCO</div>
             </div>
           </div>
         </div>
@@ -453,6 +556,52 @@
     </div>
 
   </div>
+
+  <script>
+    // Función para actualizar en vivo ambas copias A5
+    function actualizarCamposEnVivo() {
+      const num = document.getElementById('in_num').value || '001';
+      const cip = document.getElementById('in_cip').value || '---';
+      const nombres = document.getElementById('in_nombres').value || '---';
+      const procedencia = document.getElementById('in_procedencia').value || '---';
+      const destino = document.getElementById('in_destino').value || '---';
+      const motivo = document.getElementById('in_motivo').value || '---';
+
+      document.querySelectorAll('.val-num').forEach(el => el.textContent = num);
+      document.querySelectorAll('.val-cip').forEach(el => el.textContent = cip);
+      document.querySelectorAll('.val-nombres').forEach(el => el.textContent = nombres);
+      document.querySelectorAll('.val-procedencia').forEach(el => el.textContent = procedencia);
+      document.querySelectorAll('.val-destino').forEach(el => el.textContent = destino);
+      document.querySelectorAll('.val-motivo').forEach(el => el.textContent = motivo);
+    }
+
+    // Ejemplos de prueba rápidos
+    function cargarEjemplo(tipo) {
+      if (tipo === 1) {
+        document.getElementById('in_num').value = '015';
+        document.getElementById('in_cip').value = '31245678';
+        document.getElementById('in_nombres').value = 'ST3 PNP LOPEZ SANCHEZ PEDRO ALBERTO';
+        document.getElementById('in_procedencia').value = 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
+        document.getElementById('in_destino').value = 'COMISARIA SECTORIAL HUANUCO';
+        document.getElementById('in_motivo').value = 'VACACIONES';
+      } else if (tipo === 2) {
+        document.getElementById('in_num').value = '016';
+        document.getElementById('in_cip').value = '30998877';
+        document.getElementById('in_nombres').value = 'SB PNP ROMAN JUAREZ VICTOR ISMAEL';
+        document.getElementById('in_procedencia').value = 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
+        document.getElementById('in_destino').value = 'DEPINCRI HUANUCO';
+        document.getElementById('in_motivo').value = 'PERMISO A CUENTA DE VACACIONES';
+      } else if (tipo === 3) {
+        document.getElementById('in_num').value = '017';
+        document.getElementById('in_cip').value = '31554433';
+        document.getElementById('in_nombres').value = 'S1 PNP MAMANI QUISPE CARLOS ENRIQUE';
+        document.getElementById('in_procedencia').value = 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
+        document.getElementById('in_destino').value = 'SECESP REGPOL HUANUCO';
+        document.getElementById('in_motivo').value = 'COMISION DEL SERVICIO';
+      }
+      actualizarCamposEnVivo();
+    }
+  </script>
 
 </body>
 </html>
