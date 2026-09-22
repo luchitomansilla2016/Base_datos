@@ -4004,7 +4004,7 @@
           </div>
           <div class="form-group">
             <label>N&uacute;mero de Documento</label>
-            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al generar si se deja vacío" />
+            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al generar" readonly style="background:#f1f5f9; cursor:not-allowed;" />
           </div>
           <div class="form-group">
             <label>Fecha del Documento</label>
@@ -4031,14 +4031,17 @@
             <input id="f_grado_apellidos_nombres" class="form-control" type="text" autocomplete="off" placeholder="Escriba CIP o Apellidos (ej. 31343925 o MANSILLA)..." value="${existing.grado_apellidos_nombres || existing.grado_apellidos_nomnbres || ''}" oninput="filterPersonalReincorpDropdown(this)" onfocus="showPersonalReincorpDropdown(this)" onkeydown="navigatePersonalReincorpDropdown(event, this)" required />
             <div id="f_grado_apellidos_nombres_dropdown" class="autocomplete-dropdown" style="display:none; max-height:220px; overflow-y:auto;"></div>
           </div>
-          <div class="form-group">
-            <label>Unidad de Procedencia</label>
-            <input id="f_unidad_procedencia" class="form-control" type="text" placeholder="DIRREHUM PNP/DIVMRH-DIRREHUM PNP" value="${procVal}" />
-          </div>
           <div class="form-group" style="position:relative;">
             <label>Destino / Destinatario (Lista de Revista)</label>
             <input id="f_destino" class="form-control" type="text" autocomplete="off" placeholder="Ej. JEFE OFAD / COMISAR\u00cdA HU\u00c1NUCO" value="${existing.destino || ''}" oninput="filterUnidadesDocDropdown(this)" onfocus="showUnidadesDocDropdown(this)" onkeydown="navigateUnidadesDocDropdown(event, this)" required />
             <div id="f_destino_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
+          </div>
+          <div class="form-group">
+            <label>Unidad de Procedencia</label>
+            <select id="f_unidad_procedencia" class="form-control" style="font-weight:600; color:#0b5a3c; background:#fff;">
+              <option value="COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD" ${(!existing.unidad_procedencia || existing.unidad_procedencia.includes('COMOPPOL') || existing.unidad_procedencia.includes('OFAD')) ? 'selected' : ''}>COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD</option>
+              <option value="DIRREHUM PNP/DIVMRH-DIRREHUM PNP" ${(existing.unidad_procedencia && (existing.unidad_procedencia.includes('DIRREHUM') || existing.unidad_procedencia.includes('DIVMRH'))) ? 'selected' : ''}>DIRREHUM PNP/DIVMRH-DIRREHUM PNP</option>
+            </select>
           </div>
           <div class="form-group" style="position:relative;">
             <label>Quien Ordena / Dispone</label>
@@ -4200,7 +4203,7 @@
         payload.fecha_documento = document.getElementById('f_fecha_documento').value;
         payload.descripcion = document.getElementById('f_descripcion').value.trim() || 'SE REINCORPORA AL TERMINO DE ';
         payload.grado_apellidos_nombres = (document.getElementById('f_grado_apellidos_nombres')?.value || '').trim() || null;
-        payload.unidad_procedencia = (document.getElementById('f_unidad_procedencia')?.value || '').trim() || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP';
+        payload.unidad_procedencia = (document.getElementById('f_unidad_procedencia')?.value || '').trim() || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
         payload.destino = document.getElementById('f_destino').value.trim();
         payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
         payload.usuario_registra = getUsuarioRegistraNombre();
@@ -4366,7 +4369,7 @@
           cip: selCip,
           grado_apellidos_nombres: nombresVal || descVal,
           descripcion: descVal,
-          unidad_procedencia: document.getElementById('f_unidad_procedencia')?.value || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP',
+          unidad_procedencia: document.getElementById('f_unidad_procedencia')?.value || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD',
           destino: document.getElementById('f_destino')?.value || 'COMISARIA SECTORIAL HUANUCO',
           fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
           created_at: new Date().toISOString(),
