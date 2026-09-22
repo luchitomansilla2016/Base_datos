@@ -3084,12 +3084,14 @@
         const fullName = `${grd} ${nom}`.trim();
         const safeNom = encodeURIComponent(fullName);
         const safeDestino = encodeURIComponent(lRevista);
+        const safeCip = encodeURIComponent(cip);
 
         return `
           <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
                data-nom="${safeNom}" 
                data-destino="${safeDestino}" 
-               onmousedown="selectPersonalReincorpOption('${safeNom}', '${safeDestino}')" 
+               data-cip="${safeCip}" 
+               onmousedown="selectPersonalReincorpOption('${safeNom}', '${safeDestino}', '${safeCip}')" 
                style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
             <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">${grd} ${nom}</div>
             <div style="font-size:11px; color:#555; display:flex; gap:8px; margin-top:2px;">
@@ -3103,13 +3105,15 @@
       dropEl.style.display = 'block';
     }
 
-    function selectPersonalReincorpOption(encodedNom, encodedDestino) {
+    function selectPersonalReincorpOption(encodedNom, encodedDestino, encodedCip) {
       const nom = decodeURIComponent(encodedNom);
       const destino = decodeURIComponent(encodedDestino);
+      const cip = encodedCip ? decodeURIComponent(encodedCip) : '';
 
       const inputNom = document.getElementById('f_grado_apellidos_nombres');
       if (inputNom) {
         inputNom.value = nom;
+        if (cip && cip !== '---') inputNom.setAttribute('data-cip', cip);
         inputNom.dispatchEvent(new Event('input', { bubbles: true }));
         inputNom.dispatchEvent(new Event('change', { bubbles: true }));
       }
@@ -3905,6 +3909,36 @@
       const conf = TABLES_CONFIG[currentTable];
       const today = new Date().toISOString().split('T')[0];
 
+      const saveBtn = document.getElementById('btnSaveDoc');
+      const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
+      if (conf.isOrdenReincorporacion) {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
+          saveBtn.style.background = '#0b5a3c';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'inline-flex';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+        }
+      } else if (conf.isOrdenIncorporacion) {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128190; Guardar Registro';
+          saveBtn.style.background = '';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'inline-flex';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Ver / Imprimir Orden';
+        }
+      } else {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128190; Guardar Registro';
+          saveBtn.style.background = '';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'none';
+        }
+      }
+
       if (conf.isOrdenIncorporacion) {
         let numSugerido = existing.numero_documento || '';
         if (!numSugerido && currentData.length > 0) {
@@ -3962,9 +3996,15 @@
         let firmantesOptions = getFirmantesOptionsHtml();
 
         container.innerHTML = `
+          <div style="background:#e8f2ec; padding:10px 14px; border-radius:8px; border:1px solid #cce2d4; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <span style="font-weight:700; color:#0b5a3c; font-size:13px;">📑 Formulario de Orden de Reincorporación</span>
+            <button type="button" onclick="verOrdenFromDocModal(event)" style="background:#0b5a3c; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 4px rgba(11,90,60,0.25);">
+              👁️ Vista Previa A4
+            </button>
+          </div>
           <div class="form-group">
             <label>N&uacute;mero de Documento</label>
-            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al guardar si se deja vacío" />
+            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al generar si se deja vacío" />
           </div>
           <div class="form-group">
             <label>Fecha del Documento</label>
@@ -4163,6 +4203,11 @@
         payload.destino = document.getElementById('f_destino').value.trim();
         payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
         payload.usuario_registra = getUsuarioRegistraNombre();
+
+        const inputNom = document.getElementById('f_grado_apellidos_nombres');
+        if (inputNom && inputNom.getAttribute('data-cip')) {
+          payload.cip = inputNom.getAttribute('data-cip');
+        }
       } else if (conf.isUserTable) {
         if (!isUserAdmin()) {
           alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede gestionar usuarios.');
@@ -4244,11 +4289,21 @@
 
         await loadCurrentTableData();
         await loadAllBadges();
+
+        if (conf.isOrdenReincorporacion) {
+          displayReincorporacionPreview(payload);
+        }
       } catch (err) {
         alert('Error al guardar: ' + err.message);
       } finally {
         saveBtn.disabled = false;
-        saveBtn.innerHTML = '&#128190; Guardar Registro';
+        if (conf.isOrdenReincorporacion) {
+          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
+          saveBtn.style.background = '#0b5a3c';
+        } else {
+          saveBtn.innerHTML = '&#128190; Guardar Registro';
+          saveBtn.style.background = '';
+        }
       }
     }
 
@@ -4265,7 +4320,7 @@
       buildModalForm(found);
 
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (btnVerOrden) btnVerOrden.style.display = conf.isOrdenIncorporacion ? 'inline-flex' : 'none';
+      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenReincorporacion) ? 'inline-flex' : 'none';
 
       document.getElementById('docModal').classList.add('active');
     }
@@ -4290,13 +4345,28 @@
       }
 
       if (currentTable === 'orden_reincorporacion') {
+        const inputNom = document.getElementById('f_grado_apellidos_nombres');
+        let selCip = inputNom ? (inputNom.getAttribute('data-cip') || '') : '';
+        if (!selCip) selCip = cipVal;
+
+        let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
+        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
+          rawNum = `ORDEN DE REINCORPORACIÓN N°001-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+        } else if (!rawNum.toUpperCase().includes('COMOPPOL')) {
+          const mNum = rawNum.match(/(\d+)/);
+          const mYear = rawNum.match(/-(\d{4})/);
+          const numPadded = mNum ? mNum[1].padStart(3, '0') : '001';
+          const yearVal = mYear ? mYear[1] : String(new Date().getFullYear());
+          rawNum = `ORDEN DE REINCORPORACIÓN N°${numPadded}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+        }
+
         const reincorpData = {
           id: editingId || '',
-          numero_documento: numDoc,
-          cip: cipVal,
+          numero_documento: rawNum,
+          cip: selCip,
           grado_apellidos_nombres: nombresVal || descVal,
           descripcion: descVal,
-          unidad_procedencia: document.getElementById('f_unidad_procedencia')?.value || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD',
+          unidad_procedencia: document.getElementById('f_unidad_procedencia')?.value || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP',
           destino: document.getElementById('f_destino')?.value || 'COMISARIA SECTORIAL HUANUCO',
           fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
           created_at: new Date().toISOString(),
@@ -5354,6 +5424,16 @@ MOTIVO: ${motivoText}`;
       if (!cipVal && (item.descripcion || item.grado_apellidos_nombres)) {
         const m = (String(item.descripcion || '') + ' ' + String(item.grado_apellidos_nombres || '')).match(/\b(\d{8})\b/);
         if (m) cipVal = m[1];
+      }
+      if (!cipVal && personalCatalogDoc && personalCatalogDoc.length) {
+        const sNom = String(item.grado_apellidos_nombres || item.apellidos_nombres || item.descripcion || '').toUpperCase();
+        const foundP = personalCatalogDoc.find(p => {
+          const pNom = String(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '').toUpperCase();
+          return pNom && sNom.includes(pNom);
+        });
+        if (foundP) {
+          cipVal = foundP.CIP || foundP.cip || '';
+        }
       }
       if (!cipVal) cipVal = '---';
 
