@@ -4563,6 +4563,12 @@
           const parsed = JSON.parse(localSaved);
           if (Array.isArray(parsed) && parsed.length > 0) {
             jefesList = parsed;
+            jefesList.forEach(j => {
+              if (String(j.CARGO || j.cargo || '').trim() === 'JEFE OFAD') {
+                j.CARGO = 'JEFE OFAD REGPOL HUANUCO';
+                if (j.cargo) j.cargo = 'JEFE OFAD REGPOL HUANUCO';
+              }
+            });
             populateJefesSelect();
             return;
           }
@@ -5608,10 +5614,28 @@ MOTIVO: ${motivoText}`;
 
     function displayReincorporacionPreview(item) {
       currentReincorpData = item;
-      populateReincorpJefesSelect();
       let signer = null;
       if (item && item.quien_ordena && String(item.quien_ordena).trim()) {
         signer = resolverFirmante(item.quien_ordena);
+        const qUpper = String(item.quien_ordena).toUpperCase();
+        if (jefesList && jefesList.length > 0) {
+          const matchIdx = jefesList.findIndex(j => {
+            const jNom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').toUpperCase();
+            return jNom && (qUpper.includes(jNom) || jNom.includes(qUpper));
+          });
+          if (matchIdx >= 0) {
+            if (signer && signer.cargo) {
+              jefesList[matchIdx].CARGO = signer.cargo;
+            }
+          }
+        }
+      } else {
+        signer = getSelectedReincorpSigner();
+      }
+
+      populateReincorpJefesSelect();
+
+      if (item && item.quien_ordena) {
         const qUpper = String(item.quien_ordena).toUpperCase();
         const sel = document.getElementById('reincorpJefeSelect');
         if (sel && jefesList && jefesList.length > 0) {
@@ -5623,8 +5647,6 @@ MOTIVO: ${motivoText}`;
             sel.value = String(matchIdx);
           }
         }
-      } else {
-        signer = getSelectedReincorpSigner();
       }
 
       const container = document.getElementById('reincorpSingleSheetContainer');
