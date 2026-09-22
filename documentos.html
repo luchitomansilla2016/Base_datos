@@ -2005,7 +2005,7 @@
       font-size: 9pt;
       font-weight: bold;
       line-height: 1.1;
-      text-transform: uppercase;
+      text-transform: none;
       white-space: nowrap;
     }
     #reincorporacionPreviewModal .sign-info-cargo,
@@ -4899,13 +4899,80 @@ MOTIVO: ${motivoText}`;
       return `ÓRDEN DE REINCORPORACION N°${numStr}-${docYear}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
     }
 
-    function formatMotivoReincorp(rawMotivo) {
-      if (!rawMotivo) return 'SUS ATENCIONES MEDICAS';
-      let m = String(rawMotivo).trim().toUpperCase();
-      m = m.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*)?/i, '');
-      m = m.replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, '');
-      m = m.trim();
-      return m || 'SUS ATENCIONES MEDICAS';
+    function formatMotivoReincorp(rawDesc, rawMotivo) {
+      let str = String(rawDesc || '').trim();
+      str = str.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+DE\s*:?|AL\s*:?|POR\s*:?|CONFORME\s*:?)/i, '');
+      str = str.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*:?)?/i, '');
+      str = str.replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, '');
+      str = str.trim();
+
+      if (!str && rawMotivo) {
+        let m = String(rawMotivo || '').trim();
+        m = m.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+DE\s*:?|AL\s*:?|POR\s*:?|CONFORME\s*:?)/i, '');
+        m = m.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*:?)?/i, '');
+        m = m.replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, '');
+        str = m.trim();
+      }
+
+      return (str || 'SUS ATENCIONES MEDICAS').toUpperCase();
+    }
+
+    function formatNombrePostFirma(rawName) {
+      if (!rawName) return 'Ricky Florian CISNEROS APAZA';
+      let clean = String(rawName).trim().replace(/\s+/g, ' ');
+      const up = clean.toUpperCase();
+
+      if (up.includes('CISNEROS') && up.includes('APAZA')) {
+        return 'Ricky Florian CISNEROS APAZA';
+      }
+      if (up.includes('GONZALES') && up.includes('QUINTERO')) {
+        return 'Jose Luis GONZALES QUINTERO';
+      }
+      if (up.includes('VILCA') && up.includes('CHAVEZ')) {
+        return 'Edwin Homero VILCA CHAVEZ';
+      }
+      if (up.includes('ROLDAN') && up.includes('ARGANDOÑA')) {
+        return 'Francisco Gabriel ROLDAN ARGANDOÑA';
+      }
+      if (up.includes('MANSILLA') && up.includes('SANTA MARIA')) {
+        return 'Jose Luis MANSILLA SANTA MARIA';
+      }
+
+      const words = clean.split(' ');
+      if (words.length === 1) return words[0].charAt(0).toUpperCase() + words[0].slice(1).toLowerCase();
+      
+      const toTitle = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+      const knownGivenNames = new Set([
+        'JOSE', 'LUIS', 'RICKY', 'FLORIAN', 'EDWIN', 'HOMERO', 'FRANCISCO', 'GABRIEL',
+        'JUAN', 'CARLOS', 'JORGE', 'MANUEL', 'CESAR', 'MIGUEL', 'ANGEL', 'VICTOR',
+        'RAUL', 'PEDRO', 'MARCO', 'ANTONIO', 'DAVID', 'DANIEL', 'OSCAR', 'FERNANDO',
+        'HERNAN', 'WALTER', 'EDGAR', 'RICHARD', 'ELMER', 'JAVIER', 'ROBERTO', 'JULIO',
+        'ALEX', 'CHRISTIAN', 'CRISTIAN', 'DIEGO', 'ALBERTO', 'ARTURO', 'SERGIO'
+      ]);
+
+      if (words.length >= 4) {
+        const lastTwoAreGiven = knownGivenNames.has(words[words.length - 2].toUpperCase()) && knownGivenNames.has(words[words.length - 1].toUpperCase());
+        const firstTwoAreGiven = knownGivenNames.has(words[0].toUpperCase()) && knownGivenNames.has(words[1].toUpperCase());
+
+        if (lastTwoAreGiven && !firstTwoAreGiven) {
+          const givenNames = words.slice(-2).map(toTitle).join(' ');
+          const surnames = words.slice(0, -2).map(w => w.toUpperCase()).join(' ');
+          return `${givenNames} ${surnames}`;
+        } else {
+          const givenNames = words.slice(0, 2).map(toTitle).join(' ');
+          const surnames = words.slice(2).map(w => w.toUpperCase()).join(' ');
+          return `${givenNames} ${surnames}`;
+        }
+      } else if (words.length === 3) {
+        const lastIsGiven = knownGivenNames.has(words[2].toUpperCase());
+        if (lastIsGiven) {
+          return `${toTitle(words[2])} ${words[0].toUpperCase()} ${words[1].toUpperCase()}`;
+        } else {
+          return `${toTitle(words[0])} ${words[1].toUpperCase()} ${words[2].toUpperCase()}`;
+        }
+      } else {
+        return `${toTitle(words[0])} ${words[1].toUpperCase()}`;
+      }
     }
 
     function formatFechaOficialReincorp(rawDate) {
@@ -4931,7 +4998,7 @@ MOTIVO: ${motivoText}`;
       const idx = sel ? (parseInt(sel.value, 10) || 0) : 0;
       return (jefesList && jefesList.length > 0) ? (jefesList[idx] || jefesList[0]) : {
         CIP: '30894512',
-        'APELLIDOS Y NOMBRES': 'RICKY FLORIAN CISNEROS APAZA',
+        'APELLIDOS Y NOMBRES': 'Ricky Florian CISNEROS APAZA',
         GRADO: 'CMTE PNP',
         CARGO: 'JEFE OFAD REGPOL HUANUCO'
       };
@@ -4961,11 +5028,11 @@ MOTIVO: ${motivoText}`;
       let nombresVal = (item.grado_apellidos_nombres || item.apellidos_nombres || item.apellidos_y_nombres || item.descripcion || '---').toUpperCase();
       const procedenciaVal = (item.unidad_procedencia || item.unidad_anterior_procedencia || item.procedencia || item.unidad_anterior || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD').toUpperCase();
       const destinoVal = (item.destino || item.unidad_destino || item.lista_de_revista || 'COMISARIA SECTORIAL HUANUCO').toUpperCase();
-      const motivoVal = formatMotivoReincorp(item.descripcion || item.motivo || 'SUS ATENCIONES MEDICAS');
+      const motivoVal = formatMotivoReincorp(item.descripcion, item.motivo);
       const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
 
       const sCip = signer?.cip || signer?.CIP || '30894512';
-      const sNom = (signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'RICKY FLORIAN CISNEROS APAZA').toUpperCase();
+      const sNom = formatNombrePostFirma(signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'Ricky Florian CISNEROS APAZA');
       const sGrd = (signer?.grado || signer?.GRADO || 'CMTE PNP').toUpperCase();
       const sCrg = (signer?.cargo || signer?.CARGO || 'JEFE OFAD REGPOL HUANUCO').toUpperCase();
 
@@ -5163,7 +5230,7 @@ MOTIVO: ${motivoText}`;
       const nombresVal = currentReincorpData.grado_apellidos_nombres || currentReincorpData.apellidos_nombres || currentReincorpData.descripcion || '---';
       const procedenciaVal = currentReincorpData.unidad_procedencia || currentReincorpData.procedencia || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
       const destinoVal = currentReincorpData.destino || 'COMISARIA SECTORIAL HUANUCO';
-      const motivoVal = formatMotivoReincorp(currentReincorpData.descripcion || currentReincorpData.motivo);
+      const motivoVal = formatMotivoReincorp(currentReincorpData.descripcion, currentReincorpData.motivo);
 
       const text = `${titulo}
 CIP: ${cipVal}

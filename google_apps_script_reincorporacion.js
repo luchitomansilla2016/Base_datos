@@ -24,7 +24,7 @@ const DEFAULT_DESCRIPCION_PRE = "PONE A DISPOSICION AL TERMINO DE:";
 // Firmante oficial por defecto para el pie de página
 const DEFAULT_FIRMANTE = {
   cip: "30894512",
-  nombres: "RICKY FLORIAN CISNEROS APAZA",
+  nombres: "Ricky Florian CISNEROS APAZA",
   grado: "CMTE PNP",
   cargo: "JEFE OFAD REGPOL HUANUCO"
 };
@@ -399,11 +399,22 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
     nombres = grado + " " + nombres;
   }
 
-  let motivo = String(rowVals[4] || "").trim().toUpperCase();
-  if (!motivo) motivo = "SUS ATENCIONES MEDICAS";
-  motivo = motivo.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*)?/i, "");
-  motivo = motivo.replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, "").trim();
-  if (!motivo) motivo = "SUS ATENCIONES MEDICAS";
+  // Extraer el motivo limpio priorizando DESCRIPCION (Col H / rowVals[7]) y luego MOTIVO (Col E / rowVals[4])
+  let descRaw = String(rowVals[7] || "").trim();
+  let motivoRaw = String(rowVals[4] || "").trim();
+  
+  let motivoLimpio = descRaw.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+DE\s*:?|AL\s*:?|POR\s*:?|CONFORME\s*:?)/i, "")
+                            .replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*:?)?/i, "")
+                            .replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, "")
+                            .trim();
+
+  if (!motivoLimpio && motivoRaw) {
+    motivoLimpio = motivoRaw.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+DE\s*:?|AL\s*:?|POR\s*:?|CONFORME\s*:?)/i, "")
+                            .replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*:?)?/i, "")
+                            .replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, "")
+                            .trim();
+  }
+  const motivo = (motivoLimpio || "SUS ATENCIONES MEDICAS").toUpperCase();
 
   const destino = String(rowVals[5] || "COMISARIA SECTORIAL HUANUCO").trim().toUpperCase();
   const procedencia = String(rowVals[6] || DEFAULT_PROCEDENCIA).trim().toUpperCase();
@@ -621,7 +632,7 @@ function envolverHtmlImpresion(pagesArray, tituloDialogo) {
         position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: flex-start;
       }
       .sign-dots { border-top: 1px dashed #000; margin-bottom: 2px; width: 100%; }
-      .sign-info-main { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 9pt; font-weight: bold; line-height: 1.1; text-transform: uppercase; white-space: nowrap; }
+      .sign-info-main { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 9pt; font-weight: bold; line-height: 1.1; text-transform: none; white-space: nowrap; }
       .sign-info-cargo { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 8pt; font-weight: bold; line-height: 1.1; text-transform: uppercase; white-space: normal; }
 
       @page { size: A4 portrait; margin: 0; }
