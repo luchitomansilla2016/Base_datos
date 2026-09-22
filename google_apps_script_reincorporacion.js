@@ -5,18 +5,10 @@
  * SCRIPT OFICIAL: CARGA MASIVA DE ÓRDENES DE REINCORPORACIÓN
  * =========================================================================================
  * 
- * FLUJO OFICIAL DE NUMERACIÓN Y REGISTRO:
- * 1. El operador ingresa los efectivos en la Hoja de Cálculo (CIP, Grado, Nombres, Motivo, Destino).
- * 2. La hoja autocompleta la Fecha, Procedencia, Descripción, Quien Ordena, Usuario Registra
- *    y marca el Estado como "PENDIENTE DE SUBIR".
- * 3. El número correlativo NO se inventa localmente, sino que se consulta en tiempo real
- *    a la tabla 'orden_reincorporacion' del Sistema Documentario (Supabase).
- * 4. Al hacer clic en "🚀 1. Asignar N° Oficial y Registrar en el Sistema":
- *    - Se consulta el último correlativo registrado en la tabla 'orden_reincorporacion'.
- *    - Se genera y asigna el siguiente número consecutivo oficial.
- *    - Se inserta el registro en la base de datos de 'orden_reincorporacion'.
- *    - Se actualiza la fila en Google Sheets con su NUMERO DOCUMENTO oficial, ESTADO "REGISTRADO EN NUBE" y el ID NUBE.
- *    - Queda listo para ser impreso o consultado en el Sistema Web.
+ * ORDEN DE COLUMNAS:
+ * A: FECHA DOCUMENTO | B: CIP | C: GRADO | D: APELLIDOS Y NOMBRES | E: MOTIVO |
+ * F: DESTINO | G: UNIDAD DE PROCEDENCIA | H: DESCRIPCION | I: QUIEN ORDENA |
+ * J: USUARIO REGISTRA | K: ESTADO | L: NUMERO DOCUMENTO | M: ID NUBE
  * =========================================================================================
  */
 
@@ -29,6 +21,14 @@ const DEFAULT_QUIEN_ORDENA = "JEFE OFAD REGPOL HUANUCO";
 const DEFAULT_USUARIO_REGISTRA = "ST2 PNP MANSILLA SANTA MARIA JOSE LUIS";
 const DEFAULT_DESCRIPCION_PRE = "PONE A DISPOSICION AL TERMINO DE:";
 
+// Firmante oficial por defecto para el pie de página
+const DEFAULT_FIRMANTE = {
+  cip: "30894512",
+  nombres: "RICKY FLORIAN CISNEROS APAZA",
+  grado: "CMTE PNP",
+  cargo: "JEFE OFAD REGPOL HUANUCO"
+};
+
 /**
  * Menú superior oficial en Google Sheets
  */
@@ -38,8 +38,11 @@ function onOpen() {
     .addItem("🚀 1. Asignar N° Oficial y Registrar en el Sistema", "subirANube")
     .addItem("⚡ 2. Autocompletar Campos Pendientes", "autocompletarTodo")
     .addSeparator()
-    .addItem("🔄 3. Marcar Todo como 'PENDIENTE DE SUBIR'", "marcarTodoPendiente")
-    .addItem("✨ 4. Crear / Restaurar Encabezados Oficiales", "crearEncabezadosOficiales")
+    .addItem("🖨️ 3. Imprimir Fila Actual (Individual - 2 Copias A5 en A4)", "imprimirFilaActual")
+    .addItem("🖨️ 4. Imprimir Todo el Lote (Masivo A4)", "imprimirLoteMasivo")
+    .addSeparator()
+    .addItem("🔄 5. Marcar Todo como 'PENDIENTE DE SUBIR'", "marcarTodoPendiente")
+    .addItem("✨ 6. Crear / Restaurar Encabezados Oficiales", "crearEncabezadosOficiales")
     .addToUi();
 }
 
@@ -269,7 +272,7 @@ function subirANube() {
     "🚀 Resultado de Registro en 'orden_reincorporacion':\n\n" +
     "✅ Órdenes numeradas y registradas con éxito: " + subidos + "\n" +
     (errores > 0 ? ("⚠️ Errores encontrados: " + errores + "\n") : "") +
-    "\nLas órdenes ya se encuentran registradas con su correlativo oficial en la tabla 'orden_reincorporacion' y están listas para generarse e imprimirse desde el sistema web."
+    "\nLas órdenes ya se encuentran registradas con su correlativo oficial en la tabla 'orden_reincorporacion' y están listas para imprimirse individual o masivamente."
   );
 }
 
@@ -308,6 +311,339 @@ function obtenerUltimoCorrelativoSupabase() {
     Logger.log("Error al consultar correlativo en orden_reincorporacion: " + e.message);
   }
   return 0;
+}
+
+// =========================================================================
+// MÓDULO DE IMPRESIÓN OFICIAL (INDIVIDUAL Y MASIVO) DIRECTO EN GOOGLE SHEETS
+// =========================================================================
+
+/**
+ * Imprime la orden de la fila que el usuario tiene actualmente seleccionada
+ */
+function imprimirFilaActual() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const row = sheet.getActiveCell().getRow();
+  if (row < 2) {
+    SpreadsheetApp.getUi().alert("Por favor, seleccione una fila con datos de un efectivo (a partir de la fila 2).");
+    return;
+  }
+  const rowVals = sheet.getRange(row, 1, 1, 13).getValues()[0];
+  const cip = String(rowVals[1] || "").trim();
+  const nombres = String(rowVals[3] || "").trim();
+  if (!cip && !nombres) {
+    SpreadsheetApp.getUi().alert("La fila seleccionada (" + row + ") no contiene datos de un efectivo.");
+    return;
+  }
+  const pageHTML = generarHtmlA4Reincorporacion(rowVals, row - 1);
+  const fullHtml = envolverHtmlImpresion([pageHTML], "Impresión Individual - Fila " + row);
+  const htmlOutput = HtmlService.createHtmlOutput(fullHtml).setWidth(960).setHeight(750);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Vista Previa e Impresión Oficial A4");
+}
+
+/**
+ * Imprime todas las órdenes registradas en la hoja en formato A4 masivo
+ */
+function imprimirLoteMasivo() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    SpreadsheetApp.getUi().alert("No hay registros en la hoja para imprimir.");
+    return;
+  }
+  const allRows = sheet.getRange(2, 1, lastRow - 1, 13).getValues();
+  const pages = [];
+  for (let i = 0; i < allRows.length; i++) {
+    const rowVals = allRows[i];
+    const cip = String(rowVals[1] || "").trim();
+    const nombres = String(rowVals[3] || "").trim();
+    if (cip || nombres) {
+      pages.push(generarHtmlA4Reincorporacion(rowVals, i + 1));
+    }
+  }
+  if (pages.length === 0) {
+    SpreadsheetApp.getUi().alert("No se encontraron filas con datos para imprimir.");
+    return;
+  }
+  const fullHtml = envolverHtmlImpresion(pages, "Impresión Masiva de Órdenes (" + pages.length + " hojas A4)");
+  const htmlOutput = HtmlService.createHtmlOutput(fullHtml).setWidth(960).setHeight(750);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Impresión Masiva A4 (" + pages.length + " Órdenes)");
+}
+
+/**
+ * Genera el HTML de una hoja física A4 (con 2 copias A5) para una fila de datos
+ */
+function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
+  const yr = new Date().getFullYear();
+  const rawNumDoc = String(rowVals[11] || "").trim();
+  let numDocFinal = rawNumDoc;
+  if (!numDocFinal || numDocFinal.includes("Se asignará")) {
+    const numPadded = String(correlativoFallback || 1).padStart(3, "0");
+    numDocFinal = `ÓRDEN DE REINCORPORACION N°${numPadded}-${yr}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+  } else {
+    const mNum = rawNumDoc.match(/N[°º\s]*(\d+)/i) || rawNumDoc.match(/(\d+)/);
+    const numPadded = mNum ? mNum[1].padStart(3, "0") : String(correlativoFallback || 1).padStart(3, "0");
+    numDocFinal = `ÓRDEN DE REINCORPORACION N°${numPadded}-${yr}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+  }
+
+  const fechaRaw = rowVals[0];
+  let fechaDocTexto = "22 DE SETIEMBRE DE 2026";
+  const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SETIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+  let d = (fechaRaw instanceof Date) ? fechaRaw : new Date();
+  if (isNaN(d.getTime())) d = new Date();
+  fechaDocTexto = d.getDate() + " DE " + meses[d.getMonth()] + " DE " + d.getFullYear();
+
+  const cip = String(rowVals[1] || "---").trim();
+  const grado = String(rowVals[2] || "").trim().toUpperCase();
+  let nombres = String(rowVals[3] || "---").trim().toUpperCase();
+  if (grado && !nombres.startsWith(grado)) {
+    nombres = grado + " " + nombres;
+  }
+
+  let motivo = String(rowVals[4] || "").trim().toUpperCase();
+  if (!motivo) motivo = "SUS ATENCIONES MEDICAS";
+  motivo = motivo.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*)?/i, "");
+  motivo = motivo.replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, "").trim();
+  if (!motivo) motivo = "SUS ATENCIONES MEDICAS";
+
+  const destino = String(rowVals[5] || "COMISARIA SECTORIAL HUANUCO").trim().toUpperCase();
+  const procedencia = String(rowVals[6] || DEFAULT_PROCEDENCIA).trim().toUpperCase();
+
+  const obsHTML = "SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.";
+
+  const imgMembrete = "https://luchitomansilla2016.github.io/Base_datos/membrete_oficial_pnp.png";
+  const imgSelloOfad = "https://luchitomansilla2016.github.io/Base_datos/sello_redondo_ofad.png";
+  const imgSelloCargo = "https://luchitomansilla2016.github.io/Base_datos/sello_cargo_recepcion.png";
+
+  return `
+  <div class="a4-page">
+    <!-- COPIA 1 (SUPERIOR 148.5mm) -->
+    <div class="orden-card top-copy">
+      <div>
+        <div class="header-row">
+          <div class="header-membrete-box">
+            <img src="${imgMembrete}" class="membrete-img" alt="PNP" />
+          </div>
+          <div class="doc-title-container">
+            <div class="doc-title">${numDocFinal}</div>
+          </div>
+        </div>
+
+        <table class="data-table">
+          <tr>
+            <td class="data-label">CIP</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">${cip}</td>
+          </tr>
+          <tr>
+            <td class="data-label">APELLIDOS Y NOMBRES</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">${nombres}</td>
+          </tr>
+          <tr>
+            <td class="data-label">PROCEDENCIA</td>
+            <td class="data-sep">:</td>
+            <td class="data-val">${procedencia}</td>
+          </tr>
+          <tr>
+            <td class="data-label">UNIDAD DE DESTINO</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">${destino}</td>
+          </tr>
+          <tr>
+            <td class="data-label">MOTIVO</td>
+            <td class="data-sep">:</td>
+            <td class="data-val">AL T&Eacute;RMINO DE: <b class="val-motivo">${motivo}</b></td>
+          </tr>
+          <tr>
+            <td class="data-label">OBSERVACI&Oacute;N</td>
+            <td class="data-sep">:</td>
+            <td class="data-val obs-paragraph">${obsHTML}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div>
+        <div class="divider-line"></div>
+        <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocTexto}</span></div>
+
+        <div class="footer-sign-block">
+          <div class="sello-sign-wrapper">
+            <img src="${imgSelloOfad}" class="sello-redondo-img" alt="Sello OFAD" />
+            <div class="sign-container">
+              <div class="sign-dots"></div>
+              <div class="sign-info-main">CIP - ${DEFAULT_FIRMANTE.cip}</div>
+              <div class="sign-info-main">${DEFAULT_FIRMANTE.nombres}</div>
+              <div class="sign-info-main">${DEFAULT_FIRMANTE.grado}</div>
+              <div class="sign-info-cargo">${DEFAULT_FIRMANTE.cargo}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COPIA 2 (INFERIOR 148.5mm CON CARGO DE RECEPCION) -->
+    <div class="orden-card bottom-copy">
+      <div>
+        <div class="header-row">
+          <div class="header-membrete-box">
+            <img src="${imgMembrete}" class="membrete-img" alt="PNP" />
+          </div>
+          <div class="doc-title-container">
+            <div class="doc-title">${numDocFinal}</div>
+          </div>
+        </div>
+
+        <table class="data-table">
+          <tr>
+            <td class="data-label">CIP</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">${cip}</td>
+          </tr>
+          <tr>
+            <td class="data-label">APELLIDOS Y NOMBRES</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">${nombres}</td>
+          </tr>
+          <tr>
+            <td class="data-label">PROCEDENCIA</td>
+            <td class="data-sep">:</td>
+            <td class="data-val">${procedencia}</td>
+          </tr>
+          <tr>
+            <td class="data-label">UNIDAD DE DESTINO</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold">${destino}</td>
+          </tr>
+          <tr>
+            <td class="data-label">MOTIVO</td>
+            <td class="data-sep">:</td>
+            <td class="data-val">AL T&Eacute;RMINO DE: <b class="val-motivo">${motivo}</b></td>
+          </tr>
+          <tr>
+            <td class="data-label">OBSERVACI&Oacute;N</td>
+            <td class="data-sep">:</td>
+            <td class="data-val obs-paragraph">${obsHTML}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div>
+        <div class="divider-line"></div>
+        <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocTexto}</span></div>
+
+        <div class="footer-sign-block has-cargo">
+          <div class="sello-cargo-box">
+            <img src="${imgSelloCargo}" class="sello-cargo-img" alt="Cargo Recepci&oacute;n" />
+          </div>
+          <div class="sello-sign-wrapper">
+            <img src="${imgSelloOfad}" class="sello-redondo-img" alt="Sello OFAD" />
+            <div class="sign-container">
+              <div class="sign-dots"></div>
+              <div class="sign-info-main">CIP - ${DEFAULT_FIRMANTE.cip}</div>
+              <div class="sign-info-main">${DEFAULT_FIRMANTE.nombres}</div>
+              <div class="sign-info-main">${DEFAULT_FIRMANTE.grado}</div>
+              <div class="sign-info-cargo">${DEFAULT_FIRMANTE.cargo}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+/**
+ * Envuelve las hojas generadas con los estilos oficiales y la barra de impresión
+ */
+function envolverHtmlImpresion(pagesArray, tituloDialogo) {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>${tituloDialogo}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { background: #33393e; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; padding-bottom: 30px; }
+      .screen-bar {
+        position: sticky; top: 0; z-index: 1000; width: 100%; background: #ffffff;
+        padding: 12px 20px; border-bottom: 2px solid #0b5a3c; display: flex;
+        justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      }
+      .screen-bar h3 { color: #0b5a3c; font-size: 15px; margin: 0; }
+      .btn-print {
+        background: #0b5a3c; color: #ffffff; border: none; padding: 8px 18px;
+        border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;
+        display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(11,90,60,0.3);
+      }
+      .btn-print:hover { background: #08432c; }
+      .pages-wrapper { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
+      
+      .a4-page {
+        width: 210mm; height: 297mm; min-height: 297mm; max-height: 297mm;
+        background: #ffffff; padding: 0; box-shadow: 0 0 25px rgba(0,0,0,0.5);
+        display: flex; flex-direction: column; box-sizing: border-box; position: relative; margin: 0 auto;
+      }
+      .orden-card {
+        width: 100%; height: 148.5mm; max-height: 148.5mm; box-sizing: border-box;
+        padding: 10mm 12mm 0mm 25mm; display: flex; flex-direction: column;
+        justify-content: flex-start; position: relative; background: #ffffff;
+      }
+      .orden-card.top-copy { border-bottom: 1.5px dashed #555; }
+      .header-row { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 6px; }
+      .membrete-img { width: 135px; height: auto; display: block; }
+      .doc-title-container { flex: 1; text-align: center; }
+      .doc-title {
+        font-family: 'Impact', 'Arial Black', sans-serif; font-size: 14pt;
+        font-weight: normal; text-decoration: underline; letter-spacing: 0.3px;
+        line-height: 1.18; color: #000; text-transform: uppercase;
+      }
+      .data-table { width: 100%; border-collapse: collapse; margin-bottom: 2px; font-family: Arial, sans-serif; font-size: 9pt; }
+      .data-table tr { vertical-align: top; }
+      .data-label { width: 180px; font-weight: bold; color: #000; padding: 1.5px 0; white-space: nowrap; }
+      .data-sep { width: 14px; text-align: center; font-weight: bold; padding: 1.5px 0; }
+      .data-val { color: #000; padding: 1.5px 0; text-align: justify; line-height: 1.25; }
+      .data-val.bold { font-weight: bold; }
+      .obs-paragraph { font-family: Arial, sans-serif; font-size: 9pt; line-height: 1.25; text-align: justify; }
+      .divider-line { width: 100%; height: 1px; background-color: #000; margin: 6px 0 5px 0; }
+      .date-row { text-align: right; font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; }
+      .footer-sign-block { display: flex; justify-content: flex-end; align-items: flex-start; margin-top: 64px; margin-right: 23px; }
+      .footer-sign-block.has-cargo { justify-content: space-between; }
+      .sello-cargo-box { display: flex; align-items: flex-start; }
+      .sello-cargo-img { width: 58mm; height: auto; display: block; margin-top: -8mm; margin-left: 2mm; }
+      .sello-sign-wrapper { display: flex; align-items: flex-start; position: relative; }
+      .sello-redondo-img {
+        width: 30mm; height: 30mm; border-radius: 50%; object-fit: contain;
+        display: block; margin-right: -1px; margin-top: -15mm; position: relative; z-index: 2;
+      }
+      .sign-container {
+        width: 40mm; max-width: 40mm; min-height: 15mm; text-align: center;
+        position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: flex-start;
+      }
+      .sign-dots { border-top: 1px dashed #000; margin-bottom: 2px; width: 100%; }
+      .sign-info-main { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 9pt; font-weight: bold; line-height: 1.1; text-transform: uppercase; white-space: nowrap; }
+      .sign-info-cargo { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 8pt; font-weight: bold; line-height: 1.1; text-transform: uppercase; white-space: normal; }
+
+      @page { size: A4 portrait; margin: 0; }
+      @media print {
+        body { background: #ffffff !important; padding: 0 !important; }
+        .screen-bar { display: none !important; }
+        .pages-wrapper { margin: 0 !important; gap: 0 !important; }
+        .a4-page { box-shadow: none !important; margin: 0 !important; page-break-after: always !important; break-after: page !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen-bar">
+      <h3><span>📑</span> ${tituloDialogo}</h3>
+      <button class="btn-print" onclick="window.print()"><span>🖨️</span> IMPRIMIR EN A4 / GUARDAR PDF</button>
+    </div>
+    <div class="pages-wrapper">
+      ${pagesArray.join("")}
+    </div>
+  </body>
+  </html>
+  `;
 }
 
 /**
