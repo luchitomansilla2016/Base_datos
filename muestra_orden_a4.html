@@ -195,7 +195,7 @@
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
-      margin-top: 14px;
+      margin-top: 15px;
     }
     .sello-sign-wrapper {
       display: flex;
@@ -214,21 +214,36 @@
       z-index: 2;
     }
     .sign-container {
-      width: 250px;
+      width: 40mm;
+      max-width: 40mm;
+      min-height: 15mm;
       text-align: center;
       position: relative;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     }
     .sign-dots {
       border-top: 1px dashed #000;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
+      width: 100%;
     }
-    .sign-info {
-      font-family: Arial, sans-serif;
+    .sign-info-main {
+      font-family: 'Arial Narrow', Arial, sans-serif;
       font-size: 9pt;
       font-weight: bold;
-      line-height: 1.25;
+      line-height: 1.1;
       text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .sign-info-cargo {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: bold;
+      line-height: 1.1;
+      text-transform: uppercase;
+      white-space: normal;
     }
 
     /* CONFIGURACIÓN DE IMPRESIÓN OFICIAL EN HOJA A4 */
@@ -334,10 +349,10 @@
             <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello Redondo Oficial" />
             <div class="sign-container">
               <div class="sign-dots"></div>
-              <div class="sign-info">CIP - (CIP)</div>
-              <div class="sign-info">APELLIDOS Y NOMBRES</div>
-              <div class="sign-info">GRADO</div>
-              <div class="sign-info">CARGO</div>
+              <div class="sign-info-main">CIP - (CIP)</div>
+              <div class="sign-info-main">APELLIDOS Y NOMBRES</div>
+              <div class="sign-info-main">GRADO</div>
+              <div class="sign-info-cargo">CARGO</div>
             </div>
           </div>
         </div>
@@ -407,10 +422,10 @@
             <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello Redondo Oficial" />
             <div class="sign-container">
               <div class="sign-dots"></div>
-              <div class="sign-info">CIP - (CIP)</div>
-              <div class="sign-info">APELLIDOS Y NOMBRES</div>
-              <div class="sign-info">GRADO</div>
-              <div class="sign-info">CARGO</div>
+              <div class="sign-info-main">CIP - (CIP)</div>
+              <div class="sign-info-main">APELLIDOS Y NOMBRES</div>
+              <div class="sign-info-main">GRADO</div>
+              <div class="sign-info-cargo">CARGO</div>
             </div>
           </div>
         </div>
