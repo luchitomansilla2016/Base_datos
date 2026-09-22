@@ -17,7 +17,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 // Valores predeterminados oficiales
 const DEFAULT_PROCEDENCIA = "COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD";
-const DEFAULT_QUIEN_ORDENA = "JEFE OFAD REGPOL HUANUCO";
+const DEFAULT_QUIEN_ORDENA = "30894512 - CMTE PNP - CISNEROS APAZA RICKY FLORIAN - JEFE OFAD REGPOL HUANUCO";
 const DEFAULT_USUARIO_REGISTRA = "ST2 PNP MANSILLA SANTA MARIA JOSE LUIS";
 const DEFAULT_DESCRIPCION_PRE = "PONE A DISPOSICION AL TERMINO DE:";
 
@@ -435,10 +435,119 @@ function formatNombrePostFirma(rawName) {
  * a partir de lo registrado en la columna QUIEN ORDENA / QUIEN AUTORIZA (Col I / rowVals[8])
  */
 function resolverFirmante(quienOrdenaRaw) {
-  const text = String(quienOrdenaRaw || "").trim();
-  const up = text.toUpperCase();
+  if (!quienOrdenaRaw || typeof quienOrdenaRaw !== "string" || !quienOrdenaRaw.trim()) {
+    return {
+      cip: "30894512",
+      grado: "CMTE PNP",
+      nombres: "Ricky Florian CISNEROS APAZA",
+      cargo: "JEFE OFAD REGPOL HUANUCO"
+    };
+  }
 
-  // 1. Catálogo oficial de Jefes de la REGPOL Huánuco por palabras clave
+  const raw = String(quienOrdenaRaw).trim();
+  const up = raw.toUpperCase();
+
+  // Caso 1: Si contiene guiones '-' separando campos (ej. CIP - GRADO - APELLIDOS Y NOMBRES - CARGO)
+  if (raw.includes("-")) {
+    const parts = raw.split("-").map(p => p.trim()).filter(p => p.length > 0);
+    
+    // Si tiene 4 partes: [0]=CIP, [1]=GRADO, [2]=NOMBRES, [3]=CARGO
+    if (parts.length >= 4) {
+      let cipVal = parts[0].replace(/^CIP\s*:?\s*/i, "").trim();
+      let gradoVal = parts[1].toUpperCase().trim();
+      let nomVal = formatNombrePostFirma(parts[2]);
+      let cargoVal = parts.slice(3).join(" - ").toUpperCase().trim();
+      return {
+        cip: cipVal,
+        grado: gradoVal,
+        nombres: nomVal,
+        cargo: cargoVal
+      };
+    }
+    
+    // Si tiene 3 partes: ej. [0]=CIP, [1]=GRADO Y NOMBRES, [2]=CARGO
+    if (parts.length === 3) {
+      if (/^\d{6,8}$/.test(parts[0].replace(/^CIP\s*:?\s*/i, "").trim())) {
+        let cipVal = parts[0].replace(/^CIP\s*:?\s*/i, "").trim();
+        let nomGrad = parts[1];
+        let cargoVal = parts[2].toUpperCase().trim();
+        let gVal = "CMTE PNP";
+        let nVal = nomGrad;
+        const gradosList = ["GRAL PNP", "CRNL PNP", "CMDTE PNP", "CMTE PNP", "MAYOR PNP", "MAY PNP", "CAP PNP", "TNTE PNP", "ALFZ PNP", "SS PNP", "SB PNP", "ST1 PNP", "ST2 PNP", "ST3 PNP", "S1 PNP", "S2 PNP", "S3 PNP", "SO PNP"];
+        for (let i = 0; i < gradosList.length; i++) {
+          const g = gradosList[i];
+          if (nomGrad.toUpperCase().startsWith(g)) {
+            gVal = g;
+            nVal = nomGrad.substring(g.length).trim();
+            break;
+          }
+        }
+        return {
+          cip: cipVal,
+          grado: gVal,
+          nombres: formatNombrePostFirma(nVal),
+          cargo: cargoVal
+        };
+      } else {
+        let nomGrad = parts[0];
+        let cargoVal = parts.slice(1).join(" - ").toUpperCase().trim();
+        let gVal = "CMTE PNP";
+        let nVal = nomGrad;
+        const gradosList = ["GRAL PNP", "CRNL PNP", "CMDTE PNP", "CMTE PNP", "MAYOR PNP", "MAY PNP", "CAP PNP", "TNTE PNP", "ALFZ PNP", "SS PNP", "SB PNP", "ST1 PNP", "ST2 PNP", "ST3 PNP", "S1 PNP", "S2 PNP", "S3 PNP", "SO PNP"];
+        for (let i = 0; i < gradosList.length; i++) {
+          const g = gradosList[i];
+          if (nomGrad.toUpperCase().startsWith(g)) {
+            gVal = g;
+            nVal = nomGrad.substring(g.length).trim();
+            break;
+          }
+        }
+        let cipVal = DEFAULT_FIRMANTE.cip;
+        const mC = raw.match(/\b(\d{6,8})\b/);
+        if (mC) cipVal = mC[1];
+        return {
+          cip: cipVal,
+          grado: gVal,
+          nombres: formatNombrePostFirma(nVal),
+          cargo: cargoVal
+        };
+      }
+    }
+
+    // Si tiene 2 partes: ej. "CMDTE PNP CISNEROS APAZA RICKY - JEFE OFAD"
+    if (parts.length === 2) {
+      let nomGrad = parts[0];
+      let cargoVal = parts[1].toUpperCase().trim();
+      let gVal = "CMTE PNP";
+      let nVal = nomGrad;
+      const gradosList = ["GRAL PNP", "CRNL PNP", "CMDTE PNP", "CMTE PNP", "MAYOR PNP", "MAY PNP", "CAP PNP", "TNTE PNP", "ALFZ PNP", "SS PNP", "SB PNP", "ST1 PNP", "ST2 PNP", "ST3 PNP", "S1 PNP", "S2 PNP", "S3 PNP", "SO PNP"];
+      for (let i = 0; i < gradosList.length; i++) {
+        const g = gradosList[i];
+        if (nomGrad.toUpperCase().startsWith(g)) {
+          gVal = g;
+          nVal = nomGrad.substring(g.length).trim();
+          break;
+        }
+      }
+      let cipVal = DEFAULT_FIRMANTE.cip;
+      const mC = raw.match(/\b(\d{6,8})\b/);
+      if (mC) cipVal = mC[1];
+      else if (up.includes("CISNEROS")) cipVal = "30894512";
+      else if (up.includes("GONZALES")) cipVal = "272624";
+      else if (up.includes("VILCA")) cipVal = "297710";
+      else if (up.includes("ROLDAN")) cipVal = "240807";
+      else if (up.includes("MANSILLA")) cipVal = "31390176";
+
+      return {
+        cip: cipVal,
+        grado: gVal,
+        nombres: formatNombrePostFirma(nVal),
+        cargo: cargoVal
+      };
+    }
+  }
+
+  // Caso 2: Reconocimiento por catálogo conocido de palabras clave
   if (up.includes("GONZALES") || up.includes("QUINTERO") || up.includes("272624") || up.includes("JEFE REGPOL")) {
     return {
       cip: "272624",
@@ -480,53 +589,6 @@ function resolverFirmante(quienOrdenaRaw) {
     };
   }
 
-  // 2. Si viene texto estructurado libre (ej. "CMDTE PNP PEREZ GOMEZ JUAN - JEFE...")
-  if (text.length > 0) {
-    let cip = DEFAULT_FIRMANTE.cip;
-    let grado = DEFAULT_FIRMANTE.grado;
-    let nombres = DEFAULT_FIRMANTE.nombres;
-    let cargo = DEFAULT_FIRMANTE.cargo;
-
-    const mCip = text.match(/\b(\d{6,8})\b/);
-    if (mCip) cip = mCip[1];
-
-    let namePart = text;
-    if (text.includes("-")) {
-      const parts = text.split("-");
-      namePart = parts[0].trim();
-      cargo = parts.slice(1).join("-").trim().toUpperCase();
-    } else if (text.includes("/")) {
-      const parts = text.split("/");
-      namePart = parts[0].trim();
-      cargo = parts.slice(1).join("/").trim().toUpperCase();
-    }
-
-    const gradosList = [
-      "GRAL PNP", "CRNL PNP", "CMDTE PNP", "CMTE PNP", "MAYOR PNP", "MAY PNP",
-      "CAP PNP", "TNTE PNP", "ALFZ PNP", "SS PNP", "SB PNP", "ST1 PNP", "ST2 PNP", "ST3 PNP", "S1 PNP", "S2 PNP", "S3 PNP", "SO PNP"
-    ];
-    for (let i = 0; i < gradosList.length; i++) {
-      const g = gradosList[i];
-      if (namePart.toUpperCase().startsWith(g)) {
-        grado = g;
-        namePart = namePart.substring(g.length).trim();
-        break;
-      }
-    }
-
-    if (namePart) {
-      nombres = formatNombrePostFirma(namePart);
-    }
-
-    return {
-      cip: cip,
-      grado: grado,
-      nombres: nombres,
-      cargo: cargo
-    };
-  }
-
-  // 3. Fallback oficial
   return {
     cip: DEFAULT_FIRMANTE.cip,
     grado: DEFAULT_FIRMANTE.grado,
