@@ -3016,6 +3016,166 @@
       }
     }
 
+    // Catálogo de Personal Policial para búsqueda en línea
+    let personalCatalogDoc = [];
+
+    async function loadPersonalCatalogDoc() {
+      if (personalCatalogDoc && personalCatalogDoc.length > 0) return;
+      try {
+        const res = await fetch(`${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=id,cip,grado,apellidos_y_nombres,lista_de_revista,unidad_de_origen&order=id.asc`, {
+          headers: {
+            'apikey': PERSONAL_SUPABASE_KEY,
+            'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          personalCatalogDoc = Array.isArray(data) ? data : [];
+        }
+      } catch (err) {
+        console.warn('Error al cargar catalogo de personal_policial:', err);
+        personalCatalogDoc = [];
+      }
+    }
+
+    async function showPersonalReincorpDropdown(inputEl) {
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        await loadPersonalCatalogDoc();
+      }
+      filterPersonalReincorpDropdown(inputEl);
+    }
+
+    function filterPersonalReincorpDropdown(inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl) return;
+
+      const rawQuery = inputEl.value;
+      const q = normalizeSearchText(rawQuery);
+
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">Cargando padrón de personal policial...</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      const matches = personalCatalogDoc.filter(p => {
+        const cip = String(p.cip || p.CIP || '');
+        const nom = normalizeSearchText(p.apellidos_y_nombres || p['APELLIDOS Y NOMBRES'] || '');
+        return cip.includes(q) || nom.includes(q);
+      }).slice(0, 30);
+
+      if (matches.length === 0) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">No se encontró personal con "' + (rawQuery || '') + '"</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((p, idx) => {
+        const cip = p.cip || p.CIP || '---';
+        const grd = p.grado || p.GRADO || '';
+        const nom = p.apellidos_y_nombres || p['APELLIDOS Y NOMBRES'] || '';
+        const lRevista = p.lista_de_revista || p['LISTA DE REVISTA'] || p.lista_revista || p.unidad_de_origen || p['UNIDAD DE ORIGEN'] || '';
+        const fullName = `${grd} ${nom}`.trim();
+        const safeNom = encodeURIComponent(fullName);
+        const safeDestino = encodeURIComponent(lRevista);
+
+        return `
+          <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
+               data-nom="${safeNom}" 
+               data-destino="${safeDestino}" 
+               onmousedown="selectPersonalReincorpOption('${safeNom}', '${safeDestino}')" 
+               style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
+            <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">${grd} ${nom}</div>
+            <div style="font-size:11px; color:#555; display:flex; gap:8px; margin-top:2px;">
+              <span><b>CIP:</b> ${cip}</span>
+              ${lRevista ? `<span>&bull; <b>Revista:</b> ${lRevista}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function selectPersonalReincorpOption(encodedNom, encodedDestino) {
+      const nom = decodeURIComponent(encodedNom);
+      const destino = decodeURIComponent(encodedDestino);
+
+      const inputNom = document.getElementById('f_grado_apellidos_nombres');
+      if (inputNom) {
+        inputNom.value = nom;
+        inputNom.dispatchEvent(new Event('input', { bubbles: true }));
+        inputNom.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      if (destino) {
+        const inputDestino = document.getElementById('f_destino');
+        if (inputDestino) {
+          inputDestino.value = destino;
+          inputDestino.dispatchEvent(new Event('input', { bubbles: true }));
+          inputDestino.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      const dropEl = document.getElementById('f_grado_apellidos_nombres_dropdown');
+      if (dropEl) dropEl.style.display = 'none';
+    }
+
+    function navigatePersonalReincorpDropdown(e, inputEl) {
+      const dropEl = document.getElementById(inputEl.id + '_dropdown');
+      if (!dropEl || dropEl.style.display === 'none') return;
+
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          const encodedNom = items[activeIndex].getAttribute('data-nom');
+          const encodedDestino = items[activeIndex].getAttribute('data-destino');
+          selectPersonalReincorpOption(encodedNom, encodedDestino);
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
+    function getFirmantesOptionsHtml() {
+      if (!jefesList || !jefesList.length) {
+        return `
+          <option value="CMDTE PNP CISNEROS APAZA RICKY FLORIAN - JEFE OFAD">
+          <option value="CRNL PNP VILCA CHAVEZ EDWIN HOMERO - JEFE (E) ESTADO MAYOR">
+          <option value="CRNL PNP ROLDAN ARGANDO\u00d1A FRANCISCO GABRIEL - JEFE UNIDAD EJECUTORA N\u00b0035">
+          <option value="GRAL PNP GONZALES QUINTERO JOSE LUIS - JEFE REGPOL HUANUCO">
+        `;
+      }
+      return jefesList.map(j => {
+        const grd = j.GRADO || j.grado || 'PNP';
+        const nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
+        const crg = j.CARGO || j.cargo || 'JEFE';
+        return `<option value="${grd} ${nom} - ${crg}">`;
+      }).join('');
+    }
+
     // Convertir automáticamente todos los datos ingresados en inputs y textareas a MAYÚSCULAS en tiempo real
     document.addEventListener('input', function(e) {
       const el = e.target;
@@ -3090,6 +3250,7 @@
           loadAllBadges();
           loadCurrentTableData();
           loadUnidadesCatalogDoc();
+          loadPersonalCatalogDoc();
           return;
         } catch (_) {}
       }
@@ -3710,7 +3871,7 @@
 
       document.getElementById('docModal').classList.add('active');
 
-      if (!conf.isUserTable) {
+      if (!conf.isUserTable && currentTable !== 'orden_reincorporacion') {
         const docNumInput = document.getElementById('f_numero_documento');
         if (docNumInput) {
           getNextDocCorrelative(currentTable).then(nextNum => {
@@ -3783,19 +3944,15 @@
       }
 
       if (conf.isOrdenReincorporacion) {
-        let numSugerido = existing.numero_documento || '';
-        if (!numSugerido && currentData.length > 0) {
-          const nextNum = String(currentData.length + 1).padStart(3, '0');
-          const year = new Date().getFullYear();
-          numSugerido = `ORDEN DE REINCORPORACIÓN N°${nextNum}-${year}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
-        } else if (!numSugerido) {
-          numSugerido = `ORDEN DE REINCORPORACIÓN N°001-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
-        }
+        let numDocVal = existing.numero_documento || '';
+        let descVal = existing.descripcion || 'SE REINCORPORA AL TERMINO DE ';
+        let procVal = existing.unidad_procedencia || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP';
+        let firmantesOptions = getFirmantesOptionsHtml();
 
         container.innerHTML = `
           <div class="form-group">
             <label>N&uacute;mero de Documento</label>
-            <input id="f_numero_documento" class="form-control" type="text" value="${numSugerido}" placeholder="Ej. 001-2026" required />
+            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="Ej. 067-2026" />
           </div>
           <div class="form-group">
             <label>Fecha del Documento</label>
@@ -3803,24 +3960,28 @@
           </div>
           <div class="form-group">
             <label>Descripci&oacute;n / Asunto</label>
-            <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Detalle o asunto de la orden..." style="resize:vertical;" required>${existing.descripcion || 'REINCORPORACION AL TERMINO DE SUS ATENCIONES MEDICAS'}</textarea>
+            <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Ej. SE REINCORPORA AL TERMINO DE SUS ATENCIONES MEDICAS" style="resize:vertical;" required>${descVal}</textarea>
           </div>
-          <div class="form-group">
-            <label>Grado, Apellidos y Nombres</label>
-            <input id="f_grado_apellidos_nombres" class="form-control" type="text" placeholder="Ej. ST2 PNP MANSILLA SANTA MARIA JOSE LUIS" value="${existing.grado_apellidos_nombres || existing.grado_apellidos_nomnbres || ''}" />
+          <div class="form-group" style="position:relative;">
+            <label>Grado, Apellidos y Nombres (Buscar por CIP o Apellidos)</label>
+            <input id="f_grado_apellidos_nombres" class="form-control" type="text" autocomplete="off" placeholder="Escriba CIP o Apellidos (ej. 31343925 o MANSILLA)..." value="${existing.grado_apellidos_nombres || existing.grado_apellidos_nomnbres || ''}" oninput="filterPersonalReincorpDropdown(this)" onfocus="showPersonalReincorpDropdown(this)" onkeydown="navigatePersonalReincorpDropdown(event, this)" required />
+            <div id="f_grado_apellidos_nombres_dropdown" class="autocomplete-dropdown" style="display:none; max-height:220px; overflow-y:auto;"></div>
           </div>
           <div class="form-group">
             <label>Unidad de Procedencia</label>
-            <input id="f_unidad_procedencia" class="form-control" type="text" placeholder="DIRREHUM PNP/DIVMRH-DIRREHUM PNP" value="${existing.unidad_procedencia || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP'}" />
+            <input id="f_unidad_procedencia" class="form-control" type="text" placeholder="DIRREHUM PNP/DIVMRH-DIRREHUM PNP" value="${procVal}" />
           </div>
           <div class="form-group" style="position:relative;">
-            <label>Destino / Destinatario</label>
+            <label>Destino / Destinatario (Lista de Revista)</label>
             <input id="f_destino" class="form-control" type="text" autocomplete="off" placeholder="Ej. JEFE OFAD / COMISAR\u00cdA HU\u00c1NUCO" value="${existing.destino || ''}" oninput="filterUnidadesDocDropdown(this)" onfocus="showUnidadesDocDropdown(this)" onkeydown="navigateUnidadesDocDropdown(event, this)" required />
             <div id="f_destino_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
           </div>
-          <div class="form-group">
+          <div class="form-group" style="position:relative;">
             <label>Quien Ordena / Dispone</label>
-            <input id="f_quien_ordena" class="form-control" type="text" placeholder="Ej. JEFE REGPOL HU\u00c1NUCO" value="${existing.quien_ordena || ''}" />
+            <input id="f_quien_ordena" class="form-control" type="text" list="firmantesReincorpDatalist" placeholder="Seleccione o escriba quien ordena..." value="${existing.quien_ordena || ''}" />
+            <datalist id="firmantesReincorpDatalist">
+              ${firmantesOptions}
+            </datalist>
           </div>
         `;
         return;
@@ -3958,7 +4119,7 @@
       } else if (conf.isOrdenReincorporacion) {
         payload.numero_documento = document.getElementById('f_numero_documento').value.trim();
         payload.fecha_documento = document.getElementById('f_fecha_documento').value;
-        payload.descripcion = document.getElementById('f_descripcion').value.trim() || 'REINCORPORACION AL TERMINO DE SUS ATENCIONES MEDICAS';
+        payload.descripcion = document.getElementById('f_descripcion').value.trim() || 'SE REINCORPORA AL TERMINO DE ';
         payload.grado_apellidos_nombres = (document.getElementById('f_grado_apellidos_nombres')?.value || '').trim() || null;
         payload.unidad_procedencia = (document.getElementById('f_unidad_procedencia')?.value || '').trim() || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP';
         payload.destino = document.getElementById('f_destino').value.trim();
