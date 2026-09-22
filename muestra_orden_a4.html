@@ -57,13 +57,13 @@
       background: #08432c;
     }
 
-    /* HOJA A4 (210mm x 297mm) con márgenes oficiales: Superior 1.5cm, Derecha 1.2cm, Inferior 1.0cm, Izquierdo 3.0cm */
+    /* HOJA A4 (210mm x 297mm) con márgenes oficiales: Superior 1.0cm, Derecha 1.2cm, Inferior 1.0cm, Izquierdo 2.5cm */
     .a4-page {
       width: 210mm;
       min-height: 297mm;
       height: 297mm;
       background: #ffffff;
-      padding: 15mm 12mm 10mm 30mm;
+      padding: 10mm 12mm 10mm 25mm;
       box-shadow: 0 0 20px rgba(0,0,0,0.4);
       display: flex;
       flex-direction: column;
@@ -227,7 +227,7 @@
     /* CONFIGURACIÓN DE IMPRESIÓN OFICIAL EN HOJA A4 */
     @page {
       size: A4 portrait;
-      margin: 15mm 12mm 10mm 30mm; /* Superior 1.5cm, Derecha 1.2cm, Inferior 1.0cm, Izquierdo 3.0cm */
+      margin: 10mm 12mm 10mm 25mm; /* Superior 1.0cm, Derecha 1.2cm, Inferior 1.0cm, Izquierdo 2.5cm */
     }
 
     @media print {
