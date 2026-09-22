@@ -74,17 +74,17 @@
     /* TARJETA DE CADA ORDEN (FORMATO A5 INDIVIDUAL) */
     .orden-card {
       width: 100%;
-      height: 130mm;
+      height: auto;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
       position: relative;
     }
 
     /* TÍTULO PRINCIPAL DE LA ORDEN */
     .doc-title-container {
       text-align: center;
-      margin: 2px 0 6px 0;
+      margin: 0 0 6px 0;
     }
     .doc-title {
       font-family: 'Impact', 'Arial Black', sans-serif;
@@ -101,7 +101,7 @@
     .data-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       font-family: Arial, sans-serif;
       font-size: 10pt;
     }
@@ -145,12 +145,12 @@
       text-align: justify;
     }
 
-    /* LÍNEA DIVISORIA INFERIOR */
+    /* LÍNEA DIVISORIA INFERIOR (DIRECTAMENTE DEBAJO DEL PÁRRAFO) */
     .divider-line {
       width: 100%;
       height: 1px;
       background-color: #000;
-      margin: 4px 0 3px 0;
+      margin: 8px 0 6px 0;
     }
 
     /* FECHA Y LUGAR */
@@ -160,7 +160,7 @@
       font-size: 10pt;
       font-weight: bold;
       text-transform: uppercase;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
     }
 
     /* BLOQUE DE FIRMA */
@@ -168,7 +168,7 @@
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      margin-top: 2px;
+      margin-top: 4px;
     }
     .sign-container {
       width: 250px;
