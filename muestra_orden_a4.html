@@ -413,8 +413,8 @@
             <img src="membrete_oficial_pnp.png" class="membrete-img" alt="Sello Membrete PNP" />
           </div>
           <div class="doc-title-container">
-            <div class="doc-title">
-              ÓRDEN DE INCORPORACION N°<span class="val-num">001</span>-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+            <div class="doc-title val-titulo-doc">
+              ÓRDEN DE REINCORPORACION N°001-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
             </div>
           </div>
         </div>
@@ -486,8 +486,8 @@
             <img src="membrete_oficial_pnp.png" class="membrete-img" alt="Sello Membrete PNP" />
           </div>
           <div class="doc-title-container">
-            <div class="doc-title">
-              ÓRDEN DE INCORPORACION N°<span class="val-num">001</span>-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+            <div class="doc-title val-titulo-doc">
+              ÓRDEN DE REINCORPORACION N°001-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
             </div>
           </div>
         </div>
@@ -558,16 +558,26 @@
   </div>
 
   <script>
+    function formatearTitulo(raw) {
+      if (!raw) return "ÓRDEN DE REINCORPORACION N°001-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP";
+      raw = raw.toString().trim();
+      if (/^ó?rden/i.test(raw)) {
+        return raw.toUpperCase();
+      }
+      return `ÓRDEN DE REINCORPORACION N°${raw}-2026-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+    }
+
     // Función para actualizar en vivo ambas copias A5
     function actualizarCamposEnVivo() {
-      const num = document.getElementById('in_num').value || '001';
+      const numRaw = document.getElementById('in_num').value || '001';
+      const tituloFinal = formatearTitulo(numRaw);
       const cip = document.getElementById('in_cip').value || '---';
       const nombres = document.getElementById('in_nombres').value || '---';
       const destino = document.getElementById('in_destino').value || '---';
       const procedencia = document.getElementById('in_procedencia').value || '---';
       const motivo = document.getElementById('in_motivo').value || '---';
 
-      document.querySelectorAll('.val-num').forEach(el => el.textContent = num);
+      document.querySelectorAll('.val-titulo-doc').forEach(el => el.textContent = tituloFinal);
       document.querySelectorAll('.val-cip').forEach(el => el.textContent = cip);
       document.querySelectorAll('.val-nombres').forEach(el => el.textContent = nombres);
       document.querySelectorAll('.val-destino').forEach(el => el.textContent = destino);
