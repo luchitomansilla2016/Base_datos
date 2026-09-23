@@ -3214,6 +3214,9 @@
           <button type="button" class="secondary" onclick="openGestionJefesModal(event)" title="Gestionar firmantes" style="height: 36px; padding: 0 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; border-radius: 8px; white-space: nowrap; background: #fff; border: 1.5px solid #0b5a3c; color: #0b5a3c; font-weight: 600; cursor: pointer;"><span>⚙️</span> Firmantes</button>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="secondary" onclick="descargarReincorpWord(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px; background: #e8f0fe; color: #1a73e8; border: 1.5px solid #1a73e8; font-weight: 700;">
+            <span>📄</span> Descargar en Word (.docx) [Prueba]
+          </button>
           <button class="secondary" onclick="copyReincorpSummary(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px;">
             <span>📋</span> Copiar datos
           </button>
@@ -3231,6 +3234,7 @@
       <div class="footer" style="justify-content: space-between;">
         <button class="secondary" onclick="closeReincorporacionModal(event)">Cerrar</button>
         <div style="display:flex; gap:8px;">
+          <button type="button" class="secondary" onclick="descargarReincorpWord(event)" style="font-weight: bold; background: #e8f0fe; color: #1a73e8; border: 1.5px solid #1a73e8;"><span>📄</span> Descargar Word (.docx) [Prueba]</button>
           <button class="print-a4-btn" onclick="printReincorporacionDocument(event)"><span>🖨️</span> Imprimir / Guardar en PDF (2 Copias en A4)</button>
         </div>
       </div>
@@ -3599,6 +3603,11 @@
       </div>
     </div>
   </div>
+
+  <!-- Librerías para generación y descarga instantánea de plantillas Word (.docx) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.4/pizzip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.42.0/docxtemplater.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
   <!-- SCRIPTS Y LÓGICA DE CONEXIÓN CON REGLAS DE SEGURIDAD (RBAC) -->
   <script>
@@ -8983,6 +8992,123 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
       }).catch(() => {
         toast('No se pudo copiar al portapapeles', 'warning');
       });
+    }
+
+    async function descargarReincorpWord(e) {
+      if (e) e.preventDefault();
+      if (!currentReincorpData) {
+        alert('No hay datos de Orden de Reincorporación cargados.');
+        return;
+      }
+
+      const item = currentReincorpData;
+      let signer = getSelectedReincorpSigner();
+      if (!signer && item.quien_ordena) {
+        signer = resolverFirmante(item.quien_ordena);
+      }
+
+      const yr = new Date().getFullYear();
+      const rawNum = String(item.numero_documento || '').trim();
+      let cleanNum = rawNum.replace(/^\u00d3RDEN DE REINCORPORACION N\u00b0\s*/i, '').replace(/^N\u00b0\s*/i, '').trim();
+      if (!cleanNum) cleanNum = '001';
+      let padNum = cleanNum;
+      if (/^\d+$/.test(cleanNum)) padNum = cleanNum.padStart(3, '0');
+      const tituloDoc = `ÓRDEN DE REINCORPORACION N°${padNum}-${yr}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+
+      let cipVal = item.cip || item.CIP || '';
+      let rawNombre = (item.grado_apellidos_nombres || item.apellidos_nombres || item.apellidos_y_nombres || '').trim();
+
+      if (!cipVal && (item.descripcion || rawNombre)) {
+        const m = (String(item.descripcion || '') + ' ' + String(rawNombre)).match(/\b(\d{8})\b/);
+        if (m) cipVal = m[1];
+      }
+
+      if (personalCatalogDoc && personalCatalogDoc.length) {
+        let foundP = null;
+        if (cipVal && cipVal !== '---') {
+          foundP = personalCatalogDoc.find(p => String(p.CIP || p.cip || '').trim() === String(cipVal).trim());
+        }
+        if (!foundP && rawNombre) {
+          const sNom = rawNombre.toUpperCase();
+          foundP = personalCatalogDoc.find(p => {
+            const pNom = String(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '').toUpperCase().trim();
+            const pCip = String(p.CIP || p.cip || '').trim();
+            return (pNom && (sNom.includes(pNom) || pNom.includes(sNom))) || (pCip && sNom.includes(pCip));
+          });
+        }
+        if (foundP) {
+          if (!cipVal || cipVal === '---') {
+            cipVal = foundP.CIP || foundP.cip || '';
+          }
+          const pGrd = (foundP.GRADO || foundP.grado || '').trim();
+          const pNom = (foundP['APELLIDOS Y NOMBRES'] || foundP.apellidos_y_nombres || '').trim();
+          if (pGrd && pNom) {
+            rawNombre = `${pGrd} ${pNom}`;
+          }
+        }
+      }
+
+      if (!cipVal) cipVal = '---';
+      let nombresVal = (rawNombre || item.descripcion || '---').toUpperCase();
+      const procedenciaVal = (item.unidad_procedencia || item.unidad_anterior_procedencia || item.procedencia || item.unidad_anterior || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD').toUpperCase();
+      const destinoVal = (item.destino || item.unidad_destino || item.lista_de_revista || 'COMISARIA SECTORIAL HUANUCO').toUpperCase();
+      const motivoVal = (item.descripcion || item.asunto || item.motivo || 'SE REINCORPORA AL TERMINO DE SUS ATENCIONES MEDICAS').toUpperCase().trim();
+      const refDocVal = (item.documento_referencia || item.numero_orden_incorporacion_dirrehum || item.referencia || '---').trim();
+      const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
+
+      const sGrd = (signer?.grado || signer?.GRADO || 'CMDTE PNP').toUpperCase();
+      const sCip = formatPrefixCip(sGrd, signer?.cip || signer?.CIP || '340850');
+      const sNom = formatNombrePostFirma(signer?.nombres || signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'Ricky Florian CISNEROS APAZA');
+      const sCrg = (signer?.cargo || signer?.CARGO || 'JEFE OFAD REGPOL HUANUCO').toUpperCase();
+
+      const obsTexto = `SE PONE A DISPOSICIÓN AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACIÓN DEBERÁ SER COMUNICADO AL JEFE DE DIVISIÓN, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL ÁREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTRÓNICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACIÓN CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.`;
+
+      const tags = {
+        NUMERO_ORDEN: tituloDoc,
+        CIP: cipVal,
+        APELLIDOS_NOMBRES: nombresVal,
+        PROCEDENCIA: procedenciaVal,
+        DESTINO: destinoVal,
+        MOTIVO: motivoVal,
+        DOC_REFERENCIA: refDocVal,
+        OBSERVACION: obsTexto,
+        FECHA_DOC: fechaDocVal,
+        FIRMANTE_CIP: sCip,
+        FIRMANTE_NOMBRE: sNom,
+        FIRMANTE_GRADO: sGrd,
+        FIRMANTE_CARGO: sCrg
+      };
+
+      try {
+        if (typeof PizZip === 'undefined' || typeof window.docxtemplater === 'undefined') {
+          throw new Error('Las librerías de generación Word están cargando o no se encuentran disponibles.');
+        }
+
+        const response = await fetch('plantilla_reincorporacion.docx');
+        if (!response.ok) throw new Error('No se encontró el archivo plantilla_reincorporacion.docx en el servidor.');
+        const content = await response.arrayBuffer();
+
+        const zip = new PizZip(content);
+        const doc = new window.docxtemplater(zip, {
+          paragraphLoop: true,
+          linebreaks: true
+        });
+
+        doc.render(tags);
+
+        const out = doc.getZip().generate({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+
+        const nombreDescarga = `ORDEN_REINCORPORACION_${padNum}-${yr}_${cipVal}.docx`;
+        saveAs(out, nombreDescarga);
+        if (typeof toast === 'function') toast(`Descargando Word: ${nombreDescarga}`, 'success');
+        else alert(`Documento Word generado exitosamente: ${nombreDescarga}`);
+      } catch (err) {
+        console.error('Error al generar Word:', err);
+        alert('Error al descargar en Word: ' + err.message);
+      }
     }
 
     // Funciones de selección y bulk printing exclusivo de Reincorporaciones
