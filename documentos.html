@@ -9097,8 +9097,10 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
       const cleanSignerCip = String(signer?.cip || signer?.CIP || '340850').replace(/^(OA|SA|CIP)[\s\.\-:]*/i, '').trim() || '340850';
 
       let uLogueado = '';
+      let uCip = '';
       if (typeof currentUser !== 'undefined' && currentUser) {
         uLogueado = currentUser.apellidos_nombres || currentUser['APELLIDOS Y NOMBRES'] || currentUser.nombre || '';
+        uCip = currentUser.cip || currentUser.CIP || '';
       }
       if (!uLogueado) {
         try {
@@ -9106,8 +9108,13 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
           if (stored) {
             const parsedUser = JSON.parse(stored);
             uLogueado = parsedUser.apellidos_nombres || parsedUser['APELLIDOS Y NOMBRES'] || parsedUser.nombre || '';
+            uCip = parsedUser.cip || parsedUser.CIP || '';
           }
         } catch (_) {}
+      }
+      if (!uCip) {
+        uCip = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pnp_user_cip')) ||
+               (typeof localStorage !== 'undefined' && localStorage.getItem('pnp_user_cip')) || '';
       }
       if (!uLogueado && typeof getUsuarioRegistraNombre === 'function') {
         uLogueado = getUsuarioRegistraNombre();
@@ -9116,6 +9123,29 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
         uLogueado = (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
                     (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
                     'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      }
+      uLogueado = uLogueado.trim();
+
+      const hasGradePrefix = /^(GRAL|CRNL|CMDTE|MAY|CAP|TNTE|ALFZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO|SOP|EC|EMP|EMPLEADO)\b/i.test(uLogueado);
+      if (!hasGradePrefix && (personalCatalogDoc && personalCatalogDoc.length)) {
+        let foundU = null;
+        if (uCip) {
+          foundU = personalCatalogDoc.find(p => String(p.CIP || p.cip || '').trim() === String(uCip).trim());
+        }
+        if (!foundU && uLogueado) {
+          const sU = uLogueado.toUpperCase();
+          foundU = personalCatalogDoc.find(p => {
+            const pNom = String(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '').toUpperCase().trim();
+            return pNom && (sU.includes(pNom) || pNom.includes(sU));
+          });
+        }
+        if (foundU) {
+          const pGrd = (foundU.GRADO || foundU.grado || '').trim();
+          const pNom = (foundU['APELLIDOS Y NOMBRES'] || foundU.apellidos_y_nombres || uLogueado).trim();
+          if (pGrd) {
+            uLogueado = `${pGrd} ${pNom}`;
+          }
+        }
       }
       uLogueado = uLogueado.trim().toUpperCase();
 
@@ -9140,6 +9170,7 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
         FIRMANTE_CARGO: sCrg,
         USUARIO_LOGUEADO: uLogueado,
         USUARIO_REGISTRA: uLogueado,
+        USUARIO_GRADO_Y_NOMBRES: uLogueado,
         GENERADO_POR: `GENERADO POR EL USUARIO: ${uLogueado} DEL SISTEMA DE REGISTRO DE DOCUMENTOS`,
         PIE_PAGINA: `GENERADO POR EL USUARIO: ${uLogueado} DEL SISTEMA DE REGISTRO DE DOCUMENTOS`,
         PIE_DOCUMENTO: `GENERADO POR EL USUARIO: ${uLogueado} DEL SISTEMA DE REGISTRO DE DOCUMENTOS`
