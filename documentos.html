@@ -1907,10 +1907,10 @@
     }
     #gravidezPreviewModal .header-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: flex-start;
       gap: 15px;
-      margin-bottom: 22px;
+      margin-bottom: 25px;
     }
     #gravidezPreviewModal .header-membrete-box {
       flex-shrink: 0;
@@ -1924,6 +1924,7 @@
       flex: 1;
       text-align: center;
       padding-right: 15px;
+      padding-top: 36px; /* Bajado 5 espacios para alineacion perfecta */
     }
     #gravidezPreviewModal .doc-header-entidad {
       font-family: Arial, Helvetica, sans-serif;
@@ -7938,12 +7939,27 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
       const fTermino = item.fecha_termino || '';
 
       let grado = 'PNP';
-      let nombreEfectivo = nombres;
-      const parts = nombres.trim().split(' ');
-      if (parts.length > 1 && (parts[0].includes('.') || parts[0].length <= 5)) {
-        grado = parts[0];
-        nombreEfectivo = parts.slice(1).join(' ');
+      let nombreEfectivo = nombres.trim();
+      const mGrado = nombreEfectivo.match(/^((?:TNTE|CAP|MAY|CMDTE|CRNL|GRAL|ST1|ST2|ST3|S1|S2|S3|SB|SO1|SO2|SO3|SS|EC|EE\.CC|EECC)?\s*(?:PNP)?)\s+(.+)$/i);
+      if (mGrado && mGrado[1].trim()) {
+        let g = mGrado[1].trim().toUpperCase();
+        if (!g.includes('PNP') && !g.includes('EC')) {
+          g = `${g} PNP`;
+        }
+        grado = g;
+        nombreEfectivo = mGrado[2].trim();
+      } else {
+        const parts = nombreEfectivo.split(' ');
+        if (parts.length > 1 && (parts[0].includes('.') || parts[0].length <= 5)) {
+          let g = parts[0].toUpperCase();
+          if (!g.includes('PNP') && !g.includes('EC')) {
+            g = `${g} PNP`;
+          }
+          grado = g;
+          nombreEfectivo = parts.slice(1).join(' ');
+        }
       }
+      nombreEfectivo = nombreEfectivo.replace(/^PNP\s+/i, '').trim();
 
       const fDoc = item.fecha_documento || new Date().toISOString().split('T')[0];
       const lugarFecha = formatFullDateGravidez(fDoc);
