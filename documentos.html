@@ -1852,6 +1852,188 @@
         page-break-after: always !important;
         break-after: page !important;
       }
+
+      /* IMPRESIÓN EXCLUSIVA: ORDEN DE GRAVIDEZ */
+      body.printing-gravidez > *:not(#gravidezPreviewModal) {
+        display: none !important;
+      }
+      #gravidezPreviewModal {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+      }
+      #gravidezPreviewModal .dialog {
+        width: 100% !important;
+        max-width: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+      }
+      #gravidezPreviewModal header,
+      #gravidezPreviewModal .modal-controls-bar,
+      #gravidezPreviewModal .footer,
+      #gravidezPreviewModal .close-btn {
+        display: none !important;
+      }
+      #gravidezPreviewModal .a4-page {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        padding: 0.5cm 1.3cm 0.5cm 0.5cm !important;
+      }
+    }
+
+    /* ESTILOS DE PANTALLA: PLANTILLA OFICIAL DE ORDEN DE GRAVIDEZ A4 */
+    #gravidezPreviewModal .a4-page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      background: #ffffff;
+      padding: 0.5cm 1.3cm 0.5cm 0.5cm;
+      box-shadow: 0 0 25px rgba(0,0,0,0.35);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      position: relative;
+      margin: 0 auto;
+    }
+    #gravidezPreviewModal .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 15px;
+      margin-bottom: 22px;
+    }
+    #gravidezPreviewModal .header-membrete-box {
+      flex-shrink: 0;
+    }
+    #gravidezPreviewModal .membrete-img {
+      width: 175px;
+      height: auto;
+      display: block;
+    }
+    #gravidezPreviewModal .doc-title-container {
+      flex: 1;
+      text-align: center;
+      padding-right: 15px;
+    }
+    #gravidezPreviewModal .doc-header-entidad {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      color: #000;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+    }
+    #gravidezPreviewModal .doc-title {
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: 16pt;
+      font-weight: normal;
+      text-decoration: underline;
+      letter-spacing: 0.4px;
+      line-height: 1.25;
+      color: #000;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    #gravidezPreviewModal .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      line-height: 1.45;
+      color: #000;
+      margin-top: 5px;
+    }
+    #gravidezPreviewModal .data-table tr {
+      vertical-align: top;
+    }
+    #gravidezPreviewModal .label-col {
+      width: 145px;
+      font-weight: bold;
+      padding: 5px 0;
+      letter-spacing: 0.2px;
+    }
+    #gravidezPreviewModal .separator-col {
+      width: 25px;
+      text-align: center;
+      padding: 5px 0;
+      font-weight: bold;
+    }
+    #gravidezPreviewModal .value-col {
+      padding: 5px 0;
+      letter-spacing: 0.1px;
+    }
+    #gravidezPreviewModal .value-bold {
+      font-weight: bold;
+    }
+    #gravidezPreviewModal .legal-text {
+      text-align: justify;
+      font-size: 9.5pt;
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+    #gravidezPreviewModal .lugar-fecha-row {
+      margin-top: 28px;
+      text-align: right;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      padding-right: 10px;
+      letter-spacing: 0.2px;
+    }
+    #gravidezPreviewModal .firma-container {
+      margin-top: 35px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 0 10px;
+    }
+    #gravidezPreviewModal .siglas-left {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 9pt;
+      color: #222;
+      letter-spacing: 0.3px;
+    }
+    #gravidezPreviewModal .firma-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #gravidezPreviewModal .sello-img {
+      width: 110px;
+      height: auto;
+      display: block;
+    }
+    #gravidezPreviewModal .post-firma-box {
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 8.5pt;
+      line-height: 1.25;
+      color: #000;
+    }
+    #gravidezPreviewModal .post-firma-line {
+      border-top: 1.2px solid #000;
+      padding-top: 3px;
+      font-weight: bold;
+      min-width: 175px;
+      font-size: 9pt;
+    }
+    #gravidezPreviewModal .post-firma-name {
+      font-weight: bold;
+      font-size: 9pt;
+    }
+    #gravidezPreviewModal .post-firma-cargo {
+      font-size: 7.5pt;
+      font-weight: bold;
     }
 
     /* ESTILOS DE PANTALLA: PLANTILLA OFICIAL DE REINCORPORACIÓN A4 */
@@ -2690,6 +2872,57 @@
 
   <!-- Contenedor EXCLUSIVO para Impresión Masiva / Bulk de Órdenes de Reincorporación -->
   <div id="reincorporacionBulkPrintContainer"></div>
+
+  <!-- Modal Oficial EXCLUSIVO de Vista Previa de Orden de Licencia Pre y Post Natal (Gravidez) -->
+  <div id="gravidezPreviewModal" class="modal" style="z-index: 10000;">
+    <div class="dialog" style="max-width: 960px; border-top: 5px solid #0b5a3c;">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f2ec 100%);">
+        <div>
+          <h1 style="color: #0b5a3c; font-size: 18px; display:flex; align-items:center; gap:8px;">
+            <span>🤰</span> <span>Órden de Licencia Pre y Post Natal (Gravidez &middot; Formato A4 Oficial)</span>
+          </h1>
+          <div class="sub">Documento oficial de gravidez PNP &middot; Sello Membrete Oficial y Sello Redondo OFAD</div>
+        </div>
+        <button class="close-btn" onclick="closeGravidezModal(event)" title="Cerrar">&times;</button>
+      </header>
+
+      <!-- Barra superior de controles del documento -->
+      <div class="modal-controls-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; background: #f7faf7; border-bottom: 1px solid var(--line);">
+        <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 280px;">
+          <label for="gravidezJefeSelect" style="font-size: 12px; font-weight: bold; color: #18372b; white-space: nowrap;">Firma la Orden:</label>
+          <select id="gravidezJefeSelect" onchange="updateGravidezSigner()" style="flex: 1; height: 36px; padding: 4px 10px; border-radius: 8px; border: 1.5px solid var(--line); font-size: 12.5px; font-weight: 600; background: #fff; color: #0b5a3c;"></select>
+          <button type="button" class="secondary" onclick="openGestionJefesModal(event)" title="Gestionar firmantes" style="height: 36px; padding: 0 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; border-radius: 8px; white-space: nowrap; background: #fff; border: 1.5px solid #0b5a3c; color: #0b5a3c; font-weight: 600; cursor: pointer;"><span>⚙️</span> Firmantes</button>
+        </div>
+        <div id="gravidezModalTopActions" style="display: flex; gap: 8px; align-items: center;">
+          <button class="secondary" onclick="copyGravidezSummary(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px;">
+            <span>📋</span> Copiar datos
+          </button>
+          <button id="btnVolverFormGravidezTop" class="secondary" onclick="volverFormularioGravidez(event)" style="height: 36px; font-size: 12.5px; display:none; align-items: center; gap: 5px;">
+            <span>✏️</span> Modificar
+          </button>
+          <button id="btnGuardarGravidezDirectoTop" class="print-a4-btn" onclick="confirmarYGuardarGravidez(false)" style="height: 36px; font-size: 13px; font-weight: bold; display:none; background: #0b5a3c; align-items: center; gap: 6px;">
+            <span>💾</span> Guardar Registro
+          </button>
+          <button id="btnPrintGravidezTop" class="print-a4-btn" onclick="confirmarYGuardarGravidez(true)" style="height: 36px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+            <span>🖨️</span> Guardar e Imprimir A4
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor del documento A4 -->
+      <div class="orden-sheet-container" id="gravidezSingleSheetContainer" style="overflow-y: auto; max-height: calc(85vh - 160px); background: #525659; padding: 20px 0; display: flex; justify-content: center;">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <div class="footer" style="justify-content: space-between;">
+        <button id="btnVolverFormGravidezBottom" class="secondary" onclick="volverFormularioGravidez(event)">Cerrar / Volver</button>
+        <div style="display:flex; gap:8px;">
+          <button id="btnGuardarGravidezDirectoBottom" class="secondary" onclick="confirmarYGuardarGravidez(false)" style="background:#e8f2ec; color:#0b5a3c; border:1.5px solid #0b5a3c; font-weight:bold; display:none;">💾 Confirmar y Guardar</button>
+          <button id="btnPrintGravidezBottom" class="print-a4-btn" onclick="confirmarYGuardarGravidez(true)"><span>🖨️</span> Guardar e Imprimir (Hoja A4)</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal de Gestion de Firmantes / Jefes de Orden -->
   <div id="gestionJefesModal" class="modal" style="z-index: 10050;">
@@ -4873,11 +5106,13 @@
               <td><b>${item.fecha_termino || '---'}</b></td>
               <td>${item.quien_ordena || '---'}</td>
               <td><small>${item.usuario_registra || '---'}</small></td>
-              ${admin ? `
               <td style="text-align:center; white-space:nowrap;">
+                <button class="action-btn" onclick="verOrdenGravidezPorId('${item.id}')" title="Ver / Imprimir Orden de Gravidez Oficial A4" style="background:#e8f2ec; color:#0b5a3c; border:1.5px solid #0b5a3c; font-size:13px;">👁️</button>
+                ${admin ? `
                 <button class="action-btn" onclick="editRecord('${item.id}')" title="Editar">&#9999;</button>
                 <button class="action-btn btn-del" onclick="deleteRecord('${item.id}')" title="Eliminar">&#128465;</button>
-              </td>` : ''}
+                ` : ''}
+              </td>
             </tr>
           `;
         }).join('');
@@ -5058,7 +5293,7 @@
       buildModalForm();
       
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (btnVerOrden) btnVerOrden.style.display = conf.isOrdenIncorporacion ? 'inline-flex' : 'none';
+      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenReincorporacion || conf.isOrdenGravidez) ? 'inline-flex' : 'none';
 
       document.getElementById('docModal').classList.add('active');
 
@@ -5098,6 +5333,16 @@
       } else if (conf.isOrdenIncorporacion) {
         if (saveBtn) {
           saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
+          saveBtn.style.background = '#0b5a3c';
+          saveBtn.style.color = '#ffffff';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'inline-flex';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+        }
+      } else if (conf.isOrdenGravidez) {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
           saveBtn.style.background = '#0b5a3c';
           saveBtn.style.color = '#ffffff';
         }
@@ -5577,6 +5822,23 @@
         payload.fecha_termino = document.getElementById('f_fecha_termino').value;
         payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
         payload.usuario_registra = getUsuarioRegistraNombre();
+
+        // Validaciones básicas antes de previsualizar
+        if (!payload.cip || !payload.apellidos_nombres) {
+          alert('Por favor ingrese o seleccione el CIP y los datos de la solicitante.');
+          return;
+        }
+        if (!payload.fecha_inicio || !payload.fecha_termino) {
+          alert('Por favor seleccione la Fecha de Inicio.');
+          return;
+        }
+
+        // Mostrar primero la plantilla para verificación antes de guardar
+        pendingGravidezPayload = payload;
+        pendingGravidezEditingId = editingId;
+        document.getElementById('docModal').classList.remove('active');
+        displayGravidezPreview(payload, true);
+        return;
       } else if (conf.isUserTable) {
         if (!isUserAdmin()) {
           alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede gestionar usuarios.');
@@ -5720,6 +5982,37 @@
           gradoVal = parts[0];
           nombresVal = parts.slice(1).join(' ');
         }
+      }
+
+      if (currentTable === 'orden_gravidez') {
+        let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
+        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
+          try {
+            const nextCorr = await getNextDocCorrelative('orden_gravidez');
+            const m = nextCorr.match(/(\d+)/);
+            const numP = m ? m[1].padStart(3, '0') : '001';
+            const yearVal = new Date().getFullYear();
+            rawNum = `ORDEN DE GRAVIDEZ N°${numP}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+          } catch (_) {
+            rawNum = `ORDEN DE GRAVIDEZ N°001-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+          }
+        }
+        const gravData = {
+          id: editingId || '',
+          numero_documento: rawNum,
+          fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+          cip: (document.getElementById('f_cip_grav')?.value || '').trim() || '---',
+          dni: (document.getElementById('f_dni_grav')?.value || '').trim() || '---',
+          apellidos_nombres: (document.getElementById('f_grado_apellidos_nombres_grav')?.value || '').trim() || '---',
+          direccion: (document.getElementById('f_direccion_grav')?.value || '').trim() || '---',
+          procedencia: (document.getElementById('f_procedencia_grav')?.value || '').trim() || '---',
+          fecha_inicio: document.getElementById('f_fecha_inicio')?.value || '',
+          fecha_termino: document.getElementById('f_fecha_termino')?.value || '',
+          quien_ordena: (document.getElementById('f_quien_ordena')?.value || '').trim() || null,
+          usuario_registra: getUsuarioRegistraNombre()
+        };
+        displayGravidezPreview(gravData, false);
+        return;
       }
 
       if (currentTable === 'orden_reincorporacion') {
@@ -7549,6 +7842,417 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
         toast('No se pudo copiar al portapapeles', 'warning');
       });
     }
+
+    // =========================================================================
+    // --- LÓGICA DE VISTA PREVIA E IMPRESIÓN OFICIAL: ÓRDENES DE GRAVIDEZ A4 ---
+    // =========================================================================
+
+    let currentGravidezData = null;
+    let pendingGravidezPayload = null;
+    let pendingGravidezEditingId = null;
+    let isPendingGravidezSave = false;
+
+    const MONTHS_SHORT_GRAV = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
+    const MONTHS_FULL_GRAV = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+
+    function formatShortDateGravidez(dateStr) {
+      if (!dateStr) return '---';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const y = parts[0];
+      const mIdx = parseInt(parts[1], 10) - 1;
+      const d = parts[2];
+      const mStr = MONTHS_SHORT_GRAV[mIdx] || parts[1];
+      return `${d}${mStr}${y}`;
+    }
+
+    function formatFullDateGravidez(dateStr) {
+      if (!dateStr) return 'HUÁNUCO';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return `HUÁNUCO, ${dateStr}`;
+      const y = parts[0];
+      const mIdx = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const mStr = MONTHS_FULL_GRAV[mIdx] || parts[1];
+      return `HUÁNUCO, ${d} DE ${mStr} DE ${y}`;
+    }
+
+    function getSelectedGravidezSigner() {
+      const sel = document.getElementById('gravidezJefeSelect');
+      if (!sel || sel.value === '' || !jefesList || jefesList.length === 0) {
+        return {
+          cip: '31343925',
+          nombre: 'Luis Enrique VERAMENDI MAZZA',
+          grado: 'ST2 PNP',
+          cargo: 'JEFE (E) OFAD DE LA REGPOL HUANUCO'
+        };
+      }
+      const idx = parseInt(sel.value, 10);
+      const j = jefesList[idx];
+      if (!j) {
+        return {
+          cip: '31343925',
+          nombre: 'Luis Enrique VERAMENDI MAZZA',
+          grado: 'ST2 PNP',
+          cargo: 'JEFE (E) OFAD DE LA REGPOL HUANUCO'
+        };
+      }
+      return {
+        cip: j.CIP || j.cip || '',
+        nombre: j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '',
+        grado: j.GRADO || j.grado || 'ST2 PNP',
+        cargo: j.CARGO || j.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO'
+      };
+    }
+
+    function populateGravidezJefesSelect() {
+      const sel = document.getElementById('gravidezJefeSelect');
+      if (!sel) return;
+      sel.innerHTML = '';
+      if (!jefesList || jefesList.length === 0) {
+        sel.innerHTML = '<option value="">ST2 PNP Luis Enrique VERAMENDI MAZZA</option>';
+        return;
+      }
+      jefesList.forEach((j, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(idx);
+        const nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
+        const grd = j.GRADO || j.grado || '';
+        const crg = j.CARGO || j.cargo || '';
+        opt.textContent = `${grd} ${nom} (${crg})`.trim();
+        sel.appendChild(opt);
+      });
+    }
+
+    function buildGravidezA4HTML(item, signer) {
+      if (!item) return '';
+      const p = parseGravidezDetails(item);
+      const rawNum = item.numero_documento || '012-2025-COMOPPOL/DIRNOS/REGPOL HUANUCO/SEC OFAD AREREHUM';
+      const cleanNum = rawNum.replace(/^ORDEN DE GRAVIDEZ N°\s*/i, '').replace(/^ORDEN DE LICENCIA PRE Y POST NATAL N°\s*/i, '');
+      const cip = item.cip || p.cip || '---';
+      const dni = item.dni || p.dni || '---';
+      const nombres = item.apellidos_nombres || item.grado_apellidos_nombres || p.efectivo || '---';
+      const domicilio = item.direccion || p.direccion || '---';
+      const procedencia = item.procedencia || item.unidad_procedencia || p.procedencia || '---';
+      const fInicio = item.fecha_inicio || '';
+      const fTermino = item.fecha_termino || '';
+
+      let grado = 'PNP';
+      let nombreEfectivo = nombres;
+      const parts = nombres.trim().split(' ');
+      if (parts.length > 1 && (parts[0].includes('.') || parts[0].length <= 5)) {
+        grado = parts[0];
+        nombreEfectivo = parts.slice(1).join(' ');
+      }
+
+      const fDoc = item.fecha_documento || new Date().toISOString().split('T')[0];
+      const lugarFecha = formatFullDateGravidez(fDoc);
+
+      const sCip = signer ? (signer.cip ? `SA-${signer.cip}` : 'SA-31343925') : 'SA-31343925';
+      const sNombre = signer ? (signer.nombre || 'Luis Enrique VERAMENDI MAZZA') : 'Luis Enrique VERAMENDI MAZZA';
+      const sGrado = signer ? (signer.grado || 'ST2 PNP') : 'ST2 PNP';
+      const sCargo = signer ? (signer.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO') : 'JEFE (E) OFAD DE LA REGPOL HUANUCO';
+
+      return `
+        <div class="a4-page">
+          <!-- ENCABEZADO -->
+          <div class="header-row">
+            <div class="header-membrete-box">
+              <img class="membrete-img" src="membrete_orden_gravidez.png" alt="Membrete Oficial PNP" />
+            </div>
+            <div class="doc-title-container">
+              <div class="doc-header-entidad">MINISTERIO DEL INTERIOR</div>
+              <div class="doc-header-entidad">POLIC&Iacute;A NACIONAL DEL PER&Uacute;</div>
+              <div class="doc-title">
+                <u>ORDEN DE LICENCIA PRE Y POST NATAL N&deg; ${cleanNum}</u>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABLA DE CAMPOS PRINCIPALES -->
+          <table class="data-table">
+            <tbody>
+              <tr>
+                <td class="label-col">GRADO</td>
+                <td class="separator-col">:</td>
+                <td class="value-col value-bold">${grado}</td>
+              </tr>
+              <tr>
+                <td class="label-col">SOLICITANTE</td>
+                <td class="separator-col">:</td>
+                <td class="value-col value-bold">${nombreEfectivo}</td>
+              </tr>
+              <tr>
+                <td class="label-col">DOCUMENTOS</td>
+                <td class="separator-col">:</td>
+                <td class="value-col">CIP. N&deg; <b>${cip}</b> / DNI N&deg; <b>${dni}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">DOMICILIO</td>
+                <td class="separator-col">:</td>
+                <td class="value-col">${domicilio}</td>
+              </tr>
+              <tr>
+                <td class="label-col">PROCEDENCIA</td>
+                <td class="separator-col">:</td>
+                <td class="value-col">${procedencia}</td>
+              </tr>
+              <tr>
+                <td class="label-col">PRINCIPIA</td>
+                <td class="separator-col">:</td>
+                <td class="value-col value-bold">${formatShortDateGravidez(fInicio)}</td>
+              </tr>
+              <tr>
+                <td class="label-col">TERMINA</td>
+                <td class="separator-col">:</td>
+                <td class="value-col">
+                  <div class="value-bold" style="margin-bottom: 3px;">
+                    ${formatShortDateGravidez(fTermino)} A HORAS 08:00 (EN VIA DE REGULARIZACION)
+                  </div>
+                  <div class="legal-text">
+                    Debiendo de REGULARIZAR el control de inicio y termino de su licencia, en la OFAD de su Unidad, REGPOL HUANUCO y DIRREHUM-PNP, asimismo deber&aacute; solicitar por conducto regular para REGULARIZAR la Orden de Permiso por Lactancia, adjuntando copia del acta de nacimiento de hijo (a) y de la orden de licencia por pre y post natal.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-col" style="padding-top: 10px;">DOCUMENTO</td>
+                <td class="separator-col" style="padding-top: 10px;">:</td>
+                <td class="value-col" style="padding-top: 10px;">
+                  <div class="legal-text" style="margin-top:0;">
+                    DIRECTIVA N&deg; 0011-2019-COMGEN-PNP/SECEJE-DIRREHUM (RCG N&deg; 628-2019-CG PNP/EMG DEL 03OCT2019), Normas y procedimientos para el uso adecuado de la licencia pre y post natal (98...), por parte del Personal Policial. INFORME N&deg; 117-2025-COMOPPOL/DIRSAPOL/RSP HP/POL.POL HCO/DM de fecha 05JUN2025.
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- LUGAR Y FECHA -->
+          <div class="lugar-fecha-row">
+            ${lugarFecha}
+          </div>
+
+          <!-- FIRMA Y SELLO -->
+          <div class="firma-container">
+            <div class="siglas-left">
+              LEVM/ato
+            </div>
+            <div class="firma-right">
+              <img class="sello-img" src="sello_ofad_regpol.png" alt="Sello Redondo OFAD" />
+              <div class="post-firma-box">
+                <div class="post-firma-line">${sCip}</div>
+                <div class="post-firma-name">${sNombre}</div>
+                <div>${sGrado}</div>
+                <div class="post-firma-cargo">${sCargo}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function displayGravidezPreview(item, isPendingSave = false) {
+      currentGravidezData = item;
+      isPendingGravidezSave = isPendingSave;
+
+      let signer = null;
+      if (item && item.quien_ordena && String(item.quien_ordena).trim()) {
+        signer = resolverFirmante(item.quien_ordena);
+        const qUpper = String(item.quien_ordena).toUpperCase();
+        if (jefesList && jefesList.length > 0) {
+          const matchIdx = jefesList.findIndex(j => {
+            const jNom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').toUpperCase();
+            return jNom && (qUpper.includes(jNom) || jNom.includes(qUpper));
+          });
+          if (matchIdx >= 0) {
+            if (signer && signer.cargo) {
+              jefesList[matchIdx].CARGO = signer.cargo;
+            }
+          }
+        }
+      } else {
+        signer = getSelectedGravidezSigner();
+      }
+
+      populateGravidezJefesSelect();
+
+      if (item && item.quien_ordena) {
+        const qUpper = String(item.quien_ordena).toUpperCase();
+        const sel = document.getElementById('gravidezJefeSelect');
+        if (sel && jefesList && jefesList.length > 0) {
+          const matchIdx = jefesList.findIndex(j => {
+            const jNom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').toUpperCase();
+            return jNom && (qUpper.includes(jNom) || jNom.includes(qUpper));
+          });
+          if (matchIdx >= 0) {
+            sel.value = String(matchIdx);
+          }
+        }
+      }
+
+      // Configurar botones según si es antes de guardar o solo vista previa
+      const btnVolverTop = document.getElementById('btnVolverFormGravidezTop');
+      const btnGuardarTop = document.getElementById('btnGuardarGravidezDirectoTop');
+      const btnPrintTop = document.getElementById('btnPrintGravidezTop');
+      const btnVolverBottom = document.getElementById('btnVolverFormGravidezBottom');
+      const btnGuardarBottom = document.getElementById('btnGuardarGravidezDirectoBottom');
+      const btnPrintBottom = document.getElementById('btnPrintGravidezBottom');
+
+      if (isPendingSave) {
+        if (btnVolverTop) btnVolverTop.style.display = 'inline-flex';
+        if (btnGuardarTop) btnGuardarTop.style.display = 'inline-flex';
+        if (btnPrintTop) btnPrintTop.innerHTML = '<span>🖨️</span> Guardar e Imprimir A4';
+
+        if (btnVolverBottom) btnVolverBottom.innerHTML = '✏️ Modificar / Volver al Formulario';
+        if (btnGuardarBottom) btnGuardarBottom.style.display = 'inline-flex';
+        if (btnPrintBottom) btnPrintBottom.innerHTML = '<span>🖨️</span> Guardar e Imprimir (Hoja A4)';
+      } else {
+        if (btnVolverTop) btnVolverTop.style.display = 'none';
+        if (btnGuardarTop) btnGuardarTop.style.display = 'none';
+        if (btnPrintTop) btnPrintTop.innerHTML = '<span>🖨️</span> Imprimir / Guardar en PDF (A4)';
+
+        if (btnVolverBottom) btnVolverBottom.innerHTML = 'Cerrar';
+        if (btnGuardarBottom) btnGuardarBottom.style.display = 'none';
+        if (btnPrintBottom) btnPrintBottom.innerHTML = '<span>🖨️</span> Imprimir / Guardar en PDF (A4)';
+      }
+
+      const container = document.getElementById('gravidezSingleSheetContainer');
+      if (container) {
+        container.innerHTML = buildGravidezA4HTML(item, signer);
+      }
+      const modal = document.getElementById('gravidezPreviewModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function updateGravidezSigner() {
+      if (!currentGravidezData) return;
+      const signer = getSelectedGravidezSigner();
+      const container = document.getElementById('gravidezSingleSheetContainer');
+      if (container) {
+        container.innerHTML = buildGravidezA4HTML(currentGravidezData, signer);
+      }
+    }
+
+    function closeGravidezModal(e) {
+      if (e) e.preventDefault();
+      const modal = document.getElementById('gravidezPreviewModal');
+      if (modal) modal.classList.remove('open');
+      document.body.classList.remove('printing-gravidez');
+      isPendingGravidezSave = false;
+      pendingGravidezPayload = null;
+      pendingGravidezEditingId = null;
+    }
+
+    function volverFormularioGravidez(e) {
+      if (e) e.preventDefault();
+      const modal = document.getElementById('gravidezPreviewModal');
+      if (modal) modal.classList.remove('open');
+      document.body.classList.remove('printing-gravidez');
+      if (isPendingGravidezSave) {
+        document.getElementById('docModal').classList.add('active');
+      }
+    }
+
+    async function confirmarYGuardarGravidez(andPrint = false) {
+      if (!isPendingGravidezSave || !pendingGravidezPayload) {
+        if (andPrint) {
+          printGravidezDocument();
+        }
+        return;
+      }
+
+      const signer = getSelectedGravidezSigner();
+      if (signer && signer.nombre) {
+        pendingGravidezPayload.quien_ordena = `${signer.grado} ${signer.nombre} - ${signer.cargo}`.trim();
+      }
+
+      const saveBtn = document.getElementById('btnSaveDoc');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+      }
+
+      try {
+        if (pendingGravidezEditingId) {
+          await apiRequest(`orden_gravidez?id=eq.${pendingGravidezEditingId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(pendingGravidezPayload)
+          });
+        } else {
+          await apiRequest('orden_gravidez', {
+            method: 'POST',
+            body: JSON.stringify(pendingGravidezPayload)
+          });
+        }
+
+        // Notificar en tiempo real multi-pestaña
+        if (typeof BroadcastChannel !== 'undefined') {
+          try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'orden_gravidez' }); } catch (_) {}
+        }
+        try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
+
+        await loadCurrentTableData();
+        await loadAllBadges();
+
+        if (andPrint) {
+          printGravidezDocument();
+        } else {
+          closeGravidezModal();
+          if (typeof toast === 'function') toast('Orden de Gravidez guardada con éxito', 'success');
+          else alert('Orden de Gravidez guardada con éxito.');
+        }
+      } catch (err) {
+        alert('Error al guardar: ' + err.message);
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
+        }
+        isPendingGravidezSave = false;
+        pendingGravidezPayload = null;
+        pendingGravidezEditingId = null;
+      }
+    }
+
+    function printGravidezDocument(e) {
+      if (e) e.preventDefault();
+      document.body.classList.add('printing-gravidez');
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-gravidez');
+      }, 1000);
+    }
+
+    function copyGravidezSummary(e) {
+      if (e) e.preventDefault();
+      if (!currentGravidezData) return;
+      const cleanNum = (currentGravidezData.numero_documento || '').replace(/^ORDEN DE GRAVIDEZ N°\s*/i, '');
+      const p = parseGravidezDetails(currentGravidezData);
+      const text = `ORDEN DE LICENCIA PRE Y POST NATAL N° ${cleanNum}
+GRADO: ${currentGravidezData.grado || 'PNP'}
+SOLICITANTE: ${currentGravidezData.apellidos_nombres || p.efectivo || ''}
+CIP: ${currentGravidezData.cip || p.cip || ''} | DNI: ${currentGravidezData.dni || p.dni || ''}
+DOMICILIO: ${currentGravidezData.direccion || p.direccion || ''}
+PROCEDENCIA: ${currentGravidezData.procedencia || p.procedencia || ''}
+PRINCIPIA: ${currentGravidezData.fecha_inicio || ''}
+TERMINA: ${currentGravidezData.fecha_termino || ''} (98 DÍAS)`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        if (typeof toast === 'function') toast('Resumen copiado al portapapeles', 'success');
+        else alert('Resumen copiado al portapapeles');
+      }).catch(() => {
+        alert('No se pudo copiar al portapapeles');
+      });
+    }
+
+    function verOrdenGravidezPorId(id) {
+      const item = (currentData || []).find(d => String(d.id) === String(id));
+      if (!item) {
+        alert('No se encontró el registro con ID: ' + id);
+        return;
+      }
+      displayGravidezPreview(item, false);
+    }
+
 </script>
 </body>
 </html>
