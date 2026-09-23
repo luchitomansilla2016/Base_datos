@@ -9063,8 +9063,12 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
 
       const obsTexto = `SE PONE A DISPOSICIÓN AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACIÓN DEBERÁ SER COMUNICADO AL JEFE DE DIVISIÓN, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL ÁREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTRÓNICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACIÓN CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.`;
 
+      const cleanSignerCip = String(signer?.cip || signer?.CIP || '340850').replace(/^(OA|SA|CIP)[\s\.\-:]*/i, '').trim() || '340850';
+
       const tags = {
-        NUMERO_ORDEN: tituloDoc,
+        NUMERO_ORDEN: `${padNum}-${yr}`,
+        NUMERO_ORDEN_COMPLETO: tituloDoc,
+        TITULO_DOC: tituloDoc,
         CIP: cipVal,
         APELLIDOS_NOMBRES: nombresVal,
         PROCEDENCIA: procedenciaVal,
@@ -9073,7 +9077,9 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
         DOC_REFERENCIA: refDocVal,
         OBSERVACION: obsTexto,
         FECHA_DOC: fechaDocVal,
-        FIRMANTE_CIP: sCip,
+        'FECHA DOC': fechaDocVal,
+        FIRMANTE_CIP: cleanSignerCip,
+        FIRMANTE_CIP_COMPLETO: sCip,
         FIRMANTE_NOMBRE: sNom,
         FIRMANTE_GRADO: sGrd,
         FIRMANTE_CARGO: sCrg
