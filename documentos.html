@@ -687,9 +687,9 @@
 
     .doc-dialog {
       width: 100%;
-      max-width: 600px;
+      max-width: 680px;
       background: #ffffff;
-      border-radius: 16px;
+      border-radius: 14px;
       box-shadow: var(--shadow-lg);
       overflow: hidden;
       display: flex;
@@ -698,19 +698,29 @@
       animation: modalPop 0.25s ease;
     }
 
+    .doc-dialog form,
+    #docForm {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
     .doc-modal-header {
       background: var(--primary);
       color: #ffffff;
-      padding: 16px 20px;
+      padding: 12px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 3px solid var(--accent);
+      flex-shrink: 0;
     }
 
     .doc-modal-header h3 {
       margin: 0;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: #fff;
     }
@@ -719,26 +729,50 @@
       background: none;
       border: none;
       color: #fff;
-      font-size: 24px;
+      font-size: 22px;
       cursor: pointer;
       line-height: 1;
     }
 
     .doc-modal-body {
-      padding: 20px;
+      padding: 14px 18px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      min-height: 0;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
+    }
+
+    .doc-modal-body .form-group {
+      margin-bottom: 0;
+    }
+
+    .doc-modal-body .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: #2c493a;
+      margin-bottom: 4px;
+    }
+
+    .doc-modal-body .form-control {
+      padding: 8px 12px;
+      font-size: 13px;
+      border-radius: 8px;
     }
 
     .doc-modal-footer {
       background: #f8faf8;
       border-top: 1px solid var(--line);
-      padding: 14px 20px;
+      padding: 10px 18px;
       display: flex;
       justify-content: flex-end;
       gap: 10px;
+      flex-shrink: 0;
     }
 
     .recover-box {
@@ -5212,22 +5246,24 @@
         const fechaTerminoVal = existing.fecha_termino || (fechaInicioVal ? calcGravidezFechaTermino(fechaInicioVal) : '');
 
         container.innerHTML = `
-          <div style="background:#e8f2ec; padding:10px 14px; border-radius:8px; border:1px solid #cce2d4; margin-bottom:14px;">
-            <span style="font-weight:700; color:#0b5a3c; font-size:13px;">📑 Formulario de Orden por Gravidez</span>
+          <div style="background:#e8f2ec; padding:8px 12px; border-radius:8px; border:1px solid #cce2d4; margin-bottom:2px;">
+            <span style="font-weight:700; color:#0b5a3c; font-size:12px;">📑 Formulario de Orden por Gravidez</span>
           </div>
-          <div class="form-group">
-            <label>N&uacute;mero de Documento</label>
-            <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al guardar" readonly style="background:#f1f5f9; cursor:not-allowed;" />
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label>N&uacute;mero de Documento</label>
+              <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al guardar" readonly style="background:#f1f5f9; cursor:not-allowed;" />
+            </div>
+            <div class="form-group">
+              <label>Fecha del Documento</label>
+              <input id="f_fecha_documento" class="form-control" type="date" value="${existing.fecha_documento || today}" required />
+            </div>
           </div>
-          <div class="form-group">
-            <label>Fecha del Documento</label>
-            <input id="f_fecha_documento" class="form-control" type="date" value="${existing.fecha_documento || today}" required />
-          </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <div class="form-group" style="position:relative;">
               <label>CIP (Buscar o ingresar)</label>
               <input id="f_cip_grav" class="form-control" type="text" autocomplete="off" placeholder="Escriba CIP (ej. 31343925)..." value="${cipVal}" oninput="filterPersonalGravByCip(this)" onfocus="showPersonalGravDropdown(this)" onkeydown="navigatePersonalGravDropdown(event, this, 'cip')" required />
-              <div id="f_cip_grav_dropdown" class="autocomplete-dropdown" style="display:none; max-height:220px; overflow-y:auto;"></div>
+              <div id="f_cip_grav_dropdown" class="autocomplete-dropdown" style="display:none; max-height:200px; overflow-y:auto;"></div>
             </div>
             <div class="form-group">
               <label>DNI</label>
@@ -5237,17 +5273,19 @@
           <div class="form-group" style="position:relative;">
             <label>Grado, Apellidos y Nombres (Buscar por Apellidos o Nombres)</label>
             <input id="f_grado_apellidos_nombres_grav" class="form-control" type="text" autocomplete="off" placeholder="Escriba apellidos o nombres..." value="${efVal}" oninput="filterPersonalGravByName(this)" onfocus="showPersonalGravDropdown(this)" onkeydown="navigatePersonalGravDropdown(event, this, 'name')" required />
-            <div id="f_grado_apellidos_nombres_grav_dropdown" class="autocomplete-dropdown" style="display:none; max-height:220px; overflow-y:auto;"></div>
+            <div id="f_grado_apellidos_nombres_grav_dropdown" class="autocomplete-dropdown" style="display:none; max-height:200px; overflow-y:auto;"></div>
           </div>
-          <div class="form-group">
-            <label>Direcci&oacute;n / Domicilio</label>
-            <input id="f_direccion_grav" class="form-control" type="text" placeholder="Ej. JR. DOS DE MAYO N° 450 - HUÁNUCO" value="${dirVal}" />
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label>Direcci&oacute;n / Domicilio</label>
+              <input id="f_direccion_grav" class="form-control" type="text" placeholder="Ej. JR. DOS DE MAYO N° 450 - HUÁNUCO" value="${dirVal}" />
+            </div>
+            <div class="form-group">
+              <label>Procedencia (Lista de Revista)</label>
+              <input id="f_procedencia_grav" class="form-control" type="text" placeholder="Ej. COMISARÍA HUÁNUCO / DIVREINT" value="${procVal}" />
+            </div>
           </div>
-          <div class="form-group">
-            <label>Procedencia (Lista de Revista)</label>
-            <input id="f_procedencia_grav" class="form-control" type="text" placeholder="Ej. COMISARÍA HUÁNUCO / DIVREINT" value="${procVal}" />
-          </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <div class="form-group">
               <label>Fecha Inicio</label>
               <input id="f_fecha_inicio" class="form-control" type="date" value="${fechaInicioVal}" onchange="onGravidezFechaInicioChange(this)" oninput="onGravidezFechaInicioChange(this)" required />
@@ -5257,16 +5295,18 @@
               <input id="f_fecha_termino" class="form-control" type="date" value="${fechaTerminoVal}" required />
             </div>
           </div>
-          <div class="form-group" style="position:relative;">
-            <label>Quien Ordena / Dispone</label>
-            <input id="f_quien_ordena" class="form-control" type="text" list="firmantesGravDatalist" placeholder="Seleccione o escriba quien ordena..." value="${existing.quien_ordena || ''}" />
-            <datalist id="firmantesGravDatalist">
-              ${firmantesOptions}
-            </datalist>
-          </div>
-          <div class="form-group">
-            <label>Usuario que Registra</label>
-            <input id="f_usuario_registra" class="form-control" type="text" value="${existing.usuario_registra || getUsuarioRegistraNombre()}" readonly style="background:#f1f5f9;" />
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group" style="position:relative;">
+              <label>Quien Ordena / Dispone</label>
+              <input id="f_quien_ordena" class="form-control" type="text" list="firmantesGravDatalist" placeholder="Seleccione o escriba quien ordena..." value="${existing.quien_ordena || ''}" />
+              <datalist id="firmantesGravDatalist">
+                ${firmantesOptions}
+              </datalist>
+            </div>
+            <div class="form-group">
+              <label>Usuario que Registra</label>
+              <input id="f_usuario_registra" class="form-control" type="text" value="${existing.usuario_registra || getUsuarioRegistraNombre()}" readonly style="background:#f1f5f9;" />
+            </div>
           </div>
         `;
         return;
