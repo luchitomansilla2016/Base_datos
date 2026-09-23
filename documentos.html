@@ -4890,6 +4890,28 @@
     }
 
     // --- FUNCIONES DE AUTOCOMPLETADO Y PARSEO PARA ÓRDENES DE LACTANCIA ---
+    function calcLactanciaFechaTermino(fechaInicioStr) {
+      if (!fechaInicioStr) return '';
+      const parts = fechaInicioStr.split('-');
+      if (parts.length !== 3) return '';
+      const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      if (isNaN(d.getTime())) return '';
+      // 1 año de lactancia contando desde el primer día (+1 año menos 1 día)
+      d.setFullYear(d.getFullYear() + 1);
+      d.setDate(d.getDate() - 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function onLactanciaFechaInicioChange(inputEl) {
+      const endInput = document.getElementById('f_fecha_termino');
+      if (endInput && inputEl && inputEl.value) {
+        endInput.value = calcLactanciaFechaTermino(inputEl.value);
+      }
+    }
+
     function parseLactanciaDetails(item) {
       if (!item) return { cip: '', dni: '', efectivo: '', procedencia: '', direccion: '', asunto: '' };
       const desc = item.descripcion || '';
@@ -6432,7 +6454,7 @@
         const descVal = parsed.asunto || existing.descripcion || 'SE DISPONE PERMISO POR LACTANCIA';
         const numDocVal = existing.numero_documento || '';
         const fechaInicioVal = existing.fecha_inicio || '';
-        const fechaTerminoVal = existing.fecha_termino || '';
+        const fechaTerminoVal = existing.fecha_termino || (fechaInicioVal ? calcLactanciaFechaTermino(fechaInicioVal) : '');
 
         container.innerHTML = `
           <div style="background:#e8f2ec; padding:8px 12px; border-radius:8px; border:1px solid #cce2d4; margin-bottom:2px;">
@@ -6477,10 +6499,10 @@
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <div class="form-group">
               <label>Fecha Inicio</label>
-              <input id="f_fecha_inicio" class="form-control" type="date" value="${fechaInicioVal}" required />
+              <input id="f_fecha_inicio" class="form-control" type="date" value="${fechaInicioVal}" onchange="onLactanciaFechaInicioChange(this)" oninput="onLactanciaFechaInicioChange(this)" required />
             </div>
             <div class="form-group">
-              <label>Fecha T&eacute;rmino</label>
+              <label>Fecha T&eacute;rmino (1 a&ntilde;o)</label>
               <input id="f_fecha_termino" class="form-control" type="date" value="${fechaTerminoVal}" required />
             </div>
           </div>
