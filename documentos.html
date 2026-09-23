@@ -1823,12 +1823,15 @@
       #reincorporacionPreviewModal {
         display: block !important;
         position: static !important;
+        inset: auto !important;
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
         background: white !important;
       }
       #reincorporacionPreviewModal .dialog {
+        display: block !important;
+        position: static !important;
         width: 100% !important;
         max-width: none !important;
         box-shadow: none !important;
@@ -1843,24 +1846,44 @@
       #reincorporacionPreviewModal .close-btn {
         display: none !important;
       }
+      #reincorporacionPreviewModal .orden-sheet-container {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        max-height: none !important;
+        display: block !important;
+      }
       #reincorporacionPreviewModal .a4-page {
         box-shadow: none !important;
-        margin: 0 !important;
+        border: none !important;
+        margin: 0 auto !important;
         width: 210mm !important;
+        max-width: 210mm !important;
         height: 297mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
         padding: 0 !important;
+        box-sizing: border-box !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       #reincorporacionBulkPrintContainer {
         display: block !important;
         position: static !important;
         width: 210mm !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
         background: #ffffff !important;
       }
       #reincorporacionBulkPrintContainer .a4-page {
         box-shadow: none !important;
-        margin: 0 !important;
+        border: none !important;
+        margin: 0 auto !important;
         width: 210mm !important;
         height: 297mm !important;
         min-height: 297mm !important;
@@ -1868,6 +1891,10 @@
         padding: 0 !important;
         page-break-after: always !important;
         break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
       /* IMPRESIÓN EXCLUSIVA: ORDEN DE GRAVIDEZ */
@@ -2397,13 +2424,15 @@
       width: 100%;
       height: 148.5mm;
       max-height: 148.5mm;
+      min-height: 148.5mm;
       box-sizing: border-box;
-      padding: 10mm 12mm 0mm 25mm;
+      padding: 6mm 12mm 4mm 25mm;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
+      justify-content: space-between;
       position: relative;
       background: #ffffff;
+      overflow: hidden;
     }
     #reincorporacionPreviewModal .orden-card.top-copy,
     #reincorporacionBulkPrintContainer .orden-card.top-copy {
@@ -2511,7 +2540,7 @@
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
-      margin-top: 64px;
+      margin-top: 10px;
       margin-right: 23px;
     }
     #reincorporacionPreviewModal .footer-sign-block.has-cargo,
@@ -3168,7 +3197,7 @@
 
   <!-- Modal Oficial EXCLUSIVO de Vista Previa de Orden de Reincorporación (2 Copias A5 en Hoja A4) -->
   <div id="reincorporacionPreviewModal" class="modal" style="z-index: 10000;">
-    <div class="dialog" style="max-width: 960px; border-top: 5px solid #0b5a3c;">
+    <div class="dialog" style="max-width: 960px; border-top: 5px solid #0b5a3c; max-height: 94vh; display: flex; flex-direction: column;">
       <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f2ec 100%);">
         <div>
           <h1 style="color: #0b5a3c; font-size: 18px; display:flex; align-items:center; gap:8px;">
@@ -3197,7 +3226,7 @@
       </div>
 
       <!-- Contenedor del documento A4 con 2 copias A5 -->
-      <div class="orden-sheet-container" id="reincorpSingleSheetContainer">
+      <div class="orden-sheet-container" id="reincorpSingleSheetContainer" style="overflow-y: auto; max-height: calc(88vh - 140px); background: #525659; padding: 20px 0; display: flex; justify-content: center;">
         <!-- Renderizado dinámico -->
       </div>
 
