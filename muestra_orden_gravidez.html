@@ -318,7 +318,7 @@
       font-weight: bold;
       letter-spacing: -0.3px;
       white-space: nowrap;
-      text-transform: uppercase;
+      text-transform: none;
       display: block;
       width: 100%;
       line-height: 1.1;
@@ -686,6 +686,95 @@
       return `${fSiglas}/${uSiglas}`;
     }
 
+    function formatNombrePostFirma(rawName) {
+      if (!rawName) return 'Luis Enrique VERAMENDI MAZZA';
+      let clean = String(rawName).trim().replace(/\s+/g, ' ');
+      const rankRegex = /^(GRAL|CRNL|CMDTE|CMTE|MAY|MAYOR|CAP|TNTE|ALFZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO1|SO2|SO3|SO|SUBTENIENTE|SUB\s*OFICIAL|OFICIAL|EMPLEADO\s*CIVIL|EC|EE\.CC|EECC|ST)\s*(PNP)?\s*\.?\s*/i;
+      clean = clean.replace(rankRegex, '').trim();
+      clean = clean.replace(/^PNP\s+/i, '').trim();
+      const up = clean.toUpperCase();
+
+      if (up.includes('VERAMENDI') && up.includes('MAZZA')) {
+        return 'Luis Enrique VERAMENDI MAZZA';
+      }
+      if (up.includes('CISNEROS') && up.includes('APAZA')) {
+        return 'Ricky Florian CISNEROS APAZA';
+      }
+      if (up.includes('GONZALES') && up.includes('QUINTERO')) {
+        return 'Jose Luis GONZALES QUINTERO';
+      }
+      if (up.includes('VILCA') && up.includes('CHAVEZ')) {
+        return 'Edwin Homero VILCA CHAVEZ';
+      }
+      if (up.includes('ROLDAN') && up.includes('ARGANDOÑA')) {
+        return 'Francisco Gabriel ROLDAN ARGANDOÑA';
+      }
+      if (up.includes('MANSILLA') && up.includes('SANTA MARIA')) {
+        return 'Jose Luis MANSILLA SANTA MARIA';
+      }
+
+      const toTitle = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+      const words = clean.split(' ').filter(w => w.length > 0);
+      if (words.length === 0) return 'Luis Enrique VERAMENDI MAZZA';
+      if (words.length === 1) return toTitle(words[0]);
+
+      // Si viene con mayúsculas y minúsculas mixtas (ej. "Luis Enrique VERAMENDI MAZZA" o "VERAMENDI MAZZA Luis Enrique")
+      const hasMixedCase = words.some(w => w !== w.toUpperCase() && /[a-z]/.test(w)) &&
+                           words.some(w => w === w.toUpperCase() && w.length > 1);
+      if (hasMixedCase) {
+        let givenWords = [];
+        let surnameWords = [];
+        words.forEach(w => {
+          if (w === w.toUpperCase() && w.length > 1) {
+            surnameWords.push(w.toUpperCase());
+          } else {
+            givenWords.push(toTitle(w));
+          }
+        });
+        if (givenWords.length > 0 && surnameWords.length > 0) {
+          return `${givenWords.join(' ')} ${surnameWords.join(' ')}`;
+        }
+      }
+
+      const knownGivenNames = new Set([
+        'JOSE', 'LUIS', 'RICKY', 'FLORIAN', 'EDWIN', 'HOMERO', 'FRANCISCO', 'GABRIEL',
+        'ENRIQUE', 'MARIA', 'ELENA', 'JUAN', 'CARLOS', 'JORGE', 'MANUEL', 'CESAR', 'MIGUEL',
+        'ANGEL', 'VICTOR', 'RAUL', 'PEDRO', 'MARCO', 'ANTONIO', 'DAVID', 'DANIEL', 'OSCAR',
+        'FERNANDO', 'HERNAN', 'WALTER', 'EDGAR', 'RICHARD', 'ELMER', 'JAVIER', 'ROBERTO',
+        'JULIO', 'ALEX', 'CHRISTIAN', 'CRISTIAN', 'DIEGO', 'ALBERTO', 'ARTURO', 'SERGIO',
+        'NORMA', 'YHAJAYRA', 'PATRICIA', 'ANA', 'ROSA', 'CARMEN', 'LUZ', 'ORLANDO'
+      ]);
+
+      if (words.length >= 4) {
+        const lastTwoAreGiven = knownGivenNames.has(words[words.length - 2].toUpperCase()) || knownGivenNames.has(words[words.length - 1].toUpperCase());
+        const firstTwoAreGiven = knownGivenNames.has(words[0].toUpperCase()) || knownGivenNames.has(words[1].toUpperCase());
+
+        if (lastTwoAreGiven && !firstTwoAreGiven) {
+          const givenNames = words.slice(-2).map(toTitle).join(' ');
+          const surnames = words.slice(0, -2).map(w => w.toUpperCase()).join(' ');
+          return `${givenNames} ${surnames}`;
+        } else {
+          const givenNames = words.slice(0, 2).map(toTitle).join(' ');
+          const surnames = words.slice(2).map(w => w.toUpperCase()).join(' ');
+          return `${givenNames} ${surnames}`;
+        }
+      } else if (words.length === 3) {
+        const lastIsGiven = knownGivenNames.has(words[2].toUpperCase());
+        if (lastIsGiven) {
+          return `${toTitle(words[2])} ${words[0].toUpperCase()} ${words[1].toUpperCase()}`;
+        } else {
+          return `${toTitle(words[0])} ${words[1].toUpperCase()} ${words[2].toUpperCase()}`;
+        }
+      } else {
+        const firstIsGiven = knownGivenNames.has(words[0].toUpperCase());
+        if (firstIsGiven) {
+          return `${toTitle(words[0])} ${words[1].toUpperCase()}`;
+        } else {
+          return `${toTitle(words[1])} ${words[0].toUpperCase()}`;
+        }
+      }
+    }
+
     function updateLiveView(isManualSiglas = false) {
       document.getElementById('lbl_numero_doc').textContent = document.getElementById('in_num_orden').value || '---';
       document.getElementById('lbl_grado').textContent = document.getElementById('in_grado').value || '---';
@@ -703,7 +792,8 @@
 
       document.getElementById('lbl_informe_medico').textContent = document.getElementById('in_informe_medico').value || '---';
       document.getElementById('lbl_fecha_informe').textContent = document.getElementById('in_fecha_informe').value || '---';
-      const fNombre = document.getElementById('in_firmante_nombre').value || '---';
+      const rawFNombre = document.getElementById('in_firmante_nombre').value || '---';
+      const fNombre = formatNombrePostFirma(rawFNombre);
       const elNombre = document.getElementById('lbl_firmante_nombre');
       elNombre.textContent = fNombre;
       if (fNombre.length > 32) {
