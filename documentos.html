@@ -1996,7 +1996,7 @@
       margin-top: 35px;
       display: flex;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: flex-start;
       padding: 0 10px;
     }
     #gravidezPreviewModal .siglas-left {
@@ -2010,13 +2010,15 @@
     }
     #gravidezPreviewModal .firma-right {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 0;
     }
     #gravidezPreviewModal .sello-img {
-      width: 110px;
-      height: auto;
+      width: 3cm;
+      height: 3cm;
+      object-fit: contain;
       display: block;
+      flex-shrink: 0;
     }
     #gravidezPreviewModal .post-firma-box {
       text-align: center;
@@ -2024,6 +2026,7 @@
       font-size: 8.5pt;
       line-height: 1.25;
       color: #000;
+      margin-top: 1.5cm; /* Extremo derecho medio del sello pegado al extremo izquierdo de la linea */
     }
     #gravidezPreviewModal .post-firma-line {
       border-top: 1.2px solid #000;
