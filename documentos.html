@@ -9096,6 +9096,29 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
 
       const cleanSignerCip = String(signer?.cip || signer?.CIP || '340850').replace(/^(OA|SA|CIP)[\s\.\-:]*/i, '').trim() || '340850';
 
+      let uLogueado = '';
+      if (typeof currentUser !== 'undefined' && currentUser) {
+        uLogueado = currentUser.apellidos_nombres || currentUser['APELLIDOS Y NOMBRES'] || currentUser.nombre || '';
+      }
+      if (!uLogueado) {
+        try {
+          const stored = localStorage.getItem('regpol_docs_user') || sessionStorage.getItem('regpol_docs_user');
+          if (stored) {
+            const parsedUser = JSON.parse(stored);
+            uLogueado = parsedUser.apellidos_nombres || parsedUser['APELLIDOS Y NOMBRES'] || parsedUser.nombre || '';
+          }
+        } catch (_) {}
+      }
+      if (!uLogueado && typeof getUsuarioRegistraNombre === 'function') {
+        uLogueado = getUsuarioRegistraNombre();
+      }
+      if (!uLogueado) {
+        uLogueado = (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
+                    (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
+                    'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      }
+      uLogueado = uLogueado.trim().toUpperCase();
+
       const tags = {
         NUMERO_ORDEN: `${padNum}-${yr}`,
         NUMERO_ORDEN_COMPLETO: tituloDoc,
@@ -9114,7 +9137,12 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
         FIRMANTE_CIP_NUMERO: cleanSignerCip,
         FIRMANTE_NOMBRE: sNom,
         FIRMANTE_GRADO: sGrd,
-        FIRMANTE_CARGO: sCrg
+        FIRMANTE_CARGO: sCrg,
+        USUARIO_LOGUEADO: uLogueado,
+        USUARIO_REGISTRA: uLogueado,
+        GENERADO_POR: `GENERADO POR EL USUARIO: ${uLogueado} DEL SISTEMA DE REGISTRO DE DOCUMENTOS`,
+        PIE_PAGINA: `GENERADO POR EL USUARIO: ${uLogueado} DEL SISTEMA DE REGISTRO DE DOCUMENTOS`,
+        PIE_DOCUMENTO: `GENERADO POR EL USUARIO: ${uLogueado} DEL SISTEMA DE REGISTRO DE DOCUMENTOS`
       };
 
       try {
