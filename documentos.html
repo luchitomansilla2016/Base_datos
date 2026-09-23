@@ -8181,16 +8181,18 @@ MOTIVO: ${motivoText}`;
 
     function formatMotivoReincorp(rawDesc, rawMotivo) {
       let str = String(rawDesc || '').trim();
-      str = str.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+DE\s*:?|AL\s*:?|POR\s*:?|CONFORME\s*:?)/i, '');
-      str = str.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*:?)?/i, '');
-      str = str.replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, '');
+      str = str.replace(/^(SE\s+)?REINCORPORA\s+(AL\s+T[EÉ]RMINO\s+(DE\s+|DEL\s+)?|AL\s*:?|POR\s*:?|CONFORME\s*:?)?/i, '');
+      str = str.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+(DE\s+|DEL\s+)?|AL\s*:?|POR\s*:?|CONFORME\s*:?)?/i, '');
+      str = str.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*(DE|DEL)\s*:?)?/i, '');
+      str = str.replace(/^AL\s*T[EÉ]RMINO\s*(DE|DEL)\s*:?\s*/i, '');
       str = str.trim();
 
       if (!str && rawMotivo) {
         let m = String(rawMotivo || '').trim();
-        m = m.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+DE\s*:?|AL\s*:?|POR\s*:?|CONFORME\s*:?)/i, '');
-        m = m.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*:?)?/i, '');
-        m = m.replace(/^AL\s*T[EÉ]RMINO\s*DE\s*:?\s*/i, '');
+        m = m.replace(/^(SE\s+)?REINCORPORA\s+(AL\s+T[EÉ]RMINO\s+(DE\s+|DEL\s+)?|AL\s*:?|POR\s*:?|CONFORME\s*:?)?/i, '');
+        m = m.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+(DE\s+|DEL\s+)?|AL\s*:?|POR\s*:?|CONFORME\s*:?)?/i, '');
+        m = m.replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*(DE|DEL)\s*:?)?/i, '');
+        m = m.replace(/^AL\s*T[EÉ]RMINO\s*(DE|DEL)\s*:?\s*/i, '');
         str = m.trim();
       }
 
@@ -8585,7 +8587,7 @@ MOTIVO: ${motivoText}`;
               <tr>
                 <td class="data-label">MOTIVO</td>
                 <td class="data-sep">:</td>
-                <td class="data-val">AL T&Eacute;RMINO DE: <b class="val-motivo">${motivoVal}</b></td>
+                <td class="data-val bold val-motivo">${motivoVal}</td>
               </tr>
               <tr>
                 <td class="data-label">DOCUMENTO DE REFERENCIA</td>
@@ -8655,7 +8657,7 @@ MOTIVO: ${motivoText}`;
               <tr>
                 <td class="data-label">MOTIVO</td>
                 <td class="data-sep">:</td>
-                <td class="data-val">AL T&Eacute;RMINO DE: <b class="val-motivo">${motivoVal}</b></td>
+                <td class="data-val bold val-motivo">${motivoVal}</td>
               </tr>
               <tr>
                 <td class="data-label">DOCUMENTO DE REFERENCIA</td>
