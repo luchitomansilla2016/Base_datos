@@ -9741,7 +9741,11 @@ TERMINA: ${currentGravidezData.fecha_termino || ''} (98 DÍAS)`;
               <tr>
                 <td class="label-col">TERMINA</td>
                 <td class="separator-col">:</td>
-                <td class="value-col value-bold">${formatShortDateLactancia(fTermino)} A HORAS 08:00 (EN VIA DE REGULARIZACION)</td>
+                <td class="value-col value-bold">
+                  <div>${formatShortDateLactancia(fTermino)} A HORAS 08:00.</div>
+                  <div>UNA HORA DIARIA DE PERMISO</div>
+                  <div>(EN VIA DE REGULARIZACION)</div>
+                </td>
               </tr>
               <tr>
                 <td class="label-col" style="padding-top: 10px;">DOCUMENTO</td>
