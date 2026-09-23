@@ -5441,7 +5441,100 @@
         }
       }
 
-      const firmantesOptions = getFirmantesOptionsHtml();
+    function getFirmantesSelectOptionsHtml(selectedValue = '') {
+      let opts = '';
+      const selValNorm = String(selectedValue || '').trim().toUpperCase();
+      let matched = false;
+
+      if (jefesList && jefesList.length > 0) {
+        jefesList.forEach((j, idx) => {
+          const nom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').trim().toUpperCase();
+          const grd = String(j.GRADO || j.grado || 'PNP').trim().toUpperCase();
+          const crg = String(j.CARGO || j.cargo || 'JEFE').trim().toUpperCase();
+          const fullVal = `${grd} ${nom} - ${crg}`;
+          
+          let isSelected = false;
+          if (!matched && selValNorm) {
+            if (fullVal.toUpperCase() === selValNorm || fullVal.toUpperCase().includes(selValNorm) || (nom && selValNorm.includes(nom))) {
+              isSelected = true;
+              matched = true;
+            }
+          } else if (!matched && !selValNorm && idx === 0) {
+            isSelected = true;
+          }
+
+          opts += `<option value="${escapeHtml(fullVal)}" ${isSelected ? 'selected' : ''}>${grd} ${nom} - ${crg}</option>`;
+        });
+      }
+
+      if (selectedValue && !matched && selectedValue !== '__MANAGE_JEFES__') {
+        opts += `<option value="${escapeHtml(selectedValue)}" selected>${escapeHtml(selectedValue)}</option>`;
+      }
+
+      opts += `<option value="__MANAGE_JEFES__" style="color:#0b5a3c; font-weight:bold; background:#e8f2ec;">⚙️ + Administrar / Editar Firmantes y Cargos...</option>`;
+      return opts;
+    }
+
+    function getFirmantesOptionsHtml(selectedValue = '') {
+      return getFirmantesSelectOptionsHtml(selectedValue);
+    }
+
+    function onQuienOrdenaSelectChange(selEl) {
+      if (!selEl) return;
+      if (selEl.value === '__MANAGE_JEFES__') {
+        if (selEl.options.length > 1) {
+          selEl.selectedIndex = 0;
+        }
+        openGestionJefesModal();
+      }
+    }
+
+    function buildModalForm(existing = {}) {
+      const container = document.getElementById('docModalFields');
+      const conf = TABLES_CONFIG[currentTable];
+      const today = new Date().toISOString().split('T')[0];
+
+      const saveBtn = document.getElementById('btnSaveDoc');
+      const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
+      if (conf.isOrdenReincorporacion) {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
+          saveBtn.style.background = '#0b5a3c';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'inline-flex';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+        }
+      } else if (conf.isOrdenIncorporacion) {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
+          saveBtn.style.background = '#0b5a3c';
+          saveBtn.style.color = '#ffffff';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'inline-flex';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+        }
+      } else if (conf.isOrdenGravidez) {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
+          saveBtn.style.background = '#0b5a3c';
+          saveBtn.style.color = '#ffffff';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'inline-flex';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+        }
+      } else {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128190; Guardar Registro';
+          saveBtn.style.background = '';
+          saveBtn.style.color = '';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'none';
+        }
+      }
 
       if (conf.isOrdenIncorporacion) {
         let numDocVal = existing.numero_documento || '';
@@ -5486,11 +5579,20 @@
             <div id="f_destino_dropdown" class="autocomplete-dropdown" style="display:none;"></div>
           </div>
           <div class="form-group" style="position:relative;">
-            <label>Quien Ordena / Dispone</label>
-            <input id="f_quien_ordena" class="form-control" type="text" list="firmantesIncorpDatalist" placeholder="Seleccione o escriba quien ordena..." value="${existing.quien_ordena || ''}" />
-            <datalist id="firmantesIncorpDatalist">
-              ${firmantesOptions}
-            </datalist>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0; font-weight:700; font-size:12px; color:#18372b;">Quien Ordena / Dispone</label>
+              <button type="button" onclick="openGestionJefesModal(event)" style="background:none; border:none; color:#0b5a3c; font-size:11.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:0;" title="Ver o editar firmantes y cargos">
+                ⚙️ Ver / Editar
+              </button>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <select id="f_quien_ordena" class="form-control" onchange="onQuienOrdenaSelectChange(this)" style="font-weight:600; color:#18372b; background:#fff; flex:1; cursor:pointer;">
+                ${getFirmantesSelectOptionsHtml(existing.quien_ordena)}
+              </select>
+              <button type="button" onclick="openGestionJefesModal(event)" title="Abrir Administrador de Firmantes y Cargos" style="height:36px; padding:0 10px; background:#e8f2ec; border:1.5px solid #0b5a3c; color:#0b5a3c; border-radius:6px; font-weight:bold; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
+                ⚙️
+              </button>
+            </div>
           </div>
           <div class="form-group">
             <label>Usuario que Registra</label>
@@ -5554,11 +5656,20 @@
             </select>
           </div>
           <div class="form-group" style="position:relative;">
-            <label>Quien Ordena / Dispone</label>
-            <input id="f_quien_ordena" class="form-control" type="text" list="firmantesReincorpDatalist" placeholder="Seleccione o escriba quien ordena..." value="${existing.quien_ordena || ''}" />
-            <datalist id="firmantesReincorpDatalist">
-              ${firmantesOptions}
-            </datalist>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0; font-weight:700; font-size:12px; color:#18372b;">Quien Ordena / Dispone</label>
+              <button type="button" onclick="openGestionJefesModal(event)" style="background:none; border:none; color:#0b5a3c; font-size:11.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:0;" title="Ver o editar firmantes y cargos">
+                ⚙️ Ver / Editar
+              </button>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <select id="f_quien_ordena" class="form-control" onchange="onQuienOrdenaSelectChange(this)" style="font-weight:600; color:#18372b; background:#fff; flex:1; cursor:pointer;">
+                ${getFirmantesSelectOptionsHtml(existing.quien_ordena)}
+              </select>
+              <button type="button" onclick="openGestionJefesModal(event)" title="Abrir Administrador de Firmantes y Cargos" style="height:36px; padding:0 10px; background:#e8f2ec; border:1.5px solid #0b5a3c; color:#0b5a3c; border-radius:6px; font-weight:bold; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
+                ⚙️
+              </button>
+            </div>
           </div>
         `;
         return;
@@ -5628,11 +5739,20 @@
           </div>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <div class="form-group" style="position:relative;">
-              <label>Quien Ordena / Dispone</label>
-              <input id="f_quien_ordena" class="form-control" type="text" list="firmantesGravDatalist" placeholder="Seleccione o escriba quien ordena..." value="${existing.quien_ordena || ''}" />
-              <datalist id="firmantesGravDatalist">
-                ${firmantesOptions}
-              </datalist>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label style="margin:0; font-weight:700; font-size:12px; color:#18372b;">Quien Ordena / Dispone</label>
+                <button type="button" onclick="openGestionJefesModal(event)" style="background:none; border:none; color:#0b5a3c; font-size:11.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:0;" title="Ver o editar firmantes y cargos">
+                  ⚙️ Ver / Editar
+                </button>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <select id="f_quien_ordena" class="form-control" onchange="onQuienOrdenaSelectChange(this)" style="font-weight:600; color:#18372b; background:#fff; flex:1; cursor:pointer;">
+                  ${getFirmantesSelectOptionsHtml(existing.quien_ordena)}
+                </select>
+                <button type="button" onclick="openGestionJefesModal(event)" title="Abrir Administrador de Firmantes y Cargos" style="height:36px; padding:0 10px; background:#e8f2ec; border:1.5px solid #0b5a3c; color:#0b5a3c; border-radius:6px; font-weight:bold; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
+                  ⚙️
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label>Usuario que Registra</label>
@@ -5743,9 +5863,21 @@
 
       if (conf.hasQuienOrdena) {
         html += `
-          <div class="form-group">
-            <label>Quien Ordena / Dispone</label>
-            <input id="f_quien_ordena" class="form-control" type="text" placeholder="Ej. JEFE REGPOL HU\u00c1NUCO" value="${existing.quien_ordena || ''}" />
+          <div class="form-group" style="position:relative;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="margin:0; font-weight:700; font-size:12px; color:#18372b;">Quien Ordena / Dispone</label>
+              <button type="button" onclick="openGestionJefesModal(event)" style="background:none; border:none; color:#0b5a3c; font-size:11.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:0;" title="Ver o editar firmantes y cargos">
+                ⚙️ Ver / Editar
+              </button>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <select id="f_quien_ordena" class="form-control" onchange="onQuienOrdenaSelectChange(this)" style="font-weight:600; color:#18372b; background:#fff; flex:1; cursor:pointer;">
+                ${getFirmantesSelectOptionsHtml(existing.quien_ordena)}
+              </select>
+              <button type="button" onclick="openGestionJefesModal(event)" title="Abrir Administrador de Firmantes y Cargos" style="height:36px; padding:0 10px; background:#e8f2ec; border:1.5px solid #0b5a3c; color:#0b5a3c; border-radius:6px; font-weight:bold; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
+                ⚙️
+              </button>
+            </div>
           </div>
         `;
       }
@@ -6503,6 +6635,19 @@
           if (cisnerosIdx >= 0) selOfc.value = cisnerosIdx;
         }
         updateOficioSigner();
+      }
+
+      if (typeof populateReincorpJefesSelect === 'function') {
+        populateReincorpJefesSelect();
+      }
+      if (typeof populateGravidezJefesSelect === 'function') {
+        populateGravidezJefesSelect();
+      }
+
+      const selDoc = document.getElementById('f_quien_ordena');
+      if (selDoc && selDoc.tagName === 'SELECT') {
+        const curVal = selDoc.value;
+        selDoc.innerHTML = getFirmantesSelectOptionsHtml(curVal);
       }
     }
 
