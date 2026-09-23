@@ -3605,9 +3605,9 @@
   </div>
 
   <!-- Librerías para generación y descarga instantánea de plantillas Word (.docx) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.4/pizzip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.42.0/docxtemplater.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
+  <script src="https://unpkg.com/docxtemplater@3.42.0/build/docxtemplater.js"></script>
+  <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
   <!-- SCRIPTS Y LÓGICA DE CONEXIÓN CON REGLAS DE SEGURIDAD (RBAC) -->
   <script>
@@ -9086,16 +9086,50 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
       };
 
       try {
-        if (typeof PizZip === 'undefined' || typeof window.docxtemplater === 'undefined') {
-          throw new Error('Las librerías de generación Word están cargando o no se encuentran disponibles.');
+        const getPizZip = () => window.PizZip || (typeof PizZip !== 'undefined' ? PizZip : null);
+        const getDocx = () => window.docxtemplater || window.Docxtemplater || (typeof Docxtemplater !== 'undefined' ? Docxtemplater : null) || (typeof docxtemplater !== 'undefined' ? docxtemplater : null);
+
+        let PizZipClass = getPizZip();
+        let DocxClass = getDocx();
+
+        if (!PizZipClass || !DocxClass) {
+          const loadScript = (src) => new Promise((resolve) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = () => resolve(true);
+            s.onerror = () => resolve(false);
+            document.head.appendChild(s);
+          });
+
+          if (!PizZipClass) {
+            await loadScript('https://unpkg.com/pizzip@3.1.4/dist/pizzip.js');
+            PizZipClass = getPizZip();
+            if (!PizZipClass) {
+              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.4/pizzip.min.js');
+              PizZipClass = getPizZip();
+            }
+          }
+
+          if (!DocxClass) {
+            await loadScript('https://unpkg.com/docxtemplater@3.42.0/build/docxtemplater.js');
+            DocxClass = getDocx();
+            if (!DocxClass) {
+              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.42.0/docxtemplater.js');
+              DocxClass = getDocx();
+            }
+          }
+        }
+
+        if (!PizZipClass || !DocxClass) {
+          throw new Error('No se pudieron cargar las librerías de Word. Por favor recargue la página e intente nuevamente.');
         }
 
         const response = await fetch('plantilla_reincorporacion.docx');
         if (!response.ok) throw new Error('No se encontró el archivo plantilla_reincorporacion.docx en el servidor.');
         const content = await response.arrayBuffer();
 
-        const zip = new PizZip(content);
-        const doc = new window.docxtemplater(zip, {
+        const zip = new PizZipClass(content);
+        const doc = new DocxClass(zip, {
           paragraphLoop: true,
           linebreaks: true
         });
@@ -9108,9 +9142,25 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
         });
 
         const nombreDescarga = `ORDEN_REINCORPORACION_${padNum}-${yr}_${cipVal}.docx`;
-        saveAs(out, nombreDescarga);
-        if (typeof toast === 'function') toast(`Descargando Word: ${nombreDescarga}`, 'success');
-        else alert(`Documento Word generado exitosamente: ${nombreDescarga}`);
+        if (typeof saveAs === 'function') {
+          saveAs(out, nombreDescarga);
+        } else if (typeof window.saveAs === 'function') {
+          window.saveAs(out, nombreDescarga);
+        } else {
+          const u = URL.createObjectURL(out);
+          const a = document.createElement('a');
+          a.href = u;
+          a.download = nombreDescarga;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(u);
+          }, 300);
+        }
+
+        if (typeof toast === 'function') toast(`Plantilla Word descargada: ${nombreDescarga}`, 'success');
+        else alert(`Documento Word descargado con éxito: ${nombreDescarga}`);
       } catch (err) {
         console.error('Error al generar Word:', err);
         alert('Error al descargar en Word: ' + err.message);
