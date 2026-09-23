@@ -4716,10 +4716,10 @@
             <th>CIP</th>
             <th>DNI</th>
             <th>Grado, Apellidos y Nombres</th>
+            <th>Direcci&oacute;n / Domicilio</th>
             <th>Procedencia</th>
             <th>F. Inicio</th>
             <th>F. T&eacute;rmino</th>
-            <th>Descripci&oacute;n / Asunto</th>
             <th>Quien Ordena</th>
             <th>Usuario Registra</th>
             ${admin ? '<th style="width:100px; text-align:center;">Acciones</th>' : ''}
@@ -4853,18 +4853,24 @@
       if (conf.isOrdenGravidez) {
         tbody.innerHTML = items.map(item => {
           const p = parseGravidezDetails(item);
+          const cipVal = item.cip || p.cip || '---';
+          const dniVal = item.dni || p.dni || '---';
+          const nomVal = item.apellidos_nombres || item.grado_apellidos_nombres || p.efectivo || '---';
+          const dirVal = item.direccion || p.direccion || '---';
+          const procVal = item.procedencia || item.unidad_procedencia || p.procedencia || '---';
+
           return `
             <tr>
               <td>${item.id}</td>
               <td><span class="badge-doc" title="${item.numero_documento || ''}">${formatShortDocNumber(item.numero_documento)}</span></td>
               <td>${item.fecha_documento || '---'}</td>
-              <td><b>${p.cip || '---'}</b></td>
-              <td>${p.dni || '---'}</td>
-              <td><b>${p.efectivo || '---'}</b></td>
-              <td>${p.procedencia || '---'}</td>
+              <td><b>${cipVal}</b></td>
+              <td>${dniVal}</td>
+              <td><b>${nomVal}</b></td>
+              <td>${dirVal}</td>
+              <td>${procVal}</td>
               <td><b>${item.fecha_inicio || '---'}</b></td>
               <td><b>${item.fecha_termino || '---'}</b></td>
-              <td>${p.asunto || item.descripcion || '---'}</td>
               <td>${item.quien_ordena || '---'}</td>
               <td><small>${item.usuario_registra || '---'}</small></td>
               ${admin ? `
@@ -5562,29 +5568,15 @@
         }
         payload.numero_documento = rawNum;
         payload.fecha_documento = document.getElementById('f_fecha_documento').value;
+        payload.cip = (document.getElementById('f_cip_grav')?.value || '').trim();
+        payload.dni = (document.getElementById('f_dni_grav')?.value || '').trim();
+        payload.apellidos_nombres = (document.getElementById('f_grado_apellidos_nombres_grav')?.value || '').trim();
+        payload.direccion = (document.getElementById('f_direccion_grav')?.value || '').trim();
+        payload.procedencia = (document.getElementById('f_procedencia_grav')?.value || '').trim();
         payload.fecha_inicio = document.getElementById('f_fecha_inicio').value;
         payload.fecha_termino = document.getElementById('f_fecha_termino').value;
         payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
         payload.usuario_registra = getUsuarioRegistraNombre();
-
-        const cip = (document.getElementById('f_cip_grav')?.value || '').trim();
-        const dni = (document.getElementById('f_dni_grav')?.value || '').trim();
-        const nom = (document.getElementById('f_grado_apellidos_nombres_grav')?.value || '').trim();
-        const dir = (document.getElementById('f_direccion_grav')?.value || '').trim();
-        const proc = (document.getElementById('f_procedencia_grav')?.value || '').trim();
-        const rawDesc = (document.getElementById('f_descripcion')?.value || '').trim() || 'SE DISPONE DESCANSO MÉDICO POR GRAVIDEZ';
-
-        let descFinal = rawDesc;
-        if (nom || cip) {
-          const details = [];
-          if (cip) details.push(`CIP: ${cip}`);
-          if (dni) details.push(`DNI: ${dni}`);
-          if (nom) details.push(`EFECTIVO: ${nom}`);
-          if (proc) details.push(`PROCEDENCIA: ${proc}`);
-          if (dir) details.push(`DOMICILIO: ${dir}`);
-          descFinal = `${rawDesc} - [${details.join(' | ')}]`;
-        }
-        payload.descripcion = descFinal;
       } else if (conf.isUserTable) {
         if (!isUserAdmin()) {
           alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede gestionar usuarios.');
@@ -5925,14 +5917,13 @@
             'N°': idx + 1,
             'N° DOCUMENTO': item.numero_documento || '',
             'FECHA DOCUMENTO': item.fecha_documento || '',
-            'CIP': p.cip || '',
-            'DNI': p.dni || '',
-            'GRADO, APELLIDOS Y NOMBRES': p.efectivo || '',
-            'PROCEDENCIA': p.procedencia || '',
-            'DOMICILIO / DIRECCIÓN': p.direccion || '',
+            'CIP': item.cip || p.cip || '',
+            'DNI': item.dni || p.dni || '',
+            'GRADO, APELLIDOS Y NOMBRES': item.apellidos_nombres || item.grado_apellidos_nombres || p.efectivo || '',
+            'DIRECCIÓN / DOMICILIO': item.direccion || p.direccion || '',
+            'PROCEDENCIA': item.procedencia || item.unidad_procedencia || p.procedencia || '',
             'FECHA INICIO': item.fecha_inicio || '',
             'FECHA TÉRMINO': item.fecha_termino || '',
-            'DESCRIPCIÓN / ASUNTO': p.asunto || item.descripcion || '',
             'QUIEN ORDENA': item.quien_ordena || '',
             'USUARIO REGISTRA': item.usuario_registra || ''
           };
