@@ -1511,7 +1511,7 @@
       line-height: 1.22;
     }
     .oficio-siglas-left {
-      font-size: 8pt;
+      font-size: 9pt;
       font-family: Arial, sans-serif;
       color: #000;
       line-height: 1.2;
@@ -9712,14 +9712,7 @@ TERMINA: ${currentGravidezData.fecha_termino || ''} (98 DÍAS)`;
               <tr>
                 <td class="label-col">TERMINA</td>
                 <td class="separator-col">:</td>
-                <td class="value-col">
-                  <div class="value-bold" style="margin-bottom: 3px;">
-                    ${formatShortDateLactancia(fTermino)} A HORAS 08:00 (EN VIA DE REGULARIZACION)
-                  </div>
-                  <div class="legal-text">
-                    Debiendo de REGULARIZAR el control de inicio y termino de su licencia, en la OFAD de su Unidad, REGPOL HUANUCO y DIRREHUM-PNP, asimismo deber&aacute; solicitar por conducto regular para REGULARIZAR la Orden de Permiso por Lactancia, adjuntando copia del acta de nacimiento de hijo (a) y de la orden de licencia por pre y post natal.
-                  </div>
-                </td>
+                <td class="value-col value-bold">${formatShortDateLactancia(fTermino)} A HORAS 08:00 (EN VIA DE REGULARIZACION)</td>
               </tr>
               <tr>
                 <td class="label-col" style="padding-top: 10px;">DOCUMENTO</td>
