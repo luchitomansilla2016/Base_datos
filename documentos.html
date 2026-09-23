@@ -1635,7 +1635,7 @@
       .sidebar,
       .sidebar-backdrop,
       .login-overlay,
-      .modal:not(#ordenPreviewModal):not(#fichaModal):not(#oficioPreviewModal):not(#reincorporacionPreviewModal):not(#gravidezPreviewModal),
+      .modal:not(#ordenPreviewModal):not(#fichaModal):not(#oficioPreviewModal):not(#reincorporacionPreviewModal):not(#gravidezPreviewModal):not(#lactanciaPreviewModal),
       #toast {
         display: none !important;
       }
@@ -1657,7 +1657,11 @@
         display: none !important;
       }
 
-      body:not(.printing-orden):not(.printing-oficio):not(.printing-reincorporacion):not(.printing-reincorporacion-bulk):not(.printing-gravidez) > *:not(#fichaModal) {
+      body.printing-lactancia > *:not(#lactanciaPreviewModal) {
+        display: none !important;
+      }
+
+      body:not(.printing-orden):not(.printing-oficio):not(.printing-reincorporacion):not(.printing-reincorporacion-bulk):not(.printing-gravidez):not(.printing-lactancia) > *:not(#fichaModal) {
         display: none !important;
       }
 
@@ -1922,6 +1926,63 @@
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
+
+      /* IMPRESIÓN EXCLUSIVA: ORDEN DE LACTANCIA */
+      body.printing-lactancia > *:not(#lactanciaPreviewModal) {
+        display: none !important;
+      }
+      #lactanciaPreviewModal {
+        display: block !important;
+        position: static !important;
+        inset: auto !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+      }
+      #lactanciaPreviewModal .dialog {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+      }
+      #lactanciaPreviewModal header,
+      #lactanciaPreviewModal .modal-controls-bar,
+      #lactanciaPreviewModal .footer,
+      #lactanciaPreviewModal .close-btn {
+        display: none !important;
+      }
+      #lactanciaPreviewModal .orden-sheet-container {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        max-height: none !important;
+        display: block !important;
+      }
+      #lactanciaPreviewModal .a4-page {
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 auto !important;
+        width: 210mm !important;
+        max-width: 210mm !important;
+        height: 297mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
+        padding: 0.5cm 1.3cm 0.5cm 0.5cm !important;
+        box-sizing: border-box !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
     }
 
     /* ESTILOS DE PANTALLA: PLANTILLA OFICIAL DE ORDEN DE GRAVIDEZ A4 */
@@ -2105,6 +2166,198 @@
       margin: 0;
     }
     #gravidezPreviewModal .post-firma-cargo {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 7pt;
+      font-weight: bold;
+      letter-spacing: -0.3px;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.05;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    /* ESTILOS DE PANTALLA: PLANTILLA OFICIAL DE ORDEN DE LACTANCIA A4 */
+    #lactanciaPreviewModal .a4-page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      background: #ffffff;
+      padding: 0.5cm 1.3cm 0.5cm 0.5cm;
+      box-shadow: 0 0 25px rgba(0,0,0,0.35);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      position: relative;
+      margin: 0 auto;
+    }
+    #lactanciaPreviewModal .header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    #lactanciaPreviewModal .header-membrete-box {
+      flex-shrink: 0;
+    }
+    #lactanciaPreviewModal .membrete-img {
+      width: 175px;
+      height: auto;
+      display: block;
+    }
+    #lactanciaPreviewModal .doc-title-container {
+      flex: 1;
+      text-align: center;
+      padding-right: 15px;
+      padding-top: 56px;
+    }
+    #lactanciaPreviewModal .doc-header-entidad {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      color: #000;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+    }
+    #lactanciaPreviewModal .doc-title {
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: 16pt;
+      font-weight: normal;
+      text-decoration: underline;
+      letter-spacing: 0.4px;
+      line-height: 1.25;
+      color: #000;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    #lactanciaPreviewModal .data-table {
+      width: calc(100% - 2.5cm);
+      margin-left: 2.5cm;
+      border-collapse: collapse;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      line-height: 1.45;
+      color: #000;
+      margin-top: 5px;
+    }
+    #lactanciaPreviewModal .data-table tr {
+      vertical-align: top;
+    }
+    #lactanciaPreviewModal .label-col {
+      width: 145px;
+      font-weight: bold;
+      padding: 5px 0;
+      letter-spacing: 0.2px;
+    }
+    #lactanciaPreviewModal .separator-col {
+      width: 25px;
+      text-align: center;
+      padding: 5px 0;
+      font-weight: bold;
+    }
+    #lactanciaPreviewModal .value-col {
+      padding: 5px 0;
+      letter-spacing: 0.1px;
+    }
+    #lactanciaPreviewModal .value-bold {
+      font-weight: bold;
+    }
+    #lactanciaPreviewModal .legal-text {
+      text-align: justify;
+      font-size: 9.5pt;
+      line-height: 1.35;
+      margin-top: 4px;
+    }
+    #lactanciaPreviewModal .lugar-fecha-row {
+      margin-top: 28px;
+      text-align: right;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      padding-right: 10px;
+      letter-spacing: 0.2px;
+    }
+    #lactanciaPreviewModal .firma-container {
+      margin-top: 35px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0 10px;
+    }
+    #lactanciaPreviewModal .siglas-left {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 9pt;
+      color: #222;
+      letter-spacing: 0.3px;
+      margin-left: 2.5cm;
+      align-self: flex-start;
+      margin-top: 6px;
+    }
+    #lactanciaPreviewModal .firma-right {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin-right: 18px;
+    }
+    #lactanciaPreviewModal .sello-img {
+      width: 3cm;
+      height: 3cm;
+      object-fit: contain;
+      display: block;
+      flex-shrink: 0;
+    }
+    #lactanciaPreviewModal .post-firma-box {
+      width: 4.00cm;
+      max-width: 4.00cm;
+      min-width: 4.00cm;
+      max-height: 1.50cm;
+      box-sizing: border-box;
+      text-align: center;
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      color: #000;
+      margin-top: 1.5cm;
+      line-height: 1.1;
+    }
+    #lactanciaPreviewModal .post-firma-line {
+      border-top: 1.2px solid #000;
+      width: 100%;
+      box-sizing: border-box;
+      padding-top: 1px;
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: bold;
+      letter-spacing: -0.2px;
+      white-space: nowrap;
+      line-height: 1.1;
+      margin: 0;
+    }
+    #lactanciaPreviewModal .post-firma-name {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: bold;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      text-transform: none;
+      display: block;
+      width: 100%;
+      line-height: 1.1;
+      margin: 0;
+    }
+    #lactanciaPreviewModal .post-firma-grado {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 8pt;
+      font-weight: bold;
+      letter-spacing: -0.2px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      display: block;
+      line-height: 1.1;
+      margin: 0;
+    }
+    #lactanciaPreviewModal .post-firma-cargo {
       font-family: 'Arial Narrow', Arial, sans-serif;
       font-size: 7pt;
       font-weight: bold;
@@ -3004,6 +3257,57 @@
     </div>
   </div>
 
+  <!-- Modal Oficial EXCLUSIVO de Vista Previa de Orden de Permiso por Lactancia -->
+  <div id="lactanciaPreviewModal" class="modal" style="z-index: 10000;">
+    <div class="dialog" style="max-width: 960px; border-top: 5px solid #0b5a3c;">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f2ec 100%);">
+        <div>
+          <h1 style="color: #0b5a3c; font-size: 18px; display:flex; align-items:center; gap:8px;">
+            <span>🤱</span> <span>Órden de Permiso por Lactancia (Formato A4 Oficial)</span>
+          </h1>
+          <div class="sub">Documento oficial de lactancia PNP &middot; Sello Membrete Oficial y Sello Redondo OFAD</div>
+        </div>
+        <button class="close-btn" onclick="closeLactanciaModal(event)" title="Cerrar">&times;</button>
+      </header>
+
+      <!-- Barra superior de controles del documento -->
+      <div class="modal-controls-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; background: #f7faf7; border-bottom: 1px solid var(--line);">
+        <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 280px;">
+          <label for="lactanciaJefeSelect" style="font-size: 12px; font-weight: bold; color: #18372b; white-space: nowrap;">Firma la Orden:</label>
+          <select id="lactanciaJefeSelect" onchange="updateLactanciaSigner()" style="flex: 1; height: 36px; padding: 4px 10px; border-radius: 8px; border: 1.5px solid var(--line); font-size: 12.5px; font-weight: 600; background: #fff; color: #0b5a3c;"></select>
+          <button type="button" class="secondary" onclick="openGestionJefesModal(event)" title="Gestionar firmantes" style="height: 36px; padding: 0 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; border-radius: 8px; white-space: nowrap; background: #fff; border: 1.5px solid #0b5a3c; color: #0b5a3c; font-weight: 600; cursor: pointer;"><span>⚙️</span> Firmantes</button>
+        </div>
+        <div id="lactanciaModalTopActions" style="display: flex; gap: 8px; align-items: center;">
+          <button class="secondary" onclick="copyLactanciaSummary(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px;">
+            <span>📋</span> Copiar datos
+          </button>
+          <button id="btnVolverFormLactanciaTop" class="secondary" onclick="volverFormularioLactancia(event)" style="height: 36px; font-size: 12.5px; display:none; align-items: center; gap: 5px;">
+            <span>✏️</span> Modificar
+          </button>
+          <button id="btnGuardarLactanciaDirectoTop" class="print-a4-btn" onclick="confirmarYGuardarLactancia(false)" style="height: 36px; font-size: 13px; font-weight: bold; display:none; background: #0b5a3c; align-items: center; gap: 6px;">
+            <span>💾</span> Guardar Registro
+          </button>
+          <button id="btnPrintLactanciaTop" class="print-a4-btn" onclick="confirmarYGuardarLactancia(true)" style="height: 36px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+            <span>🖨️</span> Guardar e Imprimir A4
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor del documento A4 -->
+      <div class="orden-sheet-container" id="lactanciaSingleSheetContainer" style="overflow-y: auto; max-height: calc(85vh - 160px); background: #525659; padding: 20px 0; display: flex; justify-content: center;">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <div class="footer" style="justify-content: space-between;">
+        <button id="btnVolverFormLactanciaBottom" class="secondary" onclick="volverFormularioLactancia(event)">Cerrar / Volver</button>
+        <div style="display:flex; gap:8px;">
+          <button id="btnGuardarLactanciaDirectoBottom" class="secondary" onclick="confirmarYGuardarLactancia(false)" style="background:#e8f2ec; color:#0b5a3c; border:1.5px solid #0b5a3c; font-weight:bold; display:none;">💾 Confirmar y Guardar</button>
+          <button id="btnPrintLactanciaBottom" class="print-a4-btn" onclick="confirmarYGuardarLactancia(true)"><span>🖨️</span> Guardar e Imprimir (Hoja A4)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Gestion de Firmantes / Jefes de Orden -->
   <div id="gestionJefesModal" class="modal" style="z-index: 10050;">
     <div class="dialog" style="max-width: 720px; border-top: 5px solid #0b5a3c; max-height: 90vh; display: flex; flex-direction: column;">
@@ -3280,7 +3584,7 @@
       orden_reincorporacion: { title: '\u00d3RDENES DE REINCORPORACI\u00d3N', icon: '&#128259;', isOrdenReincorporacion: true },
       comunicacion_telefonica: { title: 'COMUNICACIONES TELEF\u00d3NICAS', icon: '&#128222;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
       orden_telefonica: { title: '\u00d3RDENES TELEF\u00d3NICAS', icon: '&#9742;', hasDestino: true, hasQuienOrdena: true, hasFechasRango: false },
-      orden_lactancia: { title: '\u00d3RDENES DE LACTANCIA', icon: '&#127868;', hasDestino: false, hasQuienOrdena: true, hasFechasRango: true },
+      orden_lactancia: { title: '\u00d3RDENES DE LACTANCIA', icon: '&#127868;', isOrdenLactancia: true, hasDestino: false, hasQuienOrdena: true, hasFechasRango: true },
       orden_gravidez: { title: '\u00d3RDENES DE GRAVIDEZ', icon: '&#129304;', isOrdenGravidez: true, hasDestino: false, hasQuienOrdena: true, hasFechasRango: true },
       usuarios: { title: 'USUARIOS DEL SISTEMA', icon: '&#128101;', isUserTable: true }
     };
@@ -4585,6 +4889,274 @@
       }
     }
 
+    // --- FUNCIONES DE AUTOCOMPLETADO Y PARSEO PARA ÓRDENES DE LACTANCIA ---
+    function parseLactanciaDetails(item) {
+      if (!item) return { cip: '', dni: '', efectivo: '', procedencia: '', direccion: '', asunto: '' };
+      const desc = item.descripcion || '';
+      let cip = item.cip || '';
+      let dni = item.dni || '';
+      let efectivo = item.grado_apellidos_nombres || item.apellidos_nombres || '';
+      let procedencia = item.procedencia || item.unidad_procedencia || '';
+      let direccion = item.direccion || '';
+      let asunto = desc;
+
+      const mCip = desc.match(/CIP:\s*([^\s\|\]]+)/i);
+      if (mCip && !cip) cip = mCip[1];
+
+      const mDni = desc.match(/DNI:\s*([^\s\|\]]+)/i);
+      if (mDni && !dni) dni = mDni[1];
+
+      const mEf = desc.match(/EFECTIVO:\s*([^\|\]]+)/i);
+      if (mEf && !efectivo) efectivo = mEf[1].trim();
+
+      const mProc = desc.match(/PROCEDENCIA:\s*([^\|\]]+)/i);
+      if (mProc && !procedencia) procedencia = mProc[1].trim();
+
+      const mDir = desc.match(/DOMICILIO:\s*([^\|\]]+)/i);
+      if (mDir && !direccion) direccion = mDir[1].trim();
+
+      const mAsunto = desc.match(/^(.*?)\s*-\s*\[CIP:/i);
+      if (mAsunto) asunto = mAsunto[1].trim();
+
+      return { cip, dni, efectivo, procedencia, direccion, asunto };
+    }
+
+    async function showPersonalLactDropdown(inputEl) {
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        await loadPersonalCatalogDoc();
+      }
+      if (inputEl.id === 'f_cip_lact') {
+        filterPersonalLactByCip(inputEl);
+      } else {
+        filterPersonalLactByName(inputEl);
+      }
+    }
+
+    function filterPersonalLactByCip(inputEl) {
+      const dropEl = document.getElementById('f_cip_lact_dropdown');
+      if (!dropEl) return;
+
+      const rawQuery = (inputEl.value || '').trim();
+      const q = normalizeSearchText(rawQuery);
+
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">Cargando padrón de personal policial...</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      if (rawQuery.length >= 6) {
+        const exactMatch = personalCatalogDoc.find(p => String(p.CIP || p.cip || '').trim() === rawQuery);
+        if (exactMatch) {
+          const cip = exactMatch.CIP || exactMatch.cip || '';
+          const dni = exactMatch.DNI || exactMatch.dni || '';
+          const grd = exactMatch.GRADO || exactMatch.grado || '';
+          const nom = exactMatch['APELLIDOS Y NOMBRES'] || exactMatch.apellidos_y_nombres || '';
+          const proc = exactMatch['LISTA DE REVISTA'] || exactMatch.lista_de_revista || exactMatch.lista_revista || exactMatch['UNIDAD DE ORIGEN'] || exactMatch.unidad_de_origen || '';
+          const fullNom = `${grd} ${nom}`.trim();
+
+          const inputDni = document.getElementById('f_dni_lact');
+          const inputNom = document.getElementById('f_grado_apellidos_nombres_lact');
+          const inputProc = document.getElementById('f_procedencia_lact');
+
+          if (inputDni && dni && (!inputDni.value || inputDni.value !== dni)) inputDni.value = dni;
+          if (inputNom && fullNom && (!inputNom.value || inputNom.value !== fullNom)) inputNom.value = fullNom;
+          if (inputProc && proc && (!inputProc.value || inputProc.value !== proc)) inputProc.value = proc;
+        }
+      }
+
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      const matches = personalCatalogDoc.filter(p => {
+        const cip = String(p.CIP || p.cip || '');
+        return cip.includes(q);
+      }).slice(0, 30);
+
+      if (matches.length === 0) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">No se encontró personal con CIP "' + (rawQuery || '') + '"</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((p, idx) => {
+        const cip = p.CIP || p.cip || '---';
+        const dni = p.DNI || p.dni || '---';
+        const grd = p.GRADO || p.grado || '';
+        const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const proc = p['LISTA DE REVISTA'] || p.lista_de_revista || p.lista_revista || p['UNIDAD DE ORIGEN'] || p.unidad_de_origen || '';
+        const safeCip = encodeURIComponent(cip);
+        const safeDni = encodeURIComponent(dni);
+        const safeGrd = encodeURIComponent(grd);
+        const safeNom = encodeURIComponent(nom);
+        const safeProc = encodeURIComponent(proc);
+
+        return `
+          <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
+               data-cip="${safeCip}" 
+               data-dni="${safeDni}" 
+               data-grd="${safeGrd}"
+               data-nom="${safeNom}" 
+               data-proc="${safeProc}" 
+               onmousedown="selectPersonalLactOption('${safeCip}', '${safeDni}', '${safeNom}', '${safeGrd}', '${safeProc}')" 
+               style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
+            <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">CIP: ${cip} &bull; ${grd} ${nom}</div>
+            <div style="font-size:11px; color:#555; margin-top:2px; display:flex; gap:10px; flex-wrap:wrap;">
+              <span><b>DNI:</b> ${dni}</span>
+              ${proc ? `<span>&bull; <b>Procedencia:</b> ${proc}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function filterPersonalLactByName(inputEl) {
+      const dropEl = document.getElementById('f_grado_apellidos_nombres_lact_dropdown');
+      if (!dropEl) return;
+
+      const rawQuery = inputEl.value;
+      const q = normalizeSearchText(rawQuery);
+
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">Cargando padrón de personal policial...</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      const matches = personalCatalogDoc.filter(p => {
+        const nom = normalizeSearchText(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '');
+        const cip = String(p.CIP || p.cip || '');
+        return nom.includes(q) || cip.includes(q);
+      }).slice(0, 30);
+
+      if (matches.length === 0) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">No se encontró personal con "' + (rawQuery || '') + '"</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((p, idx) => {
+        const cip = p.CIP || p.cip || '---';
+        const dni = p.DNI || p.dni || '---';
+        const grd = p.GRADO || p.grado || '';
+        const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const proc = p['LISTA DE REVISTA'] || p.lista_de_revista || p.lista_revista || p['UNIDAD DE ORIGEN'] || p.unidad_de_origen || '';
+        const safeCip = encodeURIComponent(cip);
+        const safeDni = encodeURIComponent(dni);
+        const safeGrd = encodeURIComponent(grd);
+        const safeNom = encodeURIComponent(nom);
+        const safeProc = encodeURIComponent(proc);
+
+        return `
+          <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
+               data-cip="${safeCip}" 
+               data-dni="${safeDni}" 
+               data-grd="${safeGrd}"
+               data-nom="${safeNom}" 
+               data-proc="${safeProc}" 
+               onmousedown="selectPersonalLactOption('${safeCip}', '${safeDni}', '${safeNom}', '${safeGrd}', '${safeProc}')" 
+               style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
+            <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">${grd} ${nom}</div>
+            <div style="font-size:11px; color:#555; margin-top:2px; display:flex; gap:10px; flex-wrap:wrap;">
+              <span><b>CIP:</b> ${cip}</span>
+              <span>&bull; <b>DNI:</b> ${dni}</span>
+              ${proc ? `<span>&bull; <b>Procedencia:</b> ${proc}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function selectPersonalLactOption(encodedCip, encodedDni, encodedNom, encodedGrd, encodedProc) {
+      const cip = decodeURIComponent(encodedCip || '');
+      const dni = decodeURIComponent(encodedDni || '');
+      const nom = decodeURIComponent(encodedNom || '');
+      const grd = decodeURIComponent(encodedGrd || '');
+      const proc = decodeURIComponent(encodedProc || '');
+      const fullNom = `${grd} ${nom}`.trim();
+
+      const inputCip = document.getElementById('f_cip_lact');
+      if (inputCip) {
+        inputCip.value = (cip && cip !== '---') ? cip : '';
+        inputCip.dispatchEvent(new Event('input', { bubbles: true }));
+        inputCip.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const inputDni = document.getElementById('f_dni_lact');
+      if (inputDni) {
+        inputDni.value = (dni && dni !== '---') ? dni : '';
+        inputDni.dispatchEvent(new Event('input', { bubbles: true }));
+        inputDni.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const inputNom = document.getElementById('f_grado_apellidos_nombres_lact');
+      if (inputNom) {
+        inputNom.value = fullNom;
+        inputNom.dispatchEvent(new Event('input', { bubbles: true }));
+        inputNom.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const inputProc = document.getElementById('f_procedencia_lact');
+      if (inputProc && proc) {
+        inputProc.value = proc;
+        inputProc.dispatchEvent(new Event('input', { bubbles: true }));
+        inputProc.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const dropCip = document.getElementById('f_cip_lact_dropdown');
+      if (dropCip) dropCip.style.display = 'none';
+      const dropNom = document.getElementById('f_grado_apellidos_nombres_lact_dropdown');
+      if (dropNom) dropNom.style.display = 'none';
+    }
+
+    function navigatePersonalLactDropdown(e, inputEl, type) {
+      const dropId = type === 'cip' ? 'f_cip_lact_dropdown' : 'f_grado_apellidos_nombres_lact_dropdown';
+      const dropEl = document.getElementById(dropId);
+      if (!dropEl || dropEl.style.display === 'none') return;
+
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          const encodedCip = items[activeIndex].getAttribute('data-cip');
+          const encodedDni = items[activeIndex].getAttribute('data-dni');
+          const encodedGrd = items[activeIndex].getAttribute('data-grd');
+          const encodedNom = items[activeIndex].getAttribute('data-nom');
+          const encodedProc = items[activeIndex].getAttribute('data-proc');
+          selectPersonalLactOption(encodedCip, encodedDni, encodedNom, encodedGrd, encodedProc);
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
     function onSelectMotivoReincorp(motivo) {
       const descEl = document.getElementById('f_descripcion');
       if (!descEl) return;
@@ -5020,6 +5592,27 @@
         return;
       }
 
+      if (conf.isOrdenLactancia) {
+        thead.innerHTML = `
+          <tr>
+            <th style="width:60px;">ID</th>
+            <th>N&deg; Documento</th>
+            <th>Fecha Doc.</th>
+            <th>CIP</th>
+            <th>DNI</th>
+            <th>Grado, Apellidos y Nombres</th>
+            <th>Direcci&oacute;n / Domicilio</th>
+            <th>Procedencia</th>
+            <th>F. Inicio</th>
+            <th>F. T&eacute;rmino</th>
+            <th>Quien Ordena</th>
+            <th>Usuario Registra</th>
+            ${admin ? '<th style="width:100px; text-align:center;">Acciones</th>' : ''}
+          </tr>
+        `;
+        return;
+      }
+
       if (conf.isOrdenGravidez) {
         thead.innerHTML = `
           <tr>
@@ -5160,6 +5753,42 @@
             </td>` : ''}
           </tr>
         `).join('');
+        return;
+      }
+
+      if (conf.isOrdenLactancia) {
+        tbody.innerHTML = items.map(item => {
+          const p = parseLactanciaDetails(item);
+          const cipVal = item.cip || p.cip || '---';
+          const dniVal = item.dni || p.dni || '---';
+          const nomVal = item.apellidos_nombres || item.grado_apellidos_nombres || p.efectivo || '---';
+          const dirVal = item.direccion || p.direccion || '---';
+          const procVal = item.procedencia || item.unidad_procedencia || p.procedencia || '---';
+
+          return `
+            <tr>
+              <td>${item.id}</td>
+              <td><span class="badge-doc" title="${item.numero_documento || ''}">${formatShortDocNumber(item.numero_documento)}</span></td>
+              <td>${item.fecha_documento || '---'}</td>
+              <td><b>${cipVal}</b></td>
+              <td>${dniVal}</td>
+              <td><b>${nomVal}</b></td>
+              <td>${dirVal}</td>
+              <td>${procVal}</td>
+              <td><b>${item.fecha_inicio || '---'}</b></td>
+              <td><b>${item.fecha_termino || '---'}</b></td>
+              <td>${item.quien_ordena || '---'}</td>
+              <td><small>${item.usuario_registra || '---'}</small></td>
+              <td style="text-align:center; white-space:nowrap;">
+                <button class="action-btn" onclick="verOrdenLactanciaPorId('${item.id}')" title="Ver / Imprimir Orden de Lactancia Oficial A4" style="background:#e8f2ec; color:#0b5a3c; border:1.5px solid #0b5a3c; font-size:13px;">👁️</button>
+                ${admin ? `
+                <button class="action-btn" onclick="editRecord('${item.id}')" title="Editar">&#9999;</button>
+                <button class="action-btn btn-del" onclick="deleteRecord('${item.id}')" title="Eliminar">&#128465;</button>
+                ` : ''}
+              </td>
+            </tr>
+          `;
+        }).join('');
         return;
       }
 
@@ -5373,11 +6002,11 @@
       buildModalForm();
       
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenReincorporacion || conf.isOrdenGravidez) ? 'inline-flex' : 'none';
+      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenReincorporacion || conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
 
       document.getElementById('docModal').classList.add('active');
 
-      if (!conf.isUserTable && currentTable !== 'orden_reincorporacion' && currentTable !== 'orden_incorporacion' && currentTable !== 'orden_gravidez') {
+      if (!conf.isUserTable && currentTable !== 'orden_reincorporacion' && currentTable !== 'orden_incorporacion' && currentTable !== 'orden_gravidez' && currentTable !== 'orden_lactancia') {
         const docNumInput = document.getElementById('f_numero_documento');
         if (docNumInput) {
           getNextDocCorrelative(currentTable).then(nextNum => {
@@ -5421,6 +6050,16 @@
           btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
         }
       } else if (conf.isOrdenGravidez) {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
+          saveBtn.style.background = '#0b5a3c';
+          saveBtn.style.color = '#ffffff';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'inline-flex';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+        }
+      } else if (conf.isOrdenLactancia) {
         if (saveBtn) {
           saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
           saveBtn.style.background = '#0b5a3c';
@@ -5763,6 +6402,94 @@
         return;
       }
 
+      if (conf.isOrdenLactancia) {
+        const parsed = parseLactanciaDetails(existing);
+        const cipVal = existing.cip || parsed.cip || '';
+        const dniVal = existing.dni || parsed.dni || '';
+        const efVal = existing.grado_apellidos_nombres || existing.apellidos_nombres || parsed.efectivo || '';
+        const dirVal = existing.direccion || parsed.direccion || '';
+        const procVal = existing.procedencia || existing.unidad_procedencia || parsed.procedencia || '';
+        const descVal = parsed.asunto || existing.descripcion || 'SE DISPONE PERMISO POR LACTANCIA';
+        const numDocVal = existing.numero_documento || '';
+        const fechaInicioVal = existing.fecha_inicio || '';
+        const fechaTerminoVal = existing.fecha_termino || '';
+
+        container.innerHTML = `
+          <div style="background:#e8f2ec; padding:8px 12px; border-radius:8px; border:1px solid #cce2d4; margin-bottom:2px;">
+            <span style="font-weight:700; color:#0b5a3c; font-size:12px;">📑 Formulario de Orden por Lactancia</span>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label>N&uacute;mero de Documento</label>
+              <input id="f_numero_documento" class="form-control" type="text" value="${numDocVal}" placeholder="AUTOGENERADO" title="Se asignará automáticamente al guardar" readonly style="background:#f1f5f9; cursor:not-allowed;" />
+            </div>
+            <div class="form-group">
+              <label>Fecha del Documento</label>
+              <input id="f_fecha_documento" class="form-control" type="date" value="${existing.fecha_documento || today}" required />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group" style="position:relative;">
+              <label>CIP (Buscar o ingresar)</label>
+              <input id="f_cip_lact" class="form-control" type="text" autocomplete="off" placeholder="Escriba CIP (ej. 31343925)..." value="${cipVal}" oninput="filterPersonalLactByCip(this)" onfocus="showPersonalLactDropdown(this)" onkeydown="navigatePersonalLactDropdown(event, this, 'cip')" required />
+              <div id="f_cip_lact_dropdown" class="autocomplete-dropdown" style="display:none; max-height:200px; overflow-y:auto;"></div>
+            </div>
+            <div class="form-group">
+              <label>DNI</label>
+              <input id="f_dni_lact" class="form-control" type="text" placeholder="DNI..." value="${dniVal}" />
+            </div>
+          </div>
+          <div class="form-group" style="position:relative;">
+            <label>Grado, Apellidos y Nombres (Buscar por Apellidos o Nombres)</label>
+            <input id="f_grado_apellidos_nombres_lact" class="form-control" type="text" autocomplete="off" placeholder="Escriba apellidos o nombres..." value="${efVal}" oninput="filterPersonalLactByName(this)" onfocus="showPersonalLactDropdown(this)" onkeydown="navigatePersonalLactDropdown(event, this, 'name')" required />
+            <div id="f_grado_apellidos_nombres_lact_dropdown" class="autocomplete-dropdown" style="display:none; max-height:200px; overflow-y:auto;"></div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label>Direcci&oacute;n / Domicilio</label>
+              <input id="f_direccion_lact" class="form-control" type="text" placeholder="Ej. JR. DOS DE MAYO N° 450 - HUÁNUCO" value="${dirVal}" />
+            </div>
+            <div class="form-group">
+              <label>Procedencia (Lista de Revista)</label>
+              <input id="f_procedencia_lact" class="form-control" type="text" placeholder="Ej. COMISARÍA HUÁNUCO / DIVREINT" value="${procVal}" />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label>Fecha Inicio</label>
+              <input id="f_fecha_inicio" class="form-control" type="date" value="${fechaInicioVal}" required />
+            </div>
+            <div class="form-group">
+              <label>Fecha T&eacute;rmino</label>
+              <input id="f_fecha_termino" class="form-control" type="date" value="${fechaTerminoVal}" required />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group" style="position:relative;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label style="margin:0; font-weight:700; font-size:12px; color:#18372b;">Quien Ordena / Dispone</label>
+                <button type="button" onclick="openGestionJefesModal(event)" style="background:none; border:none; color:#0b5a3c; font-size:11.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:0;" title="Ver o editar firmantes y cargos">
+                  ⚙️ Ver / Editar
+                </button>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <select id="f_quien_ordena" class="form-control" onchange="onQuienOrdenaSelectChange(this)" style="font-weight:600; color:#18372b; background:#fff; flex:1; cursor:pointer;">
+                  ${getFirmantesSelectOptionsHtml(existing.quien_ordena)}
+                </select>
+                <button type="button" onclick="openGestionJefesModal(event)" title="Abrir Administrador de Firmantes y Cargos" style="height:36px; padding:0 10px; background:#e8f2ec; border:1.5px solid #0b5a3c; color:#0b5a3c; border-radius:6px; font-weight:bold; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;">
+                  ⚙️
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Usuario que Registra</label>
+              <input id="f_usuario_registra" class="form-control" type="text" value="${existing.usuario_registra || getUsuarioRegistraNombre()}" readonly style="background:#f1f5f9;" />
+            </div>
+          </div>
+        `;
+        return;
+      }
+
       if (conf.isUserTable) {
         container.innerHTML = `
           <div class="form-group" style="position:relative;">
@@ -6051,6 +6778,49 @@
         document.getElementById('docModal').classList.remove('active');
         displayGravidezPreview(payload, true);
         return;
+      } else if (conf.isOrdenLactancia) {
+        let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
+        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
+          const nextCorr = await getNextDocCorrelative('orden_lactancia');
+          const m = nextCorr.match(/(\d+)/);
+          const numPad = m ? m[1].padStart(3, '0') : '001';
+          const yearVal = new Date().getFullYear();
+          rawNum = `ORDEN DE LACTANCIA N°${numPad}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+        } else if (!rawNum.toUpperCase().includes('COMOPPOL')) {
+          const mNum = rawNum.match(/(\d+)/);
+          const mYear = rawNum.match(/-(\d{4})/);
+          const numPadded = mNum ? mNum[1].padStart(3, '0') : '001';
+          const yearVal = mYear ? mYear[1] : String(new Date().getFullYear());
+          rawNum = `ORDEN DE LACTANCIA N°${numPadded}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+        }
+        payload.numero_documento = rawNum;
+        payload.fecha_documento = document.getElementById('f_fecha_documento').value;
+        payload.cip = (document.getElementById('f_cip_lact')?.value || '').trim();
+        payload.dni = (document.getElementById('f_dni_lact')?.value || '').trim();
+        payload.apellidos_nombres = (document.getElementById('f_grado_apellidos_nombres_lact')?.value || '').trim();
+        payload.direccion = (document.getElementById('f_direccion_lact')?.value || '').trim();
+        payload.procedencia = (document.getElementById('f_procedencia_lact')?.value || '').trim();
+        payload.fecha_inicio = document.getElementById('f_fecha_inicio').value;
+        payload.fecha_termino = document.getElementById('f_fecha_termino').value;
+        payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
+        payload.usuario_registra = getUsuarioRegistraNombre();
+
+        // Validaciones básicas antes de previsualizar
+        if (!payload.cip || !payload.apellidos_nombres) {
+          alert('Por favor ingrese o seleccione el CIP y los datos de la solicitante.');
+          return;
+        }
+        if (!payload.fecha_inicio || !payload.fecha_termino) {
+          alert('Por favor seleccione las Fechas de Inicio y Término.');
+          return;
+        }
+
+        // Mostrar primero la plantilla para verificación antes de guardar
+        pendingLactanciaPayload = payload;
+        pendingLactanciaEditingId = editingId;
+        document.getElementById('docModal').classList.remove('active');
+        displayLactanciaPreview(payload, true);
+        return;
       } else if (conf.isUserTable) {
         if (!isUserAdmin()) {
           alert('Acceso restringido: Solo el nivel ADMINISTRADOR puede gestionar usuarios.');
@@ -6172,7 +6942,7 @@
       buildModalForm(found);
 
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenReincorporacion) ? 'inline-flex' : 'none';
+      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenReincorporacion || conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
 
       document.getElementById('docModal').classList.add('active');
     }
@@ -6224,6 +6994,37 @@
           usuario_registra: getUsuarioRegistraNombre()
         };
         displayGravidezPreview(gravData, false);
+        return;
+      }
+
+      if (currentTable === 'orden_lactancia') {
+        let rawNum = (document.getElementById('f_numero_documento')?.value || '').trim();
+        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
+          try {
+            const nextCorr = await getNextDocCorrelative('orden_lactancia');
+            const m = nextCorr.match(/(\d+)/);
+            const numP = m ? m[1].padStart(3, '0') : '001';
+            const yearVal = new Date().getFullYear();
+            rawNum = `ORDEN DE LACTANCIA N°${numP}-${yearVal}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+          } catch (_) {
+            rawNum = `ORDEN DE LACTANCIA N°001-${new Date().getFullYear()}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+          }
+        }
+        const lactData = {
+          id: editingId || '',
+          numero_documento: rawNum,
+          fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
+          cip: (document.getElementById('f_cip_lact')?.value || '').trim() || '---',
+          dni: (document.getElementById('f_dni_lact')?.value || '').trim() || '---',
+          apellidos_nombres: (document.getElementById('f_grado_apellidos_nombres_lact')?.value || '').trim() || '---',
+          direccion: (document.getElementById('f_direccion_lact')?.value || '').trim() || '---',
+          procedencia: (document.getElementById('f_procedencia_lact')?.value || '').trim() || '---',
+          fecha_inicio: document.getElementById('f_fecha_inicio')?.value || '',
+          fecha_termino: document.getElementById('f_fecha_termino')?.value || '',
+          quien_ordena: (document.getElementById('f_quien_ordena')?.value || '').trim() || null,
+          usuario_registra: getUsuarioRegistraNombre()
+        };
+        displayLactanciaPreview(lactData, false);
         return;
       }
 
@@ -6413,6 +7214,24 @@
             'CELULAR': item.celular || '',
             'NIVEL': item.nivel || 'USUARIO',
             'ESTADO': item.activo ? 'ACTIVO' : 'INACTIVO'
+          };
+        }
+
+        if (conf.isOrdenLactancia) {
+          const p = parseLactanciaDetails(item);
+          return {
+            'N°': idx + 1,
+            'N° DOCUMENTO': item.numero_documento || '',
+            'FECHA DOCUMENTO': item.fecha_documento || '',
+            'CIP': item.cip || p.cip || '',
+            'DNI': item.dni || p.dni || '',
+            'GRADO, APELLIDOS Y NOMBRES': item.apellidos_nombres || item.grado_apellidos_nombres || p.efectivo || '',
+            'DIRECCIÓN / DOMICILIO': item.direccion || p.direccion || '',
+            'PROCEDENCIA': item.procedencia || item.unidad_procedencia || p.procedencia || '',
+            'FECHA INICIO': item.fecha_inicio || '',
+            'FECHA TÉRMINO': item.fecha_termino || '',
+            'QUIEN ORDENA': item.quien_ordena || '',
+            'USUARIO REGISTRA': item.usuario_registra || ''
           };
         }
 
@@ -6642,6 +7461,9 @@
       }
       if (typeof populateGravidezJefesSelect === 'function') {
         populateGravidezJefesSelect();
+      }
+      if (typeof populateLactanciaJefesSelect === 'function') {
+        populateLactanciaJefesSelect();
       }
 
       const selDoc = document.getElementById('f_quien_ordena');
@@ -8131,8 +8953,15 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
     let pendingGravidezEditingId = null;
     let isPendingGravidezSave = false;
 
+    let currentLactanciaData = null;
+    let pendingLactanciaPayload = null;
+    let pendingLactanciaEditingId = null;
+    let isPendingLactanciaSave = false;
+
     const MONTHS_SHORT_GRAV = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
     const MONTHS_FULL_GRAV = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+    const MONTHS_SHORT_LACT = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
+    const MONTHS_FULL_LACT = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
 
     function extraerSiglasPNP(nombreRaw, esMayuscula = true) {
       if (!nombreRaw || typeof nombreRaw !== 'string') return esMayuscula ? 'LEVM' : 'ato';
@@ -8639,6 +9468,437 @@ TERMINA: ${currentGravidezData.fecha_termino || ''} (98 DÍAS)`;
         return;
       }
       displayGravidezPreview(item, false);
+    }
+
+    // =========================================================================
+    // MÓDULO EXCLUSIVO: ÓRDENES DE PERMISO POR LACTANCIA (A4 OFICIAL)
+    // =========================================================================
+    function formatShortDateLactancia(dateStr) {
+      if (!dateStr) return '---';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const y = parts[0];
+      const mIdx = parseInt(parts[1], 10) - 1;
+      const d = parts[2];
+      const mStr = MONTHS_SHORT_LACT[mIdx] || parts[1];
+      return `${d}${mStr}${y}`;
+    }
+
+    function formatFullDateLactancia(dateStr) {
+      if (!dateStr) return 'HUÁNUCO';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return `HUÁNUCO, ${dateStr}`;
+      const y = parts[0];
+      const mIdx = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const mStr = MONTHS_FULL_LACT[mIdx] || parts[1];
+      return `HUÁNUCO, ${d} DE ${mStr} DE ${y}`;
+    }
+
+    function getSelectedLactanciaSigner() {
+      const sel = document.getElementById('lactanciaJefeSelect');
+      if (!sel || sel.value === '' || !jefesList || jefesList.length === 0) {
+        return {
+          cip: '31343925',
+          nombre: 'Luis Enrique VERAMENDI MAZZA',
+          grado: 'ST2 PNP',
+          cargo: 'JEFE (E) OFAD DE LA REGPOL HUANUCO'
+        };
+      }
+      const idx = parseInt(sel.value, 10);
+      const j = jefesList[idx];
+      if (!j) {
+        return {
+          cip: '31343925',
+          nombre: 'Luis Enrique VERAMENDI MAZZA',
+          grado: 'ST2 PNP',
+          cargo: 'JEFE (E) OFAD DE LA REGPOL HUANUCO'
+        };
+      }
+      return {
+        cip: j.CIP || j.cip || '',
+        nombre: j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '',
+        grado: j.GRADO || j.grado || 'ST2 PNP',
+        cargo: j.CARGO || j.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO'
+      };
+    }
+
+    function populateLactanciaJefesSelect() {
+      const sel = document.getElementById('lactanciaJefeSelect');
+      if (!sel) return;
+      sel.innerHTML = '';
+      if (!jefesList || jefesList.length === 0) {
+        sel.innerHTML = '<option value="">ST2 PNP Luis Enrique VERAMENDI MAZZA</option>';
+        return;
+      }
+      jefesList.forEach((j, idx) => {
+        const opt = document.createElement('option');
+        opt.value = String(idx);
+        const nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
+        const grd = j.GRADO || j.grado || '';
+        const crg = j.CARGO || j.cargo || '';
+        opt.textContent = `${grd} ${nom} (${crg})`.trim();
+        sel.appendChild(opt);
+      });
+    }
+
+    function buildLactanciaA4HTML(item, signer) {
+      if (!item) return '';
+      const p = parseLactanciaDetails(item);
+      const rawNum = item.numero_documento || '012-2025-COMOPPOL/DIRNOS/REGPOL HUANUCO/SEC OFAD AREREHUM';
+      const cleanNum = rawNum.replace(/^ORDEN DE LACTANCIA N°\s*/i, '').replace(/^ORDEN DE PERMISO POR LACTANCIA N°\s*/i, '');
+      const cip = item.cip || p.cip || '---';
+      const dni = item.dni || p.dni || '---';
+      const nombres = item.apellidos_nombres || item.grado_apellidos_nombres || p.efectivo || '---';
+      const domicilio = item.direccion || p.direccion || '---';
+      const procedencia = item.procedencia || item.unidad_procedencia || p.procedencia || '---';
+      const fInicio = item.fecha_inicio || '';
+      const fTermino = item.fecha_termino || '';
+
+      let grado = 'PNP';
+      let nombreEfectivo = nombres.trim();
+      const mGrado = nombreEfectivo.match(/^((?:TNTE|CAP|MAY|CMDTE|CRNL|GRAL|ST1|ST2|ST3|S1|S2|S3|SB|SO1|SO2|SO3|SS|EC|EE\.CC|EECC)?\s*(?:PNP)?)\s+(.+)$/i);
+      if (mGrado && mGrado[1].trim()) {
+        let g = mGrado[1].trim().toUpperCase();
+        if (!g.includes('PNP') && !g.includes('EC')) {
+          g = `${g} PNP`;
+        }
+        grado = g;
+        nombreEfectivo = mGrado[2].trim();
+      } else {
+        const parts = nombreEfectivo.split(' ');
+        if (parts.length > 1 && (parts[0].includes('.') || parts[0].length <= 5)) {
+          let g = parts[0].toUpperCase();
+          if (!g.includes('PNP') && !g.includes('EC')) {
+            g = `${g} PNP`;
+          }
+          grado = g;
+          nombreEfectivo = parts.slice(1).join(' ');
+        }
+      }
+      nombreEfectivo = nombreEfectivo.replace(/^PNP\s+/i, '').trim();
+
+      const fDoc = item.fecha_documento || new Date().toISOString().split('T')[0];
+      const lugarFecha = formatFullDateLactancia(fDoc);
+      const sGrado = signer ? (signer.grado || signer.GRADO || 'ST2 PNP') : 'ST2 PNP';
+      const rawCip = signer && (signer.cip || signer.CIP) ? String(signer.cip || signer.CIP).trim() : '31343925';
+      const sCip = formatPrefixCip(sGrado, rawCip);
+      const rawSignerNombre = signer ? (signer.nombre || signer.nombres || signer['APELLIDOS Y NOMBRES'] || signer.apellidos_y_nombres || 'Luis Enrique VERAMENDI MAZZA') : 'Luis Enrique VERAMENDI MAZZA';
+      const sNombre = formatNombrePostFirma(rawSignerNombre);
+      const sCargo = signer ? (signer.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO') : 'JEFE (E) OFAD DE LA REGPOL HUANUCO';
+
+      let nameFontSize = '8pt';
+      let nameLetterSpacing = '-0.2px';
+      const cleanNombreLen = sNombre.length;
+      if (cleanNombreLen > 32) {
+        nameFontSize = '7pt';
+        nameLetterSpacing = '-0.4px';
+      } else if (cleanNombreLen > 26) {
+        nameFontSize = '7.5pt';
+        nameLetterSpacing = '-0.3px';
+      }
+
+      const sSiglas = generarSiglasDocumento(sNombre);
+
+      return `
+        <div class="a4-page">
+          <!-- ENCABEZADO -->
+          <div class="header-row">
+            <div class="header-membrete-box">
+              <img class="membrete-img" src="membrete_orden_gravidez.png" alt="Membrete Oficial PNP" />
+            </div>
+            <div class="doc-title-container">
+              <div class="doc-header-entidad">POLIC&Iacute;A NACIONAL DEL PER&Uacute;</div>
+              <div class="doc-title">
+                <u>ORDEN DE PERMISO POR LACTANCIA N&deg; ${cleanNum}</u>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABLA DE CAMPOS PRINCIPALES -->
+          <table class="data-table">
+            <tbody>
+              <tr>
+                <td class="label-col">GRADO</td>
+                <td class="separator-col">:</td>
+                <td class="value-col value-bold">${grado}</td>
+              </tr>
+              <tr>
+                <td class="label-col">SOLICITANTE</td>
+                <td class="separator-col">:</td>
+                <td class="value-col value-bold">${nombreEfectivo}</td>
+              </tr>
+              <tr>
+                <td class="label-col">DOCUMENTOS</td>
+                <td class="separator-col">:</td>
+                <td class="value-col">CIP. N&deg; <b>${cip}</b> / DNI N&deg; <b>${dni}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">DOMICILIO</td>
+                <td class="separator-col">:</td>
+                <td class="value-col">${domicilio}</td>
+              </tr>
+              <tr>
+                <td class="label-col">PROCEDENCIA</td>
+                <td class="separator-col">:</td>
+                <td class="value-col">${procedencia}</td>
+              </tr>
+              <tr>
+                <td class="label-col">PRINCIPIA</td>
+                <td class="separator-col">:</td>
+                <td class="value-col value-bold">${formatShortDateLactancia(fInicio)}</td>
+              </tr>
+              <tr>
+                <td class="label-col">TERMINA</td>
+                <td class="separator-col">:</td>
+                <td class="value-col">
+                  <div class="value-bold" style="margin-bottom: 3px;">
+                    ${formatShortDateLactancia(fTermino)} A HORAS 08:00 (EN VIA DE REGULARIZACION)
+                  </div>
+                  <div class="legal-text">
+                    Debiendo de REGULARIZAR el control de inicio y termino de su licencia, en la OFAD de su Unidad, REGPOL HUANUCO y DIRREHUM-PNP, asimismo deber&aacute; solicitar por conducto regular para REGULARIZAR la Orden de Permiso por Lactancia, adjuntando copia del acta de nacimiento de hijo (a) y de la orden de licencia por pre y post natal.
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-col" style="padding-top: 10px;">DOCUMENTO</td>
+                <td class="separator-col" style="padding-top: 10px;">:</td>
+                <td class="value-col" style="padding-top: 10px;">
+                  <div class="legal-text" style="margin-top:0;">
+                    DIRECTIVA N&deg; 0011-2019-COMGEN-PNP/SECEJE-DIRREHUM (RCG N&deg; 628-2019-CG PNP/EMG DEL 03OCT2019), Normas y procedimientos para el uso adecuado de la licencia pre y post natal (98...), por parte del Personal Policial. INFORME N&deg; 117-2025-COMOPPOL/DIRSAPOL/RSP HP/POL.POL HCO/DM de fecha 05JUN2025.
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- LUGAR Y FECHA -->
+          <div class="lugar-fecha-row">
+            ${lugarFecha}
+          </div>
+
+          <!-- FIRMA Y SELLO -->
+          <div class="firma-container">
+            <div class="siglas-left">
+              ${sSiglas}
+            </div>
+            <div class="firma-right">
+              <img class="sello-img" src="sello_ofad_regpol.png" alt="Sello Redondo OFAD" />
+              <div class="post-firma-box">
+                <div class="post-firma-line">${sCip}</div>
+                <div class="post-firma-name" style="font-size: ${nameFontSize}; letter-spacing: ${nameLetterSpacing};">${sNombre}</div>
+                <div class="post-firma-grado">${sGrado}</div>
+                <div class="post-firma-cargo">${sCargo}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function displayLactanciaPreview(item, isPendingSave = false) {
+      currentLactanciaData = item;
+      isPendingLactanciaSave = isPendingSave;
+
+      let signer = null;
+      if (item && item.quien_ordena && String(item.quien_ordena).trim()) {
+        signer = resolverFirmante(item.quien_ordena);
+        const qUpper = String(item.quien_ordena).toUpperCase();
+        if (jefesList && jefesList.length > 0) {
+          const matchIdx = jefesList.findIndex(j => {
+            const jNom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').toUpperCase();
+            return jNom && (qUpper.includes(jNom) || jNom.includes(qUpper));
+          });
+          if (matchIdx >= 0) {
+            if (signer && signer.cargo) {
+              jefesList[matchIdx].CARGO = signer.cargo;
+            }
+          }
+        }
+      } else {
+        signer = getSelectedLactanciaSigner();
+      }
+
+      populateLactanciaJefesSelect();
+
+      if (item && item.quien_ordena) {
+        const qUpper = String(item.quien_ordena).toUpperCase();
+        const sel = document.getElementById('lactanciaJefeSelect');
+        if (sel && jefesList && jefesList.length > 0) {
+          const matchIdx = jefesList.findIndex(j => {
+            const jNom = String(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '').toUpperCase();
+            return jNom && (qUpper.includes(jNom) || jNom.includes(qUpper));
+          });
+          if (matchIdx >= 0) {
+            sel.value = String(matchIdx);
+          }
+        }
+      }
+
+      // Configurar botones según si es antes de guardar o solo vista previa
+      const btnVolverTop = document.getElementById('btnVolverFormLactanciaTop');
+      const btnGuardarTop = document.getElementById('btnGuardarLactanciaDirectoTop');
+      const btnPrintTop = document.getElementById('btnPrintLactanciaTop');
+      const btnVolverBottom = document.getElementById('btnVolverFormLactanciaBottom');
+      const btnGuardarBottom = document.getElementById('btnGuardarLactanciaDirectoBottom');
+      const btnPrintBottom = document.getElementById('btnPrintLactanciaBottom');
+
+      if (isPendingSave) {
+        if (btnVolverTop) btnVolverTop.style.display = 'inline-flex';
+        if (btnGuardarTop) btnGuardarTop.style.display = 'inline-flex';
+        if (btnPrintTop) btnPrintTop.innerHTML = '<span>🖨️</span> Guardar e Imprimir A4';
+
+        if (btnVolverBottom) btnVolverBottom.innerHTML = '✏️ Modificar / Volver al Formulario';
+        if (btnGuardarBottom) btnGuardarBottom.style.display = 'inline-flex';
+        if (btnPrintBottom) btnPrintBottom.innerHTML = '<span>🖨️</span> Guardar e Imprimir (Hoja A4)';
+      } else {
+        if (btnVolverTop) btnVolverTop.style.display = 'none';
+        if (btnGuardarTop) btnGuardarTop.style.display = 'none';
+        if (btnPrintTop) btnPrintTop.innerHTML = '<span>🖨️</span> Imprimir / Guardar en PDF (A4)';
+
+        if (btnVolverBottom) btnVolverBottom.innerHTML = 'Cerrar';
+        if (btnGuardarBottom) btnGuardarBottom.style.display = 'none';
+        if (btnPrintBottom) btnPrintBottom.innerHTML = '<span>🖨️</span> Imprimir / Guardar en PDF (A4)';
+      }
+
+      const container = document.getElementById('lactanciaSingleSheetContainer');
+      if (container) {
+        container.innerHTML = buildLactanciaA4HTML(item, signer);
+      }
+      const modal = document.getElementById('lactanciaPreviewModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function updateLactanciaSigner() {
+      if (!currentLactanciaData) return;
+      const signer = getSelectedLactanciaSigner();
+      const container = document.getElementById('lactanciaSingleSheetContainer');
+      if (container) {
+        container.innerHTML = buildLactanciaA4HTML(currentLactanciaData, signer);
+      }
+    }
+
+    function closeLactanciaModal(e) {
+      if (e) e.preventDefault();
+      const modal = document.getElementById('lactanciaPreviewModal');
+      if (modal) modal.classList.remove('open');
+      document.body.classList.remove('printing-lactancia');
+      isPendingLactanciaSave = false;
+      pendingLactanciaPayload = null;
+      pendingLactanciaEditingId = null;
+    }
+
+    function volverFormularioLactancia(e) {
+      if (e) e.preventDefault();
+      const modal = document.getElementById('lactanciaPreviewModal');
+      if (modal) modal.classList.remove('open');
+      document.body.classList.remove('printing-lactancia');
+      if (isPendingLactanciaSave) {
+        document.getElementById('docModal').classList.add('active');
+      }
+    }
+
+    async function confirmarYGuardarLactancia(andPrint = false) {
+      if (!isPendingLactanciaSave || !pendingLactanciaPayload) {
+        if (andPrint) {
+          printLactanciaDocument();
+        }
+        return;
+      }
+
+      const signer = getSelectedLactanciaSigner();
+      if (signer && signer.nombre) {
+        pendingLactanciaPayload.quien_ordena = `${signer.grado} ${signer.nombre} - ${signer.cargo}`.trim();
+      }
+
+      const saveBtn = document.getElementById('btnSaveDoc');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Guardando...';
+      }
+
+      try {
+        if (pendingLactanciaEditingId) {
+          await apiRequest(`orden_lactancia?id=eq.${pendingLactanciaEditingId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(pendingLactanciaPayload)
+          });
+        } else {
+          await apiRequest('orden_lactancia', {
+            method: 'POST',
+            body: JSON.stringify(pendingLactanciaPayload)
+          });
+        }
+
+        // Notificar en tiempo real multi-pestaña
+        if (typeof BroadcastChannel !== 'undefined') {
+          try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'orden_lactancia' }); } catch (_) {}
+        }
+        try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
+
+        await loadCurrentTableData();
+        await loadAllBadges();
+
+        if (andPrint) {
+          printLactanciaDocument();
+        } else {
+          closeLactanciaModal();
+          if (typeof toast === 'function') toast('Orden de Lactancia guardada con éxito', 'success');
+          else alert('Orden de Lactancia guardada con éxito.');
+        }
+      } catch (err) {
+        alert('Error al guardar: ' + err.message);
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
+        }
+        isPendingLactanciaSave = false;
+        pendingLactanciaPayload = null;
+        pendingLactanciaEditingId = null;
+      }
+    }
+
+    function printLactanciaDocument(e) {
+      if (e) e.preventDefault();
+      document.body.classList.add('printing-lactancia');
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+          document.body.classList.remove('printing-lactancia');
+        }, 1200);
+      }, 60);
+    }
+
+    function copyLactanciaSummary(e) {
+      if (e) e.preventDefault();
+      if (!currentLactanciaData) return;
+      const cleanNum = (currentLactanciaData.numero_documento || '').replace(/^ORDEN DE LACTANCIA N°\s*/i, '');
+      const p = parseLactanciaDetails(currentLactanciaData);
+      const text = `ORDEN DE PERMISO POR LACTANCIA N° ${cleanNum}
+GRADO: ${currentLactanciaData.grado || 'PNP'}
+SOLICITANTE: ${currentLactanciaData.apellidos_nombres || p.efectivo || ''}
+CIP: ${currentLactanciaData.cip || p.cip || ''} | DNI: ${currentLactanciaData.dni || p.dni || ''}
+DOMICILIO: ${currentLactanciaData.direccion || p.direccion || ''}
+PROCEDENCIA: ${currentLactanciaData.procedencia || p.procedencia || ''}
+PRINCIPIA: ${currentLactanciaData.fecha_inicio || ''}
+TERMINA: ${currentLactanciaData.fecha_termino || ''}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        if (typeof toast === 'function') toast('Resumen copiado al portapapeles', 'success');
+        else alert('Resumen copiado al portapapeles');
+      }).catch(() => {
+        alert('No se pudo copiar al portapapeles');
+      });
+    }
+
+    function verOrdenLactanciaPorId(id) {
+      const item = (currentData || []).find(d => String(d.id) === String(id));
+      if (!item) {
+        alert('No se encontró el registro con ID: ' + id);
+        return;
+      }
+      displayLactanciaPreview(item, false);
     }
 
 </script>
