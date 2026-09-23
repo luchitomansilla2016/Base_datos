@@ -4913,7 +4913,7 @@
     }
 
     function parseLactanciaDetails(item) {
-      if (!item) return { cip: '', dni: '', efectivo: '', procedencia: '', direccion: '', asunto: '' };
+      if (!item) return { cip: '', dni: '', efectivo: '', procedencia: '', direccion: '', asunto: '', acta: '', fecha_acta: '' };
       const desc = item.descripcion || '';
       let cip = item.cip || '';
       let dni = item.dni || '';
@@ -4921,6 +4921,8 @@
       let procedencia = item.procedencia || item.unidad_procedencia || '';
       let direccion = item.direccion || '';
       let asunto = desc;
+      let acta = item.numero_acta_nacimiento || item.numero_acta || item.acta || '';
+      let fecha_acta = item.fecha_acta_nacimiento || item.fecha_acta || item.fecha_nacimiento || '';
 
       const mCip = desc.match(/CIP:\s*([^\s\|\]]+)/i);
       if (mCip && !cip) cip = mCip[1];
@@ -4937,10 +4939,16 @@
       const mDir = desc.match(/DOMICILIO:\s*([^\|\]]+)/i);
       if (mDir && !direccion) direccion = mDir[1].trim();
 
+      const mActa = desc.match(/ACTA:\s*([^\|\]]+)/i);
+      if (mActa && !acta) acta = mActa[1].trim();
+
+      const mFActa = desc.match(/F\.?ACTA:\s*([^\|\]]+)/i);
+      if (mFActa && !fecha_acta) fecha_acta = mFActa[1].trim();
+
       const mAsunto = desc.match(/^(.*?)\s*-\s*\[CIP:/i);
       if (mAsunto) asunto = mAsunto[1].trim();
 
-      return { cip, dni, efectivo, procedencia, direccion, asunto };
+      return { cip, dni, efectivo, procedencia, direccion, asunto, acta, fecha_acta };
     }
 
     async function showPersonalLactDropdown(inputEl) {
@@ -6455,6 +6463,8 @@
         const numDocVal = existing.numero_documento || '';
         const fechaInicioVal = existing.fecha_inicio || '';
         const fechaTerminoVal = existing.fecha_termino || (fechaInicioVal ? calcLactanciaFechaTermino(fechaInicioVal) : '');
+        const numActaVal = existing.numero_acta_nacimiento || existing.numero_acta || existing.acta || parsed.acta || '';
+        const fechaActaVal = existing.fecha_acta_nacimiento || existing.fecha_acta || existing.fecha_nacimiento || parsed.fecha_acta || '';
 
         container.innerHTML = `
           <div style="background:#e8f2ec; padding:8px 12px; border-radius:8px; border:1px solid #cce2d4; margin-bottom:2px;">
@@ -6504,6 +6514,16 @@
             <div class="form-group">
               <label>Fecha T&eacute;rmino (1 a&ntilde;o)</label>
               <input id="f_fecha_termino" class="form-control" type="date" value="${fechaTerminoVal}" required />
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label>N&deg; Acta de Nacimiento (RENIEC)</label>
+              <input id="f_numero_acta_lact" class="form-control" type="text" placeholder="Ej. 94246620" value="${numActaVal}" />
+            </div>
+            <div class="form-group">
+              <label>Fecha del Acta (Nacimiento del menor)</label>
+              <input id="f_fecha_acta_lact" class="form-control" type="date" value="${fechaActaVal}" />
             </div>
           </div>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -6844,6 +6864,9 @@
         payload.procedencia = (document.getElementById('f_procedencia_lact')?.value || '').trim();
         payload.fecha_inicio = document.getElementById('f_fecha_inicio').value;
         payload.fecha_termino = document.getElementById('f_fecha_termino').value;
+        payload.numero_acta_nacimiento = (document.getElementById('f_numero_acta_lact')?.value || '').trim();
+        payload.fecha_acta_nacimiento = (document.getElementById('f_fecha_acta_lact')?.value || '').trim();
+        payload.descripcion = `SE DISPONE PERMISO POR LACTANCIA - [CIP: ${payload.cip}] [DNI: ${payload.dni}] [EFECTIVO: ${payload.apellidos_nombres}] [PROCEDENCIA: ${payload.procedencia}] [DOMICILIO: ${payload.direccion}] [ACTA: ${payload.numero_acta_nacimiento}] [FACTA: ${payload.fecha_acta_nacimiento}]`;
         payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
         payload.usuario_registra = getUsuarioRegistraNombre();
 
@@ -7063,6 +7086,8 @@
           procedencia: (document.getElementById('f_procedencia_lact')?.value || '').trim() || '---',
           fecha_inicio: document.getElementById('f_fecha_inicio')?.value || '',
           fecha_termino: document.getElementById('f_fecha_termino')?.value || '',
+          numero_acta_nacimiento: (document.getElementById('f_numero_acta_lact')?.value || '').trim(),
+          fecha_acta_nacimiento: (document.getElementById('f_fecha_acta_lact')?.value || '').trim(),
           quien_ordena: (document.getElementById('f_quien_ordena')?.value || '').trim() || null,
           usuario_registra: getUsuarioRegistraNombre()
         };
@@ -9661,6 +9686,10 @@ TERMINA: ${currentGravidezData.fecha_termino || ''} (98 DÍAS)`;
       const uNomReg = (item && item.usuario_registra) ? item.usuario_registra : (currentUser ? getUsuarioRegistraNombre() : '');
       const sSiglas = generarSiglasDocumento(sNombre, uNomReg);
 
+      const numActa = item.numero_acta_nacimiento || item.numero_acta || item.acta || p.acta || '94246620';
+      const fActaRaw = item.fecha_acta_nacimiento || item.fecha_acta || item.fecha_nacimiento || p.fecha_acta || '2025-05-15';
+      const fechaActaFormateada = formatShortDateLactancia(fActaRaw);
+
       return `
         <div class="a4-page">
           <!-- ENCABEZADO -->
@@ -9719,7 +9748,7 @@ TERMINA: ${currentGravidezData.fecha_termino || ''} (98 DÍAS)`;
                 <td class="separator-col" style="padding-top: 10px;">:</td>
                 <td class="value-col" style="padding-top: 10px;">
                   <div class="legal-text" style="margin-top:0;">
-                    DIRECTIVA N&deg; 0011-2019-COMGEN-PNP/SECEJE-DIRREHUM (RCG N&deg; 628-2019-CG PNP/EMG DEL 03OCT2019), Normas y procedimientos para el uso adecuado de la licencia pre y post natal (98...), por parte del Personal Policial. INFORME N&deg; 117-2025-COMOPPOL/DIRSAPOL/RSP HP/POL.POL HCO/DM de fecha 05JUN2025.
+                    DIRECTIVA N&deg; 0011-2019-COMGEN-PNP/SECEJE-DIRREHUM (RCG N&deg; 626-2019-CG PNP/EMG DEL 03OCT2019), Normas y procedimientos para el uso adecuado de la licencia pre y post natal, paternidad, adopci&oacute;n y periodo de lactancia por parte del Personal Policial. - COPIA DE DNI DE SU MENOR HIJO, COPIA DE ACTA DE NACIMIENTO N&deg;${numActa} expedida por la RENIEC, indicando como fecha de nacimiento el ${fechaActaFormateada}.
                   </div>
                 </td>
               </tr>
