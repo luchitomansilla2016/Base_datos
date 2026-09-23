@@ -7767,11 +7767,13 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
       const elNom = document.getElementById('ofcSignName');
       const elGrd = document.getElementById('ofcSignGrado');
       const elCrg = document.getElementById('ofcSignCargo');
+      const elSiglas = document.getElementById('ofcSiglas');
 
       if (elOA) elOA.textContent = `OA- ${cip}`;
       if (elNom) elNom.textContent = nom;
       if (elGrd) elGrd.textContent = grd;
       if (elCrg) elCrg.textContent = crg;
+      if (elSiglas) elSiglas.textContent = generarSiglasDocumento(nom);
 
       ajustarAnchoLineaFirmaOficio();
     }
@@ -7934,6 +7936,85 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
     const MONTHS_SHORT_GRAV = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SET', 'OCT', 'NOV', 'DIC'];
     const MONTHS_FULL_GRAV = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
 
+    function extraerSiglasPNP(nombreRaw, esMayuscula = true) {
+      if (!nombreRaw || typeof nombreRaw !== 'string') return esMayuscula ? 'LEVM' : 'ato';
+
+      let str = nombreRaw.trim();
+      // Limpiar grados y prefijos comunes policiales
+      const rankRegex = /^(GRAL|CRNL|CMDTE|CMTE|MAY|MAYOR|CAP|TNTE|ALFZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO1|SO2|SO3|SO|SUBTENIENTE|SUB\s*OFICIAL|OFICIAL|EMPLEADO\s*CIVIL|EC|EE\.CC|EECC|ST)\s*(PNP)?\s*\.?\s*/i;
+      str = str.replace(rankRegex, '').trim();
+      str = str.replace(/^PNP\s+/i, '').trim();
+      if (!str) return esMayuscula ? 'LEVM' : 'ato';
+
+      const rawWords = str.split(/\s+/).filter(w => w.length > 0 && !/^(\.|\/|-)$/.test(w));
+      if (rawWords.length === 0) return esMayuscula ? 'LEVM' : 'ato';
+
+      // Si ya es una sigla directa corta (ej. "ATO" o "JLMS" o "LEVM")
+      if (rawWords.length === 1 && rawWords[0].length <= 5) {
+        return esMayuscula ? rawWords[0].toUpperCase() : rawWords[0].toLowerCase();
+      }
+
+      const hasMixedCase = rawWords.some(w => w !== w.toUpperCase() && /[a-z]/.test(w)) &&
+                           rawWords.some(w => w === w.toUpperCase() && w.length > 1);
+
+      let nombresWords = [];
+      let apellidosWords = [];
+
+      if (hasMixedCase) {
+        rawWords.forEach(w => {
+          const cleanW = w.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, '');
+          if (!cleanW) return;
+          if (w === w.toUpperCase() && w.length > 1) {
+            apellidosWords.push(cleanW);
+          } else {
+            nombresWords.push(cleanW);
+          }
+        });
+      } else {
+        const cleanWords = rawWords
+          .map(w => w.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, ''))
+          .filter(w => w.length > 0);
+
+        if (cleanWords.length === 1) {
+          nombresWords = [cleanWords[0]];
+        } else if (cleanWords.length === 2) {
+          apellidosWords = [cleanWords[0]];
+          nombresWords = [cleanWords[1]];
+        } else if (cleanWords.length === 3) {
+          apellidosWords = [cleanWords[0], cleanWords[1]];
+          nombresWords = [cleanWords[2]];
+        } else if (cleanWords.length === 4) {
+          apellidosWords = [cleanWords[0], cleanWords[1]];
+          nombresWords = [cleanWords[2], cleanWords[3]];
+        } else if (cleanWords.length >= 5) {
+          nombresWords = cleanWords.slice(-2);
+          apellidosWords = cleanWords.slice(0, -2);
+        }
+      }
+
+      const filterWords = ['DE', 'DEL', 'LA', 'LOS', 'Y', 'E'];
+      const validNombres = nombresWords.filter(w => !filterWords.includes(w.toUpperCase()));
+      const validApellidos = apellidosWords.filter(w => !filterWords.includes(w.toUpperCase()));
+
+      const iniNombres = validNombres.slice(0, 2).map(w => w.charAt(0)).join('');
+      const iniApellidos = validApellidos.slice(0, 2).map(w => w.charAt(0)).join('');
+
+      let res = (iniNombres + iniApellidos);
+      if (!res) res = rawWords.map(w => w.charAt(0)).join('');
+
+      return esMayuscula ? res.toUpperCase() : res.toLowerCase();
+    }
+
+    function generarSiglasDocumento(firmanteNombre, usuarioNombre) {
+      const fSiglas = extraerSiglasPNP(firmanteNombre || 'Luis Enrique VERAMENDI MAZZA', true);
+      const uNom = usuarioNombre ||
+                   (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
+                   (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
+                   'ato';
+      const uSiglas = extraerSiglasPNP(uNom, false);
+      return `${fSiglas}/${uSiglas}`;
+    }
+
     function formatShortDateGravidez(dateStr) {
       if (!dateStr) return '---';
       const parts = dateStr.split('-');
@@ -8060,6 +8141,8 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
         nameLetterSpacing = '-0.3px';
       }
 
+      const sSiglas = generarSiglasDocumento(sNombre);
+
       return `
         <div class="a4-page">
           <!-- ENCABEZADO -->
@@ -8141,7 +8224,7 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
           <!-- FIRMA Y SELLO -->
           <div class="firma-container">
             <div class="siglas-left">
-              LEVM/ato
+              ${sSiglas}
             </div>
             <div class="firma-right">
               <img class="sello-img" src="sello_ofad_regpol.png" alt="Sello Redondo OFAD" />
