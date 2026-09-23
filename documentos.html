@@ -7201,6 +7201,27 @@ MOTIVO: ${motivoText}`;
       }
     }
 
+    function formatPrefixCip(gradoRaw, cipRaw) {
+      let cleanCip = String(cipRaw || '').trim();
+      cleanCip = cleanCip.replace(/^(OA|SA|CIP)[\s\.\-:]*/i, '').trim();
+      if (!cleanCip) cleanCip = '000000';
+
+      const g = String(gradoRaw || '').toUpperCase();
+      const oficialesRegex = /\b(GRAL|GENERAL|CRNL|CORONEL|CMDTE|CMTE|COMANDANTE|MAY|MAYOR|CAP|CAPITAN|TNTE|TENIENTE|ALFZ|ALFEREZ)\b/i;
+      const suboficialesRegex = /\b(SS|SB|ST1|ST2|ST3|ST|S1|S2|S3|SO1|SO2|SO3|SO|SUBOFICIAL|SUB\s*OFICIAL|BRIGADIER|TECNICO|SARGENTO)\b/i;
+
+      if (oficialesRegex.test(g)) {
+        return `OA - ${cleanCip}`;
+      } else if (suboficialesRegex.test(g)) {
+        return `SA - ${cleanCip}`;
+      } else {
+        if (cleanCip.length <= 6) {
+          return `OA - ${cleanCip}`;
+        }
+        return `SA - ${cleanCip}`;
+      }
+    }
+
     function formatFechaOficialReincorp(rawDate) {
       const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SETIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
       let d = rawDate ? new Date(rawDate) : new Date();
@@ -7433,9 +7454,9 @@ MOTIVO: ${motivoText}`;
       const motivoVal = formatMotivoReincorp(item.descripcion, item.motivo);
       const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
 
-      const sCip = signer?.cip || signer?.CIP || '340850';
-      const sNom = formatNombrePostFirma(signer?.nombres || signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'Ricky Florian CISNEROS APAZA');
       const sGrd = (signer?.grado || signer?.GRADO || 'CMDTE PNP').toUpperCase();
+      const sCip = formatPrefixCip(sGrd, signer?.cip || signer?.CIP || '340850');
+      const sNom = formatNombrePostFirma(signer?.nombres || signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'Ricky Florian CISNEROS APAZA');
       const sCrg = (signer?.cargo || signer?.CARGO || 'JEFE OFAD REGPOL HUANUCO').toUpperCase();
 
       const obsHTML = `SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.`;
@@ -7497,7 +7518,7 @@ MOTIVO: ${motivoText}`;
                 <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello OFAD" />
                 <div class="sign-container">
                   <div class="sign-dots"></div>
-                  <div class="sign-info-main">CIP - ${sCip}</div>
+                  <div class="sign-info-main">${sCip}</div>
                   <div class="sign-info-main" style="text-transform: none !important;">${sNom}</div>
                   <div class="sign-info-main">${sGrd}</div>
                   <div class="sign-info-cargo">${sCrg}</div>
@@ -7565,7 +7586,7 @@ MOTIVO: ${motivoText}`;
                 <img src="sello_redondo_ofad.png" class="sello-redondo-img" alt="Sello OFAD" />
                 <div class="sign-container">
                   <div class="sign-dots"></div>
-                  <div class="sign-info-main">CIP - ${sCip}</div>
+                  <div class="sign-info-main">${sCip}</div>
                   <div class="sign-info-main" style="text-transform: none !important;">${sNom}</div>
                   <div class="sign-info-main">${sGrd}</div>
                   <div class="sign-info-cargo">${sCrg}</div>
@@ -8153,13 +8174,11 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
 
       const fDoc = item.fecha_documento || new Date().toISOString().split('T')[0];
       const lugarFecha = formatFullDateGravidez(fDoc);
-
-      let rawCip = signer && signer.cip ? String(signer.cip).trim() : '31343925';
-      rawCip = rawCip.replace(/^SA-?/i, '').replace(/^CIP-?/i, '').replace(/^CIP\.?\s*/i, '').trim();
-      const sCip = `CIP-${rawCip}`;
+      const sGrado = signer ? (signer.grado || signer.GRADO || 'ST2 PNP') : 'ST2 PNP';
+      const rawCip = signer && (signer.cip || signer.CIP) ? String(signer.cip || signer.CIP).trim() : '31343925';
+      const sCip = formatPrefixCip(sGrado, rawCip);
       const rawSignerNombre = signer ? (signer.nombre || signer.nombres || signer['APELLIDOS Y NOMBRES'] || signer.apellidos_y_nombres || 'Luis Enrique VERAMENDI MAZZA') : 'Luis Enrique VERAMENDI MAZZA';
       const sNombre = formatNombrePostFirma(rawSignerNombre);
-      const sGrado = signer ? (signer.grado || signer.GRADO || 'ST2 PNP') : 'ST2 PNP';
       const sCargo = signer ? (signer.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO') : 'JEFE (E) OFAD DE LA REGPOL HUANUCO';
 
       let nameFontSize = '8pt';
