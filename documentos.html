@@ -2082,19 +2082,20 @@
       font-family: 'Arial Narrow', Arial, sans-serif;
       font-size: 9pt;
       font-weight: bold;
-      letter-spacing: -0.2px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
       text-transform: uppercase;
+      display: block;
+      width: 100%;
     }
     #gravidezPreviewModal .post-firma-grado {
       font-family: 'Arial Narrow', Arial, sans-serif;
       font-size: 9pt;
       font-weight: bold;
       letter-spacing: -0.2px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
+      white-space: nowrap;
       text-transform: uppercase;
+      display: block;
     }
     #gravidezPreviewModal .post-firma-cargo {
       font-family: 'Arial Narrow', Arial, sans-serif;
@@ -8041,6 +8042,19 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
       const sGrado = signer ? (signer.grado || 'ST2 PNP') : 'ST2 PNP';
       const sCargo = signer ? (signer.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO') : 'JEFE (E) OFAD DE LA REGPOL HUANUCO';
 
+      let nameFontSize = '9pt';
+      let nameLetterSpacing = '-0.2px';
+      const cleanNombreLen = sNombre.length;
+      if (cleanNombreLen > 32) {
+        nameFontSize = '7.5pt';
+        nameLetterSpacing = '-0.4px';
+      } else if (cleanNombreLen > 25) {
+        nameFontSize = '8pt';
+        nameLetterSpacing = '-0.3px';
+      } else if (cleanNombreLen > 20) {
+        nameFontSize = '8.5pt';
+      }
+
       return `
         <div class="a4-page">
           <!-- ENCABEZADO -->
@@ -8128,7 +8142,7 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
               <img class="sello-img" src="sello_ofad_regpol.png" alt="Sello Redondo OFAD" />
               <div class="post-firma-box">
                 <div class="post-firma-line">${sCip}</div>
-                <div class="post-firma-name">${sNombre}</div>
+                <div class="post-firma-name" style="font-size: ${nameFontSize}; letter-spacing: ${nameLetterSpacing};">${sNombre}</div>
                 <div class="post-firma-grado">${sGrado}</div>
                 <div class="post-firma-cargo">${sCargo}</div>
               </div>
