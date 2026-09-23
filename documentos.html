@@ -8538,7 +8538,7 @@ MOTIVO: ${motivoText}`;
       let nombresVal = (item.grado_apellidos_nombres || item.apellidos_nombres || item.apellidos_y_nombres || item.descripcion || '---').toUpperCase();
       const procedenciaVal = (item.unidad_procedencia || item.unidad_anterior_procedencia || item.procedencia || item.unidad_anterior || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD').toUpperCase();
       const destinoVal = (item.destino || item.unidad_destino || item.lista_de_revista || 'COMISARIA SECTORIAL HUANUCO').toUpperCase();
-      const motivoVal = formatMotivoReincorp(item.descripcion, item.motivo);
+      const motivoVal = (item.descripcion || item.asunto || item.motivo || 'SE REINCORPORA AL TERMINO DE SUS ATENCIONES MEDICAS').toUpperCase().trim();
       const refDocVal = (item.documento_referencia || item.numero_orden_incorporacion_dirrehum || item.referencia || '').trim();
       const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
 
