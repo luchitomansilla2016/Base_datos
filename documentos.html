@@ -6080,63 +6080,6 @@
       editingId = null;
     }
 
-    function buildModalForm(existing = {}) {
-      const container = document.getElementById('docModalFields');
-      const conf = TABLES_CONFIG[currentTable];
-      const today = new Date().toISOString().split('T')[0];
-
-      const saveBtn = document.getElementById('btnSaveDoc');
-      const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (conf.isOrdenReincorporacion) {
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
-          saveBtn.style.background = '#0b5a3c';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
-        }
-      } else if (conf.isOrdenIncorporacion) {
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
-          saveBtn.style.background = '#0b5a3c';
-          saveBtn.style.color = '#ffffff';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
-        }
-      } else if (conf.isOrdenGravidez) {
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
-          saveBtn.style.background = '#0b5a3c';
-          saveBtn.style.color = '#ffffff';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
-        }
-      } else if (conf.isOrdenLactancia) {
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
-          saveBtn.style.background = '#0b5a3c';
-          saveBtn.style.color = '#ffffff';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
-        }
-      } else {
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128190; Guardar Registro';
-          saveBtn.style.background = '';
-          saveBtn.style.color = '';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'none';
-        }
-      }
-
     function getFirmantesSelectOptionsHtml(selectedValue = '') {
       let opts = '';
       const selValNorm = String(selectedValue || '').trim().toUpperCase();
@@ -6212,6 +6155,16 @@
           btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
         }
       } else if (conf.isOrdenGravidez) {
+        if (saveBtn) {
+          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
+          saveBtn.style.background = '#0b5a3c';
+          saveBtn.style.color = '#ffffff';
+        }
+        if (btnVerOrden) {
+          btnVerOrden.style.display = 'inline-flex';
+          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+        }
+      } else if (conf.isOrdenLactancia) {
         if (saveBtn) {
           saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
           saveBtn.style.background = '#0b5a3c';
