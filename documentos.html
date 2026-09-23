@@ -9076,10 +9076,27 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
 
     function generarSiglasDocumento(firmanteNombre, usuarioNombre) {
       const fSiglas = extraerSiglasPNP(firmanteNombre || 'Luis Enrique VERAMENDI MAZZA', true);
-      const uNom = usuarioNombre ||
-                   (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
-                   (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
-                   'ato';
+      let uNom = usuarioNombre;
+      if (!uNom && currentUser) {
+        uNom = currentUser.apellidos_nombres || currentUser['APELLIDOS Y NOMBRES'] || currentUser.nombre || '';
+      }
+      if (!uNom) {
+        try {
+          const stored = localStorage.getItem('regpol_docs_user') || sessionStorage.getItem('regpol_docs_user');
+          if (stored) {
+            const parsedUser = JSON.parse(stored);
+            uNom = parsedUser.apellidos_nombres || parsedUser['APELLIDOS Y NOMBRES'] || parsedUser.nombre || '';
+          }
+        } catch (_) {}
+      }
+      if (!uNom && typeof getUsuarioRegistraNombre === 'function') {
+        uNom = getUsuarioRegistraNombre();
+      }
+      if (!uNom) {
+        uNom = (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
+               (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
+               'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      }
       const uSiglas = extraerSiglasPNP(uNom, false);
       return `${fSiglas}/${uSiglas}`;
     }
@@ -9209,7 +9226,8 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
         nameLetterSpacing = '-0.3px';
       }
 
-      const sSiglas = generarSiglasDocumento(sNombre);
+      const uNomReg = (item && item.usuario_registra) ? item.usuario_registra : (currentUser ? getUsuarioRegistraNombre() : '');
+      const sSiglas = generarSiglasDocumento(sNombre, uNomReg);
 
       return `
         <div class="a4-page">
@@ -9640,7 +9658,8 @@ TERMINA: ${currentGravidezData.fecha_termino || ''} (98 DÍAS)`;
         nameLetterSpacing = '-0.3px';
       }
 
-      const sSiglas = generarSiglasDocumento(sNombre);
+      const uNomReg = (item && item.usuario_registra) ? item.usuario_registra : (currentUser ? getUsuarioRegistraNombre() : '');
+      const sSiglas = generarSiglasDocumento(sNombre, uNomReg);
 
       return `
         <div class="a4-page">
