@@ -3213,9 +3213,13 @@
           <select id="reincorpJefeSelect" onchange="updateReincorpSigner()" style="flex: 1; height: 36px; padding: 4px 10px; border-radius: 8px; border: 1.5px solid var(--line); font-size: 12.5px; font-weight: 600; background: #fff; color: #0b5a3c;"></select>
           <button type="button" class="secondary" onclick="openGestionJefesModal(event)" title="Gestionar firmantes" style="height: 36px; padding: 0 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; border-radius: 8px; white-space: nowrap; background: #fff; border: 1.5px solid #0b5a3c; color: #0b5a3c; font-weight: 600; cursor: pointer;"><span>⚙️</span> Firmantes</button>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <input type="file" id="customReincorpDocxInput" accept=".docx" style="display:none;" onchange="onCustomReincorpDocxSelected(event)">
+          <button type="button" class="secondary" onclick="document.getElementById('customReincorpDocxInput').click()" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px; background: #fff8e1; color: #b78103; border: 1.5px solid #d4a017; font-weight: 700;" title="Subir tu archivo plantilla_reincorporacion.docx con sellos">
+            <span>📁</span> Cargar mi Plantilla Word
+          </button>
           <button type="button" class="secondary" onclick="descargarReincorpWord(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px; background: #e8f0fe; color: #1a73e8; border: 1.5px solid #1a73e8; font-weight: 700;">
-            <span>📄</span> Descargar en Word (.docx) [Prueba]
+            <span>📄</span> Generar y Descargar Word (.docx)
           </button>
           <button class="secondary" onclick="copyReincorpSummary(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px;">
             <span>📋</span> Copiar datos
@@ -8994,6 +8998,33 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
       });
     }
 
+    let customReincorpDocxBuffer = null;
+
+    function onCustomReincorpDocxSelected(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (!file.name.toLowerCase().endsWith('.docx')) {
+        alert('Por favor seleccione un archivo de Microsoft Word (.docx)');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        customReincorpDocxBuffer = evt.target.result;
+        try {
+          const bytes = new Uint8Array(customReincorpDocxBuffer);
+          let binary = '';
+          for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          const base64 = btoa(binary);
+          sessionStorage.setItem('custom_reincorp_docx_b64', base64);
+        } catch (_) {}
+        if (typeof toast === 'function') toast(`Plantilla "${file.name}" cargada. Ahora haga clic en "Generar y Descargar Word"`, 'success');
+        else alert(`Plantilla "${file.name}" cargada con éxito.\nAhora haga clic en "Generar y Descargar Word (.docx)".`);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
     async function descargarReincorpWord(e) {
       if (e) e.preventDefault();
       if (!currentReincorpData) {
@@ -9124,9 +9155,28 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
           throw new Error('No se pudieron cargar las librerías de Word. Por favor recargue la página e intente nuevamente.');
         }
 
-        const response = await fetch('plantilla_reincorporacion.docx');
-        if (!response.ok) throw new Error('No se encontró el archivo plantilla_reincorporacion.docx en el servidor.');
-        const content = await response.arrayBuffer();
+        let content = customReincorpDocxBuffer;
+        if (!content) {
+          try {
+            const storedB64 = sessionStorage.getItem('custom_reincorp_docx_b64');
+            if (storedB64) {
+              const binStr = atob(storedB64);
+              const len = binStr.length;
+              const bytes = new Uint8Array(len);
+              for (let i = 0; i < len; i++) {
+                bytes[i] = binStr.charCodeAt(i);
+              }
+              content = bytes.buffer;
+              customReincorpDocxBuffer = content;
+            }
+          } catch (_) {}
+        }
+
+        if (!content) {
+          const response = await fetch('plantilla_reincorporacion.docx');
+          if (!response.ok) throw new Error('No se encontró el archivo plantilla_reincorporacion.docx en el servidor. Puede cargarlo haciendo clic en el botón "📁 Cargar mi Plantilla Word".');
+          content = await response.arrayBuffer();
+        }
 
         const zip = new PizZipClass(content);
         const doc = new DocxClass(zip, {
