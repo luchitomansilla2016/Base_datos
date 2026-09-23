@@ -1635,7 +1635,7 @@
       .sidebar,
       .sidebar-backdrop,
       .login-overlay,
-      .modal:not(#ordenPreviewModal):not(#fichaModal),
+      .modal:not(#ordenPreviewModal):not(#fichaModal):not(#oficioPreviewModal):not(#reincorporacionPreviewModal):not(#gravidezPreviewModal),
       #toast {
         display: none !important;
       }
@@ -1644,7 +1644,20 @@
         display: none !important;
       }
 
-      body:not(.printing-orden) > *:not(#fichaModal) {
+      body.printing-oficio > *:not(#oficioPreviewModal) {
+        display: none !important;
+      }
+
+      body.printing-reincorporacion > *:not(#reincorporacionPreviewModal),
+      body.printing-reincorporacion-bulk > *:not(#reincorporacionBulkPrintContainer) {
+        display: none !important;
+      }
+
+      body.printing-gravidez > *:not(#gravidezPreviewModal) {
+        display: none !important;
+      }
+
+      body:not(.printing-orden):not(.printing-oficio):not(.printing-reincorporacion):not(.printing-reincorporacion-bulk):not(.printing-gravidez) > *:not(#fichaModal) {
         display: none !important;
       }
 
@@ -1860,12 +1873,15 @@
       #gravidezPreviewModal {
         display: block !important;
         position: static !important;
+        inset: auto !important;
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
         background: white !important;
       }
       #gravidezPreviewModal .dialog {
+        display: block !important;
+        position: static !important;
         width: 100% !important;
         max-width: none !important;
         box-shadow: none !important;
@@ -1880,12 +1896,31 @@
       #gravidezPreviewModal .close-btn {
         display: none !important;
       }
+      #gravidezPreviewModal .orden-sheet-container {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        max-height: none !important;
+        display: block !important;
+      }
       #gravidezPreviewModal .a4-page {
         box-shadow: none !important;
-        margin: 0 !important;
+        border: none !important;
+        margin: 0 auto !important;
         width: 210mm !important;
+        max-width: 210mm !important;
         height: 297mm !important;
+        min-height: 297mm !important;
+        max-height: 297mm !important;
         padding: 0.5cm 1.3cm 0.5cm 0.5cm !important;
+        box-sizing: border-box !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
     }
 
@@ -8239,10 +8274,12 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
     function printGravidezDocument(e) {
       if (e) e.preventDefault();
       document.body.classList.add('printing-gravidez');
-      window.print();
       setTimeout(() => {
-        document.body.classList.remove('printing-gravidez');
-      }, 1000);
+        window.print();
+        setTimeout(() => {
+          document.body.classList.remove('printing-gravidez');
+        }, 1200);
+      }, 60);
     }
 
     function copyGravidezSummary(e) {
