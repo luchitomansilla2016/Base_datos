@@ -5251,19 +5251,29 @@
 
     function checkAuth() {
       const session = localStorage.getItem('regpol_docs_user');
+      const overlay = document.getElementById('loginOverlay');
       if (session) {
         try {
           currentUser = JSON.parse(session);
-          updateUserInterface();
-          document.getElementById('loginOverlay').classList.add('hidden');
-          loadAllBadges();
-          loadCurrentTableData();
-          loadUnidadesCatalogDoc();
-          loadPersonalCatalogDoc();
-          return;
+          if (currentUser && currentUser.cip) {
+            updateUserInterface();
+            if (overlay) {
+              overlay.classList.add('hidden');
+              overlay.style.display = 'none';
+            }
+            try { loadAllBadges(); } catch (_) {}
+            try { loadCurrentTableData(); } catch (_) {}
+            try { loadUnidadesCatalogDoc(); } catch (_) {}
+            try { loadPersonalCatalogDoc(); } catch (_) {}
+            try { loadJefesList(); } catch (_) {}
+            return;
+          }
         } catch (_) {}
       }
-      document.getElementById('loginOverlay').classList.remove('hidden');
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+      }
     }
 
     function updateUserInterface() {
@@ -5271,7 +5281,7 @@
       document.getElementById('userDisplayName').textContent = `${currentUser.grado || ''} ${currentUser.apellidos_nombres || currentUser.cip}`;
       document.getElementById('userDisplayRole').textContent = isUserAdmin() ? 'ADMINISTRADOR' : 'USUARIO';
       
-      // Control de visibilidad del men?? de Usuarios
+      // Control de visibilidad del menú de Usuarios
       const navLi = document.getElementById('navLiUsuarios');
       if (navLi) {
         navLi.style.display = isUserAdmin() ? 'block' : 'none';
@@ -5283,19 +5293,39 @@
     }
 
     async function doLogin() {
-      const cip = document.getElementById('loginCip').value.trim();
-      const pass = document.getElementById('loginPass').value.trim();
+      const cipInput = document.getElementById('loginCip');
+      const passInput = document.getElementById('loginPass');
+      const cip = cipInput ? cipInput.value.trim() : '';
+      const pass = passInput ? passInput.value.trim() : '';
       const errEl = document.getElementById('loginErrorMsg');
       const submitBtn = document.getElementById('btnLoginSubmit');
+      const overlay = document.getElementById('loginOverlay');
 
-      errEl.style.display = 'none';
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span>Verificando...</span>';
+      if (!cip) {
+        if (errEl) {
+          errEl.textContent = 'Por favor ingrese su número de CIP.';
+          errEl.style.display = 'flex';
+        }
+        return;
+      }
+      if (!pass) {
+        if (errEl) {
+          errEl.textContent = 'Por favor ingrese su contraseña de acceso.';
+          errEl.style.display = 'flex';
+        }
+        return;
+      }
+
+      if (errEl) errEl.style.display = 'none';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Verificando...</span>';
+      }
 
       try {
         const users = await apiRequest(`usuarios?cip=eq.${encodeURIComponent(cip)}&select=*`);
         if (!users || users.length === 0) {
-          throw new Error('El CIP ingresado no est\u00e1 registrado en el sistema.');
+          throw new Error('El CIP ingresado (' + cip + ') no está registrado en el sistema.');
         }
 
         const user = users[0];
@@ -5303,33 +5333,60 @@
           throw new Error('Esta cuenta de usuario se encuentra inactiva.');
         }
 
-        const passKey = Object.keys(user).find(k => k.toUpperCase().includes('CONTRA') || k.toUpperCase().includes('PASS')) || 'contraseña';
-        if (String(user[passKey] ?? '').trim() !== pass) {
-          throw new Error('Contraseña incorrecta. Verifique sus datos.');
+        let dbPass = '';
+        for (const [k, v] of Object.entries(user)) {
+          const kNorm = k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          if (kNorm.includes('contra') || kNorm.includes('pass')) {
+            dbPass = String(v ?? '').trim();
+            break;
+          }
+        }
+        if (!dbPass && user['contraseña']) dbPass = String(user['contraseña']).trim();
+        if (!dbPass && user.contrasena) dbPass = String(user.contrasena).trim();
+        if (!dbPass && user.password) dbPass = String(user.password).trim();
+        if (!dbPass && user.pass) dbPass = String(user.pass).trim();
+
+        if (dbPass !== pass) {
+          throw new Error('Contraseña incorrecta. Verifique sus datos e intente nuevamente.');
         }
 
         currentUser = user;
         localStorage.setItem('regpol_docs_user', JSON.stringify(user));
         updateUserInterface();
-        document.getElementById('loginOverlay').classList.add('hidden');
+        
+        if (overlay) {
+          overlay.classList.add('hidden');
+          overlay.style.display = 'none';
+        }
 
-        loadAllBadges();
-        loadCurrentTableData();
-        loadUnidadesCatalogDoc();
+        try { loadAllBadges(); } catch (_) {}
+        try { loadCurrentTableData(); } catch (_) {}
+        try { loadUnidadesCatalogDoc(); } catch (_) {}
+        try { loadPersonalCatalogDoc(); } catch (_) {}
+        try { loadJefesList(); } catch (_) {}
       } catch (err) {
-        errEl.textContent = err.message || 'Error al intentar iniciar sesi\u00f3n.';
-        errEl.style.display = 'flex';
+        if (errEl) {
+          errEl.textContent = err.message || 'Error al intentar iniciar sesión.';
+          errEl.style.display = 'flex';
+        }
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span>INGRESAR AL SISTEMA</span><span>&rarr;</span>';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>INGRESAR AL SISTEMA</span><span>&rarr;</span>';
+        }
       }
     }
 
     function logout() {
       localStorage.removeItem('regpol_docs_user');
       currentUser = null;
-      document.getElementById('loginOverlay').classList.remove('hidden');
-      document.getElementById('loginPass').value = '';
+      const overlay = document.getElementById('loginOverlay');
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+      }
+      const passInput = document.getElementById('loginPass');
+      if (passInput) passInput.value = '';
     }
 
     function togglePassVisibility(id) {
@@ -5533,6 +5590,19 @@
       const single = String(numStr).match(/^(\d+)/);
       if (single) return single[1].padStart(3, '0');
       return numStr;
+    }
+
+    function formatShortDocNumber(numStr) {
+      if (!numStr) return '---';
+      const mNum = String(numStr).match(/(\d+)/);
+      const mYear = String(numStr).match(/-(\d{4})/);
+      if (mNum && mYear) {
+        return `${mNum[1].padStart(3, '0')}-${mYear[1]}`;
+      }
+      if (mNum) {
+        return `${mNum[1].padStart(3, '0')}-${new Date().getFullYear()}`;
+      }
+      return String(numStr).trim();
     }
 
     function renderTableStructure() {
@@ -5848,19 +5918,6 @@
         `).join('');
         return;
       }
-
-    function formatShortDocNumber(numStr) {
-      if (!numStr) return '---';
-      const mNum = String(numStr).match(/(\d+)/);
-      const mYear = String(numStr).match(/-(\d{4})/);
-      if (mNum && mYear) {
-        return `${mNum[1].padStart(3, '0')}-${mYear[1]}`;
-      }
-      if (mNum) {
-        return `${mNum[1].padStart(3, '0')}-${new Date().getFullYear()}`;
-      }
-      return String(numStr).trim();
-    }
 
       tbody.innerHTML = items.map(item => `
         <tr>
