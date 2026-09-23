@@ -5198,7 +5198,13 @@
       const descEl = document.getElementById('f_descripcion');
       if (!descEl) return;
       if (motivo) {
-        descEl.value = `SE REINCORPORA AL TERMINO DE ${motivo.toUpperCase()}`;
+        if (motivo === 'CURSO') {
+          descEl.value = 'SE REINCORPORA AL TERMINO DEL CURSO DE ';
+        } else if (motivo === 'TRATAMIENTO MEDICO (REFERENCIA)') {
+          descEl.value = 'SE REINCORPORA AL TERMINO DE TRATAMIENTO MEDICO (REFERENCIA)';
+        } else {
+          descEl.value = `SE REINCORPORA AL TERMINO DE ${motivo.toUpperCase()}`;
+        }
       } else {
         descEl.value = 'SE REINCORPORA AL TERMINO DE ';
       }
@@ -5673,6 +5679,7 @@
             <th>Descripci&oacute;n / Asunto</th>
             <th>Grado, Apellidos y Nombres</th>
             <th>Procedencia</th>
+            <th>Doc. Referencia</th>
             <th>Destino</th>
             <th>Quien Ordena</th>
             <th>Usuario Registra</th>
@@ -5817,6 +5824,7 @@
             <td>${item.descripcion || '---'}</td>
             <td><b>${item.grado_apellidos_nombres || item.apellidos_nombres || item.grado_apellidos_nomnbres || '---'}</b></td>
             <td><span class="badge-doc" style="background:#eef6ee; color:#0b5a3c; font-weight:700;">${item.unidad_procedencia || item.unidad_anterior_procedencia || item.procedencia || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP'}</span></td>
+            <td><span class="badge-doc" style="background:#f8fafc; color:#1e293b; font-weight:600;">${item.documento_referencia || item.numero_orden_incorporacion_dirrehum || '---'}</span></td>
             <td><b>${item.destino || '---'}</b></td>
             <td>${item.quien_ordena || '---'}</td>
             <td><small>${item.usuario_registra || '---'}</small></td>
@@ -6330,6 +6338,8 @@
               <option value="LICENCIA POR ENFERMEDAD GRAVE">LICENCIA POR ENFERMEDAD GRAVE</option>
               <option value="LICENCIA FALLECIMIENTO DE FAMILIAR DIRECTO">LICENCIA FALLECIMIENTO DE FAMILIAR DIRECTO</option>
               <option value="LICENCIA POR GRAVIDEZ">LICENCIA POR GRAVIDEZ</option>
+              <option value="CURSO">CURSO</option>
+              <option value="TRATAMIENTO MEDICO (REFERENCIA)">TRATAMIENTO MÉDICO (REFERENCIA)</option>
             </select>
             <label style="font-size:12px; color:#555; margin-top:2px;">Descripci&oacute;n / Asunto (Editable)</label>
             <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Ej. SE REINCORPORA AL TERMINO DE VACACIONES" style="resize:vertical;" required>${descVal}</textarea>
@@ -6350,6 +6360,10 @@
               <option value="COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD" ${(!existing.unidad_procedencia || existing.unidad_procedencia.includes('COMOPPOL') || existing.unidad_procedencia.includes('OFAD')) ? 'selected' : ''}>COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD</option>
               <option value="DIRREHUM PNP/DIVMRH-DIRREHUM PNP" ${(existing.unidad_procedencia && (existing.unidad_procedencia.includes('DIRREHUM') || existing.unidad_procedencia.includes('DIVMRH'))) ? 'selected' : ''}>DIRREHUM PNP/DIVMRH-DIRREHUM PNP</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label>Documento de Referencia</label>
+            <input id="f_documento_referencia" class="form-control" type="text" placeholder="Ej. OFICIO N°... / MEMORANDUM N°... / PAPELETA N°..." value="${existing.documento_referencia || existing.numero_orden_incorporacion_dirrehum || ''}" />
           </div>
           <div class="form-group" style="position:relative;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -6798,6 +6812,7 @@
         payload.descripcion = document.getElementById('f_descripcion').value.trim() || 'SE REINCORPORA AL TERMINO DE ';
         payload.grado_apellidos_nombres = (document.getElementById('f_grado_apellidos_nombres')?.value || '').trim() || null;
         payload.unidad_procedencia = (document.getElementById('f_unidad_procedencia')?.value || '').trim() || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
+        payload.documento_referencia = (document.getElementById('f_documento_referencia')?.value || '').trim() || null;
         payload.destino = document.getElementById('f_destino').value.trim();
         payload.quien_ordena = (document.getElementById('f_quien_ordena')?.value || '').trim() || null;
         payload.usuario_registra = getUsuarioRegistraNombre();
@@ -7125,6 +7140,7 @@
           grado_apellidos_nombres: nombresVal || descVal,
           descripcion: descVal,
           unidad_procedencia: document.getElementById('f_unidad_procedencia')?.value || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD',
+          documento_referencia: (document.getElementById('f_documento_referencia')?.value || '').trim(),
           destino: document.getElementById('f_destino')?.value || 'COMISARIA SECTORIAL HUANUCO',
           fecha_documento: document.getElementById('f_fecha_documento')?.value || new Date().toISOString().split('T')[0],
           created_at: new Date().toISOString(),
@@ -7275,6 +7291,21 @@
             'DESTINO': item.destino || '',
             'QUIEN ORDENA': item.quien_ordena || '',
             'USUARIO QUE REGISTRA': item.usuario_registra || ''
+          };
+        }
+
+        if (conf.isOrdenReincorporacion) {
+          return {
+            'N°': idx + 1,
+            'N° DOCUMENTO': formatNumeroDocDisplay(item.numero_documento),
+            'FECHA DOCUMENTO': item.fecha_documento || '',
+            'DESCRIPCIÓN / ASUNTO': item.descripcion || '',
+            'GRADO, APELLIDOS Y NOMBRES': item.grado_apellidos_nombres || item.apellidos_nombres || '',
+            'PROCEDENCIA': item.unidad_procedencia || item.procedencia || '',
+            'DOCUMENTO DE REFERENCIA': item.documento_referencia || item.numero_orden_incorporacion_dirrehum || '',
+            'DESTINO': item.destino || '',
+            'QUIEN ORDENA': item.quien_ordena || '',
+            'USUARIO REGISTRA': item.usuario_registra || ''
           };
         }
 
@@ -8494,6 +8525,7 @@ MOTIVO: ${motivoText}`;
       const procedenciaVal = (item.unidad_procedencia || item.unidad_anterior_procedencia || item.procedencia || item.unidad_anterior || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD').toUpperCase();
       const destinoVal = (item.destino || item.unidad_destino || item.lista_de_revista || 'COMISARIA SECTORIAL HUANUCO').toUpperCase();
       const motivoVal = formatMotivoReincorp(item.descripcion, item.motivo);
+      const refDocVal = (item.documento_referencia || item.numero_orden_incorporacion_dirrehum || item.referencia || '').trim();
       const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
 
       const sGrd = (signer?.grado || signer?.GRADO || 'CMDTE PNP').toUpperCase();
@@ -8542,6 +8574,11 @@ MOTIVO: ${motivoText}`;
                 <td class="data-label">MOTIVO</td>
                 <td class="data-sep">:</td>
                 <td class="data-val">AL T&Eacute;RMINO DE: <b class="val-motivo">${motivoVal}</b></td>
+              </tr>
+              <tr>
+                <td class="data-label">DOCUMENTO DE REFERENCIA</td>
+                <td class="data-sep">:</td>
+                <td class="data-val bold">${refDocVal || '---'}</td>
               </tr>
               <tr>
                 <td class="data-label">OBSERVACI&Oacute;N</td>
@@ -8607,6 +8644,11 @@ MOTIVO: ${motivoText}`;
                 <td class="data-label">MOTIVO</td>
                 <td class="data-sep">:</td>
                 <td class="data-val">AL T&Eacute;RMINO DE: <b class="val-motivo">${motivoVal}</b></td>
+              </tr>
+              <tr>
+                <td class="data-label">DOCUMENTO DE REFERENCIA</td>
+                <td class="data-sep">:</td>
+                <td class="data-val bold">${refDocVal || '---'}</td>
               </tr>
               <tr>
                 <td class="data-label">OBSERVACI&Oacute;N</td>
