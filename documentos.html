@@ -2056,56 +2056,63 @@
       flex-shrink: 0;
     }
     #gravidezPreviewModal .post-firma-box {
-      width: 4cm;
-      max-width: 4cm;
-      min-width: 4cm;
+      width: 4.00cm;
+      max-width: 4.00cm;
+      min-width: 4.00cm;
+      max-height: 1.50cm;
       box-sizing: border-box;
       text-align: center;
       font-family: 'Arial Narrow', Arial, sans-serif;
       color: #000;
       margin-top: 1.5cm; /* Extremo derecho medio del sello pegado al extremo izquierdo de la linea */
-      line-height: 1.15;
+      line-height: 1.1;
     }
     #gravidezPreviewModal .post-firma-line {
       border-top: 1.2px solid #000;
       width: 100%;
       box-sizing: border-box;
-      padding-top: 2px;
+      padding-top: 1px;
       font-family: 'Arial Narrow', Arial, sans-serif;
-      font-size: 9pt;
+      font-size: 8pt;
       font-weight: bold;
       letter-spacing: -0.2px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
+      white-space: nowrap;
+      line-height: 1.1;
+      margin: 0;
     }
     #gravidezPreviewModal .post-firma-name {
       font-family: 'Arial Narrow', Arial, sans-serif;
-      font-size: 9pt;
+      font-size: 8pt;
       font-weight: bold;
       letter-spacing: -0.3px;
       white-space: nowrap;
       text-transform: uppercase;
       display: block;
       width: 100%;
+      line-height: 1.1;
+      margin: 0;
     }
     #gravidezPreviewModal .post-firma-grado {
       font-family: 'Arial Narrow', Arial, sans-serif;
-      font-size: 9pt;
+      font-size: 8pt;
       font-weight: bold;
       letter-spacing: -0.2px;
       white-space: nowrap;
       text-transform: uppercase;
       display: block;
+      line-height: 1.1;
+      margin: 0;
     }
     #gravidezPreviewModal .post-firma-cargo {
       font-family: 'Arial Narrow', Arial, sans-serif;
-      font-size: 8pt;
+      font-size: 7pt;
       font-weight: bold;
       letter-spacing: -0.3px;
       word-wrap: break-word;
       overflow-wrap: break-word;
-      line-height: 1.1;
+      line-height: 1.05;
       text-transform: uppercase;
+      margin: 0;
     }
 
     /* ESTILOS DE PANTALLA: PLANTILLA OFICIAL DE REINCORPORACIÓN A4 */
@@ -8042,17 +8049,15 @@ RESPALDO INSTITUCIONAL: ${document.getElementById('ofcSecurityTimestamp')?.textC
       const sGrado = signer ? (signer.grado || 'ST2 PNP') : 'ST2 PNP';
       const sCargo = signer ? (signer.cargo || 'JEFE (E) OFAD DE LA REGPOL HUANUCO') : 'JEFE (E) OFAD DE LA REGPOL HUANUCO';
 
-      let nameFontSize = '9pt';
+      let nameFontSize = '8pt';
       let nameLetterSpacing = '-0.2px';
       const cleanNombreLen = sNombre.length;
       if (cleanNombreLen > 32) {
-        nameFontSize = '7.5pt';
+        nameFontSize = '7pt';
         nameLetterSpacing = '-0.4px';
-      } else if (cleanNombreLen > 25) {
-        nameFontSize = '8pt';
+      } else if (cleanNombreLen > 26) {
+        nameFontSize = '7.5pt';
         nameLetterSpacing = '-0.3px';
-      } else if (cleanNombreLen > 20) {
-        nameFontSize = '8.5pt';
       }
 
       return `

@@ -286,60 +286,67 @@
     }
 
     .post-firma-box {
-      width: 4cm;
-      max-width: 4cm;
-      min-width: 4cm;
+      width: 4.00cm;
+      max-width: 4.00cm;
+      min-width: 4.00cm;
+      max-height: 1.50cm;
       box-sizing: border-box;
       text-align: center;
       font-family: 'Arial Narrow', Arial, sans-serif;
       color: #000;
       margin-top: 1.5cm; /* Extremo derecho medio del sello pegado al extremo izquierdo de la linea */
-      line-height: 1.15;
+      line-height: 1.1;
     }
 
     .post-firma-line {
       border-top: 1.2px solid #000;
       width: 100%;
       box-sizing: border-box;
-      padding-top: 2px;
+      padding-top: 1px;
       font-family: 'Arial Narrow', Arial, sans-serif;
-      font-size: 9pt;
+      font-size: 8pt;
       font-weight: bold;
       letter-spacing: -0.2px;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
+      white-space: nowrap;
+      line-height: 1.1;
+      margin: 0;
     }
 
     .post-firma-name {
       font-family: 'Arial Narrow', Arial, sans-serif;
-      font-size: 9pt;
+      font-size: 8pt;
       font-weight: bold;
       letter-spacing: -0.3px;
       white-space: nowrap;
       text-transform: uppercase;
       display: block;
       width: 100%;
+      line-height: 1.1;
+      margin: 0;
     }
 
     .post-firma-grado {
       font-family: 'Arial Narrow', Arial, sans-serif;
-      font-size: 9pt;
+      font-size: 8pt;
       font-weight: bold;
       letter-spacing: -0.2px;
       white-space: nowrap;
       text-transform: uppercase;
       display: block;
+      line-height: 1.1;
+      margin: 0;
     }
 
     .post-firma-cargo {
       font-family: 'Arial Narrow', Arial, sans-serif;
-      font-size: 8pt;
+      font-size: 7pt;
       font-weight: bold;
       letter-spacing: -0.3px;
       word-wrap: break-word;
       overflow-wrap: break-word;
-      line-height: 1.1;
+      line-height: 1.05;
       text-transform: uppercase;
+      margin: 0;
     }
 
     /* CONFIGURACIÓN EXACTA DE IMPRESIÓN A4 */
@@ -621,16 +628,13 @@
       const elNombre = document.getElementById('lbl_firmante_nombre');
       elNombre.textContent = fNombre;
       if (fNombre.length > 32) {
-        elNombre.style.fontSize = '7.5pt';
+        elNombre.style.fontSize = '7pt';
         elNombre.style.letterSpacing = '-0.4px';
-      } else if (fNombre.length > 25) {
-        elNombre.style.fontSize = '8pt';
+      } else if (fNombre.length > 26) {
+        elNombre.style.fontSize = '7.5pt';
         elNombre.style.letterSpacing = '-0.3px';
-      } else if (fNombre.length > 20) {
-        elNombre.style.fontSize = '8.5pt';
-        elNombre.style.letterSpacing = '-0.2px';
       } else {
-        elNombre.style.fontSize = '9pt';
+        elNombre.style.fontSize = '8pt';
         elNombre.style.letterSpacing = '-0.2px';
       }
 
