@@ -3022,7 +3022,7 @@
     async function loadPersonalCatalogDoc() {
       if (personalCatalogDoc && personalCatalogDoc.length > 0) return;
       try {
-        const res = await fetch(`${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=id,CIP,GRADO,APELLIDOS%20Y%20NOMBRES,LISTA%20DE%20REVISTA,UNIDAD%20DE%20ORIGEN&order=id.asc`, {
+        const res = await fetch(`${PERSONAL_SUPABASE_URL}/rest/v1/personal_policial?select=*&order=id.asc`, {
           headers: {
             'apikey': PERSONAL_SUPABASE_KEY,
             'Authorization': 'Bearer ' + PERSONAL_SUPABASE_KEY,
@@ -3383,6 +3383,49 @@
     }
 
     // --- FUNCIONES DE BÚSQUEDA Y AUTOCOMPLETADO PARA USUARIOS DEL SISTEMA ---
+    function formatCelularWhatsapp(rawPhone) {
+      if (!rawPhone) return '';
+      let clean = String(rawPhone).trim();
+      if (!clean) return '';
+      const digits = clean.replace(/\D/g, '');
+      if (!digits) return clean;
+      if (digits.startsWith('51') && digits.length === 11) {
+        return `+${digits.substring(0, 2)} ${digits.substring(2)}`;
+      }
+      if (digits.length === 9) {
+        return `+51 ${digits}`;
+      }
+      if (clean.startsWith('+51')) return clean;
+      return `+51 ${digits}`;
+    }
+
+    function formatCelularInput(inputEl) {
+      if (!inputEl) return;
+      let val = inputEl.value;
+      if (!val) return;
+      if (val === '+51 ' || val === '+51' || val === '+') return;
+      const digits = val.replace(/\D/g, '');
+      if (digits.length > 0) {
+        if (digits.startsWith('51')) {
+          const rest = digits.substring(2);
+          inputEl.value = `+51 ${rest}`;
+        } else {
+          inputEl.value = `+51 ${digits}`;
+        }
+      }
+    }
+
+    function extractPersonalEmail(p) {
+      if (!p) return '';
+      return p.correo_personal || p['CORREO PERSONAL'] || p.correo_institucional || p['CORREO INSTITUCIONAL'] || p.correo_electronico || p['CORREO ELECTRONICO'] || p.email || p.correo || '';
+    }
+
+    function extractPersonalCelular(p) {
+      if (!p) return '';
+      const raw = p.celular || p['CELULAR'] || p.telefono || p['TELEFONO'] || p.cel || '';
+      return formatCelularWhatsapp(raw);
+    }
+
     async function showPersonalUserDropdown(inputEl) {
       if (!personalCatalogDoc || !personalCatalogDoc.length) {
         await loadPersonalCatalogDoc();
@@ -3407,16 +3450,24 @@
         return;
       }
 
-      // Si coincide exactamente con un CIP de 6 a 8 dígitos, auto-completar grado y nombres
+      // Si coincide exactamente con un CIP de 6 a 8 dígitos, auto-completar grado, nombres, correo y celular
       if (rawQuery.length >= 6) {
         const exactMatch = personalCatalogDoc.find(p => String(p.CIP || p.cip || '').trim() === rawQuery);
         if (exactMatch) {
           const grd = exactMatch.GRADO || exactMatch.grado || '';
           const nom = exactMatch['APELLIDOS Y NOMBRES'] || exactMatch.apellidos_y_nombres || '';
+          const correo = extractPersonalEmail(exactMatch);
+          const celular = extractPersonalCelular(exactMatch);
+
           const inputGrd = document.getElementById('f_grado');
           const inputNom = document.getElementById('f_apellidos_nombres');
+          const inputCorreo = document.getElementById('f_correo_personal');
+          const inputCelular = document.getElementById('f_celular');
+
           if (inputGrd && grd && (!inputGrd.value || inputGrd.value !== grd)) inputGrd.value = grd;
           if (inputNom && nom && (!inputNom.value || inputNom.value !== nom)) inputNom.value = nom;
+          if (inputCorreo && correo && (!inputCorreo.value || inputCorreo.value !== correo)) inputCorreo.value = correo;
+          if (inputCelular && celular && (!inputCelular.value || inputCelular.value !== celular)) inputCelular.value = celular;
         }
       }
 
@@ -3440,18 +3491,28 @@
         const cip = p.CIP || p.cip || '---';
         const grd = p.GRADO || p.grado || '';
         const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const correo = extractPersonalEmail(p);
+        const celular = extractPersonalCelular(p);
         const safeCip = encodeURIComponent(cip);
         const safeGrd = encodeURIComponent(grd);
         const safeNom = encodeURIComponent(nom);
+        const safeCorreo = encodeURIComponent(correo);
+        const safeCelular = encodeURIComponent(celular);
 
         return `
           <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
                data-cip="${safeCip}" 
                data-grd="${safeGrd}"
                data-nom="${safeNom}" 
-               onmousedown="selectPersonalUserOption('${safeCip}', '${safeGrd}', '${safeNom}')" 
+               data-correo="${safeCorreo}" 
+               data-celular="${safeCelular}" 
+               onmousedown="selectPersonalUserOption('${safeCip}', '${safeGrd}', '${safeNom}', '${safeCorreo}', '${safeCelular}')" 
                style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
             <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">CIP: ${cip} &bull; ${grd} ${nom}</div>
+            <div style="font-size:11px; color:#555; margin-top:2px; display:flex; gap:10px; flex-wrap:wrap;">
+              ${correo ? `<span><b>✉️</b> ${correo}</span>` : ''}
+              ${celular ? `<span><b>📱</b> ${celular}</span>` : ''}
+            </div>
           </div>
         `;
       }).join('');
@@ -3493,20 +3554,28 @@
         const cip = p.CIP || p.cip || '---';
         const grd = p.GRADO || p.grado || '';
         const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const correo = extractPersonalEmail(p);
+        const celular = extractPersonalCelular(p);
         const safeCip = encodeURIComponent(cip);
         const safeGrd = encodeURIComponent(grd);
         const safeNom = encodeURIComponent(nom);
+        const safeCorreo = encodeURIComponent(correo);
+        const safeCelular = encodeURIComponent(celular);
 
         return `
           <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
                data-cip="${safeCip}" 
                data-grd="${safeGrd}"
                data-nom="${safeNom}" 
-               onmousedown="selectPersonalUserOption('${safeCip}', '${safeGrd}', '${safeNom}')" 
+               data-correo="${safeCorreo}" 
+               data-celular="${safeCelular}" 
+               onmousedown="selectPersonalUserOption('${safeCip}', '${safeGrd}', '${safeNom}', '${safeCorreo}', '${safeCelular}')" 
                style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
             <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">${grd} ${nom}</div>
-            <div style="font-size:11px; color:#555; margin-top:2px;">
+            <div style="font-size:11px; color:#555; margin-top:2px; display:flex; gap:10px; flex-wrap:wrap;">
               <span><b>CIP:</b> ${cip}</span>
+              ${correo ? `<span>&bull; <b>✉️</b> ${correo}</span>` : ''}
+              ${celular ? `<span>&bull; <b>📱</b> ${celular}</span>` : ''}
             </div>
           </div>
         `;
@@ -3515,10 +3584,12 @@
       dropEl.style.display = 'block';
     }
 
-    function selectPersonalUserOption(encodedCip, encodedGrd, encodedNom) {
-      const cip = decodeURIComponent(encodedCip);
-      const grd = decodeURIComponent(encodedGrd);
-      const nom = decodeURIComponent(encodedNom);
+    function selectPersonalUserOption(encodedCip, encodedGrd, encodedNom, encodedCorreo, encodedCelular) {
+      const cip = decodeURIComponent(encodedCip || '');
+      const grd = decodeURIComponent(encodedGrd || '');
+      const nom = decodeURIComponent(encodedNom || '');
+      const correo = decodeURIComponent(encodedCorreo || '');
+      const celular = decodeURIComponent(encodedCelular || '');
 
       const inputCip = document.getElementById('f_cip');
       if (inputCip) {
@@ -3539,6 +3610,20 @@
         inputNom.value = nom;
         inputNom.dispatchEvent(new Event('input', { bubbles: true }));
         inputNom.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const inputCorreo = document.getElementById('f_correo_personal');
+      if (inputCorreo) {
+        inputCorreo.value = correo;
+        inputCorreo.dispatchEvent(new Event('input', { bubbles: true }));
+        inputCorreo.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const inputCelular = document.getElementById('f_celular');
+      if (inputCelular) {
+        inputCelular.value = celular;
+        inputCelular.dispatchEvent(new Event('input', { bubbles: true }));
+        inputCelular.dispatchEvent(new Event('change', { bubbles: true }));
       }
 
       const dropCip = document.getElementById('f_cip_dropdown');
@@ -3575,7 +3660,9 @@
           const encodedCip = items[activeIndex].getAttribute('data-cip');
           const encodedGrd = items[activeIndex].getAttribute('data-grd');
           const encodedNom = items[activeIndex].getAttribute('data-nom');
-          selectPersonalUserOption(encodedCip, encodedGrd, encodedNom);
+          const encodedCorreo = items[activeIndex].getAttribute('data-correo');
+          const encodedCelular = items[activeIndex].getAttribute('data-celular');
+          selectPersonalUserOption(encodedCip, encodedGrd, encodedNom, encodedCorreo, encodedCelular);
         }
       } else if (e.key === 'Escape') {
         dropEl.style.display = 'none';
@@ -4008,6 +4095,7 @@
             <th>Grado</th>
             <th>Apellidos y Nombres</th>
             <th>Correo Personal</th>
+            <th>Celular</th>
             <th>Nivel</th>
             <th>Estado</th>
             ${admin ? '<th style="width:100px; text-align:center;">Acciones</th>' : ''}
@@ -4114,6 +4202,12 @@
             <td>${item.grado || '---'}</td>
             <td><b>${item.apellidos_nombres || '---'}</b></td>
             <td>${item.correo_personal || '---'}</td>
+            <td>
+              ${item.celular ? `
+                <a href="https://wa.me/${String(item.celular).replace(/\D/g, '')}" target="_blank" style="color:#0b5a3c; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px;" title="Enviar WhatsApp a ${item.celular}">
+                  <span style="color:#25D366; font-size:13px;">&#128172;</span> ${item.celular}
+                </a>` : '---'}
+            </td>
             <td><span class="badge-doc">${item.nivel || 'USUARIO'}</span></td>
             <td>${item.activo ? '<span style="color:#0b5a3c; font-weight:700;">ACTIVO</span>' : '<span style="color:#c0392b; font-weight:700;">INACTIVO</span>'}</td>
             ${admin ? `
@@ -4499,7 +4593,14 @@
           </div>
           <div class="form-group">
             <label>Correo Personal</label>
-            <input id="f_correo_personal" class="form-control" type="email" value="${existing.correo_personal || ''}" />
+            <input id="f_correo_personal" class="form-control" type="email" placeholder="ejemplo@gmail.com" value="${existing.correo_personal || ''}" />
+          </div>
+          <div class="form-group">
+            <label>Celular (WhatsApp)</label>
+            <div style="position:relative; display:flex; align-items:center;">
+              <input id="f_celular" class="form-control" type="text" placeholder="+51 987654321" value="${formatCelularWhatsapp(existing.celular || '')}" oninput="formatCelularInput(this)" style="font-weight:600; color:#0b5a3c;" />
+              <span style="position:absolute; right:12px; font-size:15px; color:#25D366; pointer-events:none;" title="WhatsApp">&#128172;</span>
+            </div>
           </div>
           <div class="form-group">
             <label>Nivel de Acceso</label>
@@ -4716,6 +4817,10 @@
         payload.grado = document.getElementById('f_grado').value.trim();
         payload.apellidos_nombres = document.getElementById('f_apellidos_nombres').value.trim();
         payload.correo_personal = document.getElementById('f_correo_personal').value.trim();
+        const elCel = document.getElementById('f_celular');
+        if (elCel) {
+          payload.celular = elCel.value.trim();
+        }
         payload.nivel = document.getElementById('f_nivel').value;
         payload['contrase\u00f1a'] = document.getElementById('f_pass').value.trim();
       } else {
@@ -5022,11 +5127,12 @@
 
         if (conf.isUserTable) {
           return {
-            'N??': idx + 1,
+            'N°': idx + 1,
             'CIP': item.cip || '',
             'GRADO': item.grado || '',
             'APELLIDOS Y NOMBRES': item.apellidos_nombres || '',
             'CORREO PERSONAL': item.correo_personal || '',
+            'CELULAR': item.celular || '',
             'NIVEL': item.nivel || 'USUARIO',
             'ESTADO': item.activo ? 'ACTIVO' : 'INACTIVO'
           };
