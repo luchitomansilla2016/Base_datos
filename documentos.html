@@ -3382,6 +3382,206 @@
       }
     }
 
+    // --- FUNCIONES DE BÚSQUEDA Y AUTOCOMPLETADO PARA USUARIOS DEL SISTEMA ---
+    async function showPersonalUserDropdown(inputEl) {
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        await loadPersonalCatalogDoc();
+      }
+      if (inputEl.id === 'f_cip') {
+        filterPersonalUserByCip(inputEl);
+      } else {
+        filterPersonalUserByName(inputEl);
+      }
+    }
+
+    function filterPersonalUserByCip(inputEl) {
+      const dropEl = document.getElementById('f_cip_dropdown');
+      if (!dropEl) return;
+
+      const rawQuery = (inputEl.value || '').trim();
+      const q = normalizeSearchText(rawQuery);
+
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">Cargando padrón de personal policial...</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      // Si coincide exactamente con un CIP de 6 a 8 dígitos, auto-completar grado y nombres
+      if (rawQuery.length >= 6) {
+        const exactMatch = personalCatalogDoc.find(p => String(p.CIP || p.cip || '').trim() === rawQuery);
+        if (exactMatch) {
+          const grd = exactMatch.GRADO || exactMatch.grado || '';
+          const nom = exactMatch['APELLIDOS Y NOMBRES'] || exactMatch.apellidos_y_nombres || '';
+          const inputGrd = document.getElementById('f_grado');
+          const inputNom = document.getElementById('f_apellidos_nombres');
+          if (inputGrd && grd && (!inputGrd.value || inputGrd.value !== grd)) inputGrd.value = grd;
+          if (inputNom && nom && (!inputNom.value || inputNom.value !== nom)) inputNom.value = nom;
+        }
+      }
+
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      const matches = personalCatalogDoc.filter(p => {
+        const cip = String(p.CIP || p.cip || '');
+        return cip.includes(q);
+      }).slice(0, 30);
+
+      if (matches.length === 0) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">No se encontró personal con CIP "' + (rawQuery || '') + '"</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((p, idx) => {
+        const cip = p.CIP || p.cip || '---';
+        const grd = p.GRADO || p.grado || '';
+        const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const safeCip = encodeURIComponent(cip);
+        const safeGrd = encodeURIComponent(grd);
+        const safeNom = encodeURIComponent(nom);
+
+        return `
+          <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
+               data-cip="${safeCip}" 
+               data-grd="${safeGrd}"
+               data-nom="${safeNom}" 
+               onmousedown="selectPersonalUserOption('${safeCip}', '${safeGrd}', '${safeNom}')" 
+               style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
+            <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">CIP: ${cip} &bull; ${grd} ${nom}</div>
+          </div>
+        `;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function filterPersonalUserByName(inputEl) {
+      const dropEl = document.getElementById('f_apellidos_nombres_dropdown');
+      if (!dropEl) return;
+
+      const rawQuery = inputEl.value;
+      const q = normalizeSearchText(rawQuery);
+
+      if (!personalCatalogDoc || !personalCatalogDoc.length) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">Cargando padrón de personal policial...</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      if (!q || q.length < 2) {
+        dropEl.style.display = 'none';
+        return;
+      }
+
+      const matches = personalCatalogDoc.filter(p => {
+        const nom = normalizeSearchText(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '');
+        const cip = String(p.CIP || p.cip || '');
+        return nom.includes(q) || cip.includes(q);
+      }).slice(0, 30);
+
+      if (matches.length === 0) {
+        dropEl.innerHTML = '<div class="autocomplete-empty">No se encontró personal con "' + (rawQuery || '') + '"</div>';
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      dropEl.innerHTML = matches.map((p, idx) => {
+        const cip = p.CIP || p.cip || '---';
+        const grd = p.GRADO || p.grado || '';
+        const nom = p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '';
+        const safeCip = encodeURIComponent(cip);
+        const safeGrd = encodeURIComponent(grd);
+        const safeNom = encodeURIComponent(nom);
+
+        return `
+          <div class="autocomplete-item ${idx === 0 ? 'active' : ''}" 
+               data-cip="${safeCip}" 
+               data-grd="${safeGrd}"
+               data-nom="${safeNom}" 
+               onmousedown="selectPersonalUserOption('${safeCip}', '${safeGrd}', '${safeNom}')" 
+               style="padding:8px 12px; border-bottom:1px solid #edf2ee; cursor:pointer;">
+            <div style="font-weight:700; color:#0b5a3c; font-size:12.5px;">${grd} ${nom}</div>
+            <div style="font-size:11px; color:#555; margin-top:2px;">
+              <span><b>CIP:</b> ${cip}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function selectPersonalUserOption(encodedCip, encodedGrd, encodedNom) {
+      const cip = decodeURIComponent(encodedCip);
+      const grd = decodeURIComponent(encodedGrd);
+      const nom = decodeURIComponent(encodedNom);
+
+      const inputCip = document.getElementById('f_cip');
+      if (inputCip) {
+        inputCip.value = (cip && cip !== '---') ? cip : '';
+        inputCip.dispatchEvent(new Event('input', { bubbles: true }));
+        inputCip.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const inputGrd = document.getElementById('f_grado');
+      if (inputGrd) {
+        inputGrd.value = grd;
+        inputGrd.dispatchEvent(new Event('input', { bubbles: true }));
+        inputGrd.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const inputNom = document.getElementById('f_apellidos_nombres');
+      if (inputNom) {
+        inputNom.value = nom;
+        inputNom.dispatchEvent(new Event('input', { bubbles: true }));
+        inputNom.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+
+      const dropCip = document.getElementById('f_cip_dropdown');
+      if (dropCip) dropCip.style.display = 'none';
+      const dropNom = document.getElementById('f_apellidos_nombres_dropdown');
+      if (dropNom) dropNom.style.display = 'none';
+    }
+
+    function navigatePersonalUserDropdown(e, inputEl, type) {
+      const dropId = type === 'cip' ? 'f_cip_dropdown' : 'f_apellidos_nombres_dropdown';
+      const dropEl = document.getElementById(dropId);
+      if (!dropEl || dropEl.style.display === 'none') return;
+
+      const items = Array.from(dropEl.querySelectorAll('.autocomplete-item'));
+      if (!items.length) return;
+
+      let activeIndex = items.findIndex(item => item.classList.contains('active'));
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          const encodedCip = items[activeIndex].getAttribute('data-cip');
+          const encodedGrd = items[activeIndex].getAttribute('data-grd');
+          const encodedNom = items[activeIndex].getAttribute('data-nom');
+          selectPersonalUserOption(encodedCip, encodedGrd, encodedNom);
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
+    }
+
     function onSelectMotivoReincorp(motivo) {
       const descEl = document.getElementById('f_descripcion');
       if (!descEl) return;
@@ -4283,17 +4483,19 @@
 
       if (conf.isUserTable) {
         container.innerHTML = `
-          <div class="form-group">
+          <div class="form-group" style="position:relative;">
             <label>CIP (8 d&iacute;gitos)</label>
-            <input id="f_cip" class="form-control" type="text" maxlength="8" value="${existing.cip || ''}" required />
+            <input id="f_cip" class="form-control" type="text" maxlength="8" autocomplete="off" placeholder="Escriba CIP (ej. 31343925)..." value="${existing.cip || ''}" oninput="filterPersonalUserByCip(this)" onfocus="showPersonalUserDropdown(this)" onkeydown="navigatePersonalUserDropdown(event, this, 'cip')" required />
+            <div id="f_cip_dropdown" class="autocomplete-dropdown" style="display:none; max-height:220px; overflow-y:auto;"></div>
           </div>
           <div class="form-group">
             <label>Grado</label>
             <input id="f_grado" class="form-control" type="text" placeholder="Ej. ST2 PNP / CAP PNP" value="${existing.grado || ''}" required />
           </div>
-          <div class="form-group">
+          <div class="form-group" style="position:relative;">
             <label>Apellidos y Nombres</label>
-            <input id="f_apellidos_nombres" class="form-control" type="text" value="${existing.apellidos_nombres || ''}" required />
+            <input id="f_apellidos_nombres" class="form-control" type="text" autocomplete="off" placeholder="Escriba apellidos o nombres..." value="${existing.apellidos_nombres || ''}" oninput="filterPersonalUserByName(this)" onfocus="showPersonalUserDropdown(this)" onkeydown="navigatePersonalUserDropdown(event, this, 'name')" required />
+            <div id="f_apellidos_nombres_dropdown" class="autocomplete-dropdown" style="display:none; max-height:220px; overflow-y:auto;"></div>
           </div>
           <div class="form-group">
             <label>Correo Personal</label>
