@@ -5196,19 +5196,31 @@
 
     function onSelectMotivoReincorp(motivo) {
       const descEl = document.getElementById('f_descripcion');
-      if (!descEl) return;
-      if (motivo) {
-        if (motivo === 'CURSO') {
-          descEl.value = 'SE REINCORPORA AL TERMINO DEL CURSO DE ';
-        } else if (motivo === 'TRATAMIENTO MEDICO (REFERENCIA)') {
-          descEl.value = 'SE REINCORPORA AL TERMINO DE TRATAMIENTO MEDICO (REFERENCIA)';
+      const refDocEl = document.getElementById('f_documento_referencia');
+
+      if (descEl) {
+        if (motivo) {
+          if (motivo === 'CURSO') {
+            descEl.value = 'SE REINCORPORA AL TERMINO DEL CURSO DE ';
+          } else if (motivo === 'TRATAMIENTO MEDICO (REFERENCIA)') {
+            descEl.value = 'SE REINCORPORA AL TERMINO DE TRATAMIENTO MEDICO (REFERENCIA)';
+          } else {
+            descEl.value = `SE REINCORPORA AL TERMINO DE ${motivo.toUpperCase()}`;
+          }
         } else {
-          descEl.value = `SE REINCORPORA AL TERMINO DE ${motivo.toUpperCase()}`;
+          descEl.value = 'SE REINCORPORA AL TERMINO DE ';
         }
-      } else {
-        descEl.value = 'SE REINCORPORA AL TERMINO DE ';
+        descEl.dispatchEvent(new Event('input', { bubbles: true }));
       }
-      descEl.dispatchEvent(new Event('input', { bubbles: true }));
+
+      if (refDocEl) {
+        if (motivo) {
+          refDocEl.value = `ORDEN DE ${motivo.toUpperCase()}`;
+        } else {
+          refDocEl.value = '';
+        }
+        refDocEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }
     }
 
     function getFirmantesOptionsHtml() {
