@@ -3933,6 +3933,9 @@
       }
       const msg = generarMensajeCredencialesUsuario(found, 'email');
       const mailtoUrl = `mailto:${correo}?subject=${encodeURIComponent('Credenciales de Acceso - Sistema de Registro Documental REGPOL HUÁNUCO')}&body=${encodeURIComponent(msg)}`;
+      window.location.href = mailtoUrl;
+    }
+
     // --- FUNCIONES DE AUTOCOMPLETADO Y PARSEO PARA ÓRDENES DE GRAVIDEZ ---
     function parseGravidezDetails(item) {
       if (!item) return { cip: '', dni: '', efectivo: '', procedencia: '', direccion: '', asunto: '' };
