@@ -1872,20 +1872,6 @@
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
-      #reincorporacionPreviewModal .orden-card,
-      #reincorporacionBulkPrintContainer .orden-card {
-        height: 148.5mm !important;
-        max-height: 148.5mm !important;
-        min-height: 148.5mm !important;
-        box-sizing: border-box !important;
-        padding: 6mm 12mm 4mm 25mm !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
-        overflow: hidden !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-      }
       #reincorporacionBulkPrintContainer {
         display: block !important;
         position: static !important;
@@ -2439,13 +2425,12 @@
       height: 148.5mm;
       max-height: 148.5mm;
       box-sizing: border-box;
-      padding: 6mm 12mm 4mm 25mm;
+      padding: 10mm 12mm 0mm 25mm;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
       position: relative;
       background: #ffffff;
-      overflow: hidden;
     }
     #reincorporacionPreviewModal .orden-card.top-copy,
     #reincorporacionBulkPrintContainer .orden-card.top-copy {
@@ -2553,7 +2538,7 @@
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
-      margin-top: 10px;
+      margin-top: 64px;
       margin-right: 23px;
     }
     #reincorporacionPreviewModal .footer-sign-block.has-cargo,
@@ -8968,10 +8953,12 @@ MOTIVO: ${motivoText}`;
     function printReincorporacionDocument(e) {
       if (e) e.preventDefault();
       document.body.classList.add('printing-reincorporacion');
-      window.print();
       setTimeout(() => {
-        document.body.classList.remove('printing-reincorporacion');
-      }, 1000);
+        window.print();
+        setTimeout(() => {
+          document.body.classList.remove('printing-reincorporacion');
+        }, 1200);
+      }, 60);
     }
 
     function copyReincorpSummary(e) {
