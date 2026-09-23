@@ -1020,12 +1020,24 @@
     }
 
     .autocomplete-item:hover, .autocomplete-item.active {
-      background: #0b5a3c !important;
-      color: #ffffff !important;
+      background: #fff8d6 !important;
+      color: #18372b !important;
+      border-left: 4px solid #d8b23f !important;
+    }
+
+    .autocomplete-item:hover div, .autocomplete-item.active div,
+    .autocomplete-item:hover span, .autocomplete-item.active span,
+    .autocomplete-item:hover b, .autocomplete-item.active b {
+      color: #2c3e35 !important;
+    }
+
+    .autocomplete-item:hover div:first-child, .autocomplete-item.active div:first-child {
+      color: #0b5a3c !important;
+      font-weight: 800 !important;
     }
 
     .autocomplete-item mark {
-      background: #ffeaa7;
+      background: #ffe066;
       color: #0b5a3c;
       font-weight: 800;
       border-radius: 2px;
