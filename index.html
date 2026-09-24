@@ -982,7 +982,7 @@
       background: #ffffff;
       height: 100%;
       box-sizing: border-box;
-      padding: 4mm 0 3mm 0;
+      padding: 0mm 0 3mm 0; /* Membrete sube hasta el límite superior */
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -990,7 +990,7 @@
       overflow: visible;
     }
     #ordenCardBottom {
-      padding-top: 8mm; /* Todo el contenido de la segunda copia baja un espacio */
+      padding-top: 4mm;
     }
     .orden-cut-guide {
       border-top: 1.5px dashed #777;
@@ -1014,12 +1014,15 @@
       grid-template-columns: 180px 1fr;
       align-items: flex-start;
       gap: 10px;
+      margin-top: 0;
       margin-bottom: 8px; /* 1.5 espacios hacia el bloque CIP */
     }
     .orden-left-brand {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: flex-start;
+      margin-top: 0;
+      padding-top: 0;
     }
     .orden-header-stamp-img {
       width: 100%;
@@ -1027,6 +1030,7 @@
       height: auto;
       display: block;
       object-fit: contain;
+      margin-top: 0;
     }
     .orden-center-title {
       text-align: center;
@@ -1038,7 +1042,7 @@
     }
     .orden-doc-number-title {
       font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif !important;
-      font-size: 16px !important;
+      font-size: 13px !important;
       font-weight: normal !important;
       text-transform: uppercase;
       line-height: 1.18;
@@ -1046,13 +1050,13 @@
       letter-spacing: 0.01em;
       text-align: center;
       width: 100%;
-      margin-top: 10px;
+      margin-top: 22px; /* Título baja dos espacios */
     }
     .orden-doc-number-title div {
       white-space: nowrap;
       text-decoration: underline;
       font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif !important;
-      font-size: 16px !important;
+      font-size: 13px !important;
       font-weight: normal !important;
     }
     .orden-data-block {
@@ -3072,7 +3076,7 @@
       #ordenNuevoPersonalPreviewModal .orden-a5-card {
         box-shadow: none !important;
         border: none !important;
-        padding: 4mm 0 3mm 0 !important;
+        padding: 0mm 0 3mm 0 !important;
         margin: 0 !important;
         width: 100% !important;
         height: 100% !important;
@@ -3088,7 +3092,7 @@
 
       #ordenPreviewModal #ordenCardBottom,
       #ordenNuevoPersonalPreviewModal #ordenNuevoPerCardBottom {
-        padding-top: 8mm !important;
+        padding-top: 4mm !important;
       }
 
       #ordenPreviewModal .orden-cut-guide,
