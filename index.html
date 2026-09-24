@@ -6065,6 +6065,24 @@
 
     function onlyDigits(value) { return String(value || '').replace(/\D/g, ''); }
 
+    // Funciones de Zona Horaria Oficial Perú (America/Lima UTC-5)
+    function getNowPeru() {
+      try {
+        const s = new Date().toLocaleString('en-US', { timeZone: 'America/Lima' });
+        return new Date(s);
+      } catch (e) {
+        return new Date();
+      }
+    }
+
+    function getTodayPeruYMD() {
+      const d = getNowPeru();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dia}`;
+    }
+
     function getFieldValue(id) {
       const el = document.getElementById(id);
       if (!el) return '';
@@ -8051,16 +8069,22 @@
     function formatFechaHoraMil(dateInput) {
       const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
       const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+      const nowP = getNowPeru();
       let d = null;
       if (dateInput) {
         if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput.trim())) {
           const parts = dateInput.trim().split('-');
-          d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 8, 0, 0);
+          d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), nowP.getHours(), nowP.getMinutes(), nowP.getSeconds());
         } else {
-          d = new Date(dateInput);
+          try {
+            const parsed = new Date(dateInput);
+            if (!isNaN(parsed.getTime())) {
+              d = new Date(parsed.toLocaleString('en-US', { timeZone: 'America/Lima' }));
+            }
+          } catch (e) {}
         }
       }
-      if (!d || isNaN(d.getTime())) d = new Date();
+      if (!d || isNaN(d.getTime())) d = nowP;
 
       const nomDia = diasSemana[d.getDay()];
       const numDia = d.getDate();
@@ -8073,12 +8097,18 @@
 
     function formatFechaCorta(dateInput) {
       if (!dateInput) {
-        const h = new Date();
+        const h = getNowPeru();
         return `${String(h.getDate()).padStart(2, '0')}/${String(h.getMonth() + 1).padStart(2, '0')}/${h.getFullYear()}`;
       }
       const fStr = String(dateInput).split('T')[0];
       const p = fStr.split('-');
       if (p.length === 3) return `${p[2].padStart(2, '0')}/${p[1].padStart(2, '0')}/${p[0]}`;
+      try {
+        const d = new Date(new Date(dateInput).toLocaleString('en-US', { timeZone: 'America/Lima' }));
+        if (!isNaN(d.getTime())) {
+          return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        }
+      } catch (e) {}
       return formatDateDisplay(dateInput);
     }
 
@@ -10998,19 +11028,29 @@ MOTIVO: ${motivoText}`;
     let currentOficioCursoData = null;
 
     function formatFechaLargaEspanol(fecha) {
-      if (!fecha) fecha = new Date();
-      let d;
+      if (!fecha) return `Huánuco, ${getNowPeru().getDate()} de ${['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre', 'octubre', 'noviembre', 'diciembre'][getNowPeru().getMonth()]} del ${getNowPeru().getFullYear()}`;
+      let d = null;
       if (typeof fecha === 'string') {
         const parts = fecha.split('T')[0].split('-');
         if (parts.length === 3) {
           d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
         } else {
-          d = new Date(fecha);
+          try {
+            const parsed = new Date(fecha);
+            if (!isNaN(parsed.getTime())) {
+              d = new Date(parsed.toLocaleString('en-US', { timeZone: 'America/Lima' }));
+            }
+          } catch (e) {}
         }
       } else {
-        d = new Date(fecha);
+        try {
+          const parsed = new Date(fecha);
+          if (!isNaN(parsed.getTime())) {
+            d = new Date(parsed.toLocaleString('en-US', { timeZone: 'America/Lima' }));
+          }
+        } catch (e) {}
       }
-      if (isNaN(d.getTime())) return 'Huánuco, ' + String(fecha);
+      if (!d || isNaN(d.getTime())) d = getNowPeru();
       const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre', 'octubre', 'noviembre', 'diciembre'];
       return `Huánuco, ${d.getDate()} de ${meses[d.getMonth()]} del ${d.getFullYear()}`;
     }

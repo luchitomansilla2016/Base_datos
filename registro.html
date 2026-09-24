@@ -698,10 +698,28 @@
       return await res.json();
     }
 
+    // Funciones de Zona Horaria Oficial Perú (America/Lima UTC-5)
+    function getNowPeru() {
+      try {
+        const s = new Date().toLocaleString('en-US', { timeZone: 'America/Lima' });
+        return new Date(s);
+      } catch (e) {
+        return new Date();
+      }
+    }
+
+    function getTodayPeruYMD() {
+      const d = getNowPeru();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dia}`;
+    }
+
     // Cargar catálogos dinámicamente
     async function initCatalogs() {
       // Set fecha hoy por defecto en fecha_de_incorporacion
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getTodayPeruYMD();
       const elFechaIncorp = document.getElementById('fecha_de_incorporacion');
       if (elFechaIncorp && !elFechaIncorp.value) elFechaIncorp.value = todayStr;
 
