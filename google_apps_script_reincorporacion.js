@@ -866,9 +866,9 @@ function envolverHtmlImpresion(pagesArray, tituloDialogo) {
         justify-content: flex-start; position: relative; background: #ffffff;
       }
       .orden-card.top-copy { border-bottom: 1.5px dashed #555; }
-      .header-row { display: flex; align-items: flex-start; justify-content: flex-start; gap: 12px; margin-bottom: 12px; }
+      .header-row { display: flex; align-items: flex-start; justify-content: flex-start; gap: 12px; margin-bottom: 22px; /* Baja 3 espacios el cuerpo */ }
       .membrete-img { width: 135px; height: auto; display: block; }
-      .doc-title-container { flex: 1; text-align: center; padding-top: 14px; }
+      .doc-title-container { flex: 1; text-align: center; padding-top: 26px; /* Baja 3 espacios el título */ }
       .doc-title {
         font-family: 'Impact', 'Arial Black', sans-serif; font-size: 14pt;
         font-weight: normal; text-decoration: underline; letter-spacing: 0.3px;
@@ -885,7 +885,7 @@ function envolverHtmlImpresion(pagesArray, tituloDialogo) {
       .sub-divider-row { width: calc(100% - 22mm); margin-left: 22mm; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
       .generado-por-foot { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 6pt; font-style: italic; color: #000; text-align: left; line-height: 1.1; white-space: nowrap; margin-top: 1px; }
       .date-row { text-align: right; font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0; white-space: nowrap; }
-      .footer-sign-block { display: flex; justify-content: flex-end; align-items: flex-start; margin-top: 50px; margin-right: 23px; }
+      .footer-sign-block { display: flex; justify-content: flex-end; align-items: flex-start; margin-top: 60px; /* Baja 2 espacios la postfirma y el sello */ margin-right: 23px; }
       .footer-sign-block.has-cargo { justify-content: space-between; }
       .sello-cargo-box { display: flex; align-items: flex-start; margin-left: 22mm; }
       .sello-cargo-img { width: 58mm; height: auto; display: block; margin-top: -8mm; margin-left: 0; }
