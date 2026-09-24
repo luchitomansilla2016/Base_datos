@@ -431,6 +431,30 @@ function formatNombrePostFirma(rawName) {
 }
 
 /**
+ * Formatea prefijo OA - / SA - según el grado policial del firmante
+ */
+function formatPrefixCip(gradoRaw, cipRaw) {
+  let cleanCip = String(cipRaw || '').trim();
+  cleanCip = cleanCip.replace(/^(OA|SA|CIP)[\s\.\-:]*/i, '').trim();
+  if (!cleanCip) cleanCip = '000000';
+
+  const g = String(gradoRaw || '').toUpperCase();
+  const oficialesRegex = /\b(GRAL|GENERAL|CRNL|CORONEL|CMDTE|CMTE|COMANDANTE|MAY|MAYOR|CAP|CAPITAN|TNTE|TENIENTE|ALFZ|ALFEREZ)\b/i;
+  const suboficialesRegex = /\b(SS|SB|ST1|ST2|ST3|ST|S1|S2|S3|SO1|SO2|SO3|SO|SUBOFICIAL|SUB\s*OFICIAL|BRIGADIER|TECNICO|SARGENTO)\b/i;
+
+  if (oficialesRegex.test(g)) {
+    return `OA - ${cleanCip}`;
+  } else if (suboficialesRegex.test(g)) {
+    return `SA - ${cleanCip}`;
+  } else {
+    if (cleanCip.length <= 6) {
+      return `OA - ${cleanCip}`;
+    }
+    return `SA - ${cleanCip}`;
+  }
+}
+
+/**
  * Resuelve y formatea automáticamente los datos del firmante para la post-firma
  * a partir de lo registrado en la columna QUIEN ORDENA / QUIEN AUTORIZA (Col I / rowVals[8])
  */
@@ -650,6 +674,8 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
   // Extraer y resolver automáticamente los datos del firmante desde QUIEN ORDENA (Col I / rowVals[8])
   const quienOrdenaRaw = String(rowVals[8] || "").trim();
   const firmanteObj = resolverFirmante(quienOrdenaRaw);
+  const sCip = formatPrefixCip(firmanteObj.grado, firmanteObj.cip);
+  const usuarioRegistra = String(rowVals[9] || DEFAULT_USUARIO_REGISTRA).trim();
 
   const obsHTML = "SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.";
 
@@ -707,14 +733,17 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
 
       <div>
         <div class="divider-line"></div>
-        <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocTexto}</span></div>
+        <div class="sub-divider-row">
+          <div class="generado-por-foot">GENERADO POR: ${usuarioRegistra}</div>
+          <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocTexto}</span></div>
+        </div>
 
         <div class="footer-sign-block">
           <div class="sello-sign-wrapper">
             <img src="${imgSelloOfad}" class="sello-redondo-img" alt="Sello OFAD" />
             <div class="sign-container">
               <div class="sign-dots"></div>
-              <div class="sign-info-main">CIP - ${firmanteObj.cip}</div>
+              <div class="sign-info-main">${sCip}</div>
               <div class="sign-info-main" style="text-transform: none !important;">${firmanteObj.nombres}</div>
               <div class="sign-info-main">${firmanteObj.grado}</div>
               <div class="sign-info-cargo">${firmanteObj.cargo}</div>
@@ -772,7 +801,10 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
 
       <div>
         <div class="divider-line"></div>
-        <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocTexto}</span></div>
+        <div class="sub-divider-row">
+          <div class="generado-por-foot">GENERADO POR: ${usuarioRegistra}</div>
+          <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocTexto}</span></div>
+        </div>
 
         <div class="footer-sign-block has-cargo">
           <div class="sello-cargo-box">
@@ -782,7 +814,7 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
             <img src="${imgSelloOfad}" class="sello-redondo-img" alt="Sello OFAD" />
             <div class="sign-container">
               <div class="sign-dots"></div>
-              <div class="sign-info-main">CIP - ${firmanteObj.cip}</div>
+              <div class="sign-info-main">${sCip}</div>
               <div class="sign-info-main" style="text-transform: none !important;">${firmanteObj.nombres}</div>
               <div class="sign-info-main">${firmanteObj.grado}</div>
               <div class="sign-info-cargo">${firmanteObj.cargo}</div>
@@ -829,31 +861,34 @@ function envolverHtmlImpresion(pagesArray, tituloDialogo) {
       }
       .orden-card {
         width: 100%; height: 148.5mm; max-height: 148.5mm; box-sizing: border-box;
-        padding: 10mm 12mm 0mm 25mm; display: flex; flex-direction: column;
+        /* Márgenes oficiales: Superior 0.3cm, Derecha 1.2cm, Inferior 0cm, Izquierdo 0.3cm */
+        padding: 3mm 12mm 0mm 3mm; display: flex; flex-direction: column;
         justify-content: flex-start; position: relative; background: #ffffff;
       }
       .orden-card.top-copy { border-bottom: 1.5px dashed #555; }
-      .header-row { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 6px; }
+      .header-row { display: flex; align-items: flex-start; justify-content: flex-start; gap: 12px; margin-bottom: 12px; }
       .membrete-img { width: 135px; height: auto; display: block; }
-      .doc-title-container { flex: 1; text-align: center; }
+      .doc-title-container { flex: 1; text-align: center; padding-top: 14px; }
       .doc-title {
         font-family: 'Impact', 'Arial Black', sans-serif; font-size: 14pt;
         font-weight: normal; text-decoration: underline; letter-spacing: 0.3px;
         line-height: 1.18; color: #000; text-transform: uppercase;
       }
-      .data-table { width: 100%; border-collapse: collapse; margin-bottom: 2px; font-family: Arial, sans-serif; font-size: 9pt; }
+      .data-table { width: calc(100% - 22mm); margin-left: 22mm; border-collapse: collapse; margin-bottom: 2px; font-family: Arial, sans-serif; font-size: 9pt; }
       .data-table tr { vertical-align: top; }
       .data-label { width: 180px; font-weight: bold; color: #000; padding: 1.5px 0; white-space: nowrap; }
       .data-sep { width: 14px; text-align: center; font-weight: bold; padding: 1.5px 0; }
       .data-val { color: #000; padding: 1.5px 0; text-align: justify; line-height: 1.25; }
       .data-val.bold { font-weight: bold; }
       .obs-paragraph { font-family: Arial, sans-serif; font-size: 9pt; line-height: 1.25; text-align: justify; }
-      .divider-line { width: 100%; height: 1px; background-color: #000; margin: 6px 0 5px 0; }
-      .date-row { text-align: right; font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; }
-      .footer-sign-block { display: flex; justify-content: flex-end; align-items: flex-start; margin-top: 64px; margin-right: 23px; }
+      .divider-line { width: calc(100% - 22mm); margin-left: 22mm; height: 1px; background-color: #000; margin-top: 6px; margin-bottom: 3px; }
+      .sub-divider-row { width: calc(100% - 22mm); margin-left: 22mm; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+      .generado-por-foot { font-family: 'Arial Narrow', Arial, sans-serif; font-size: 6pt; font-style: italic; color: #000; text-align: left; line-height: 1.1; white-space: nowrap; margin-top: 1px; }
+      .date-row { text-align: right; font-family: Arial, sans-serif; font-size: 9pt; font-weight: bold; text-transform: uppercase; margin-bottom: 0; white-space: nowrap; }
+      .footer-sign-block { display: flex; justify-content: flex-end; align-items: flex-start; margin-top: 50px; margin-right: 23px; }
       .footer-sign-block.has-cargo { justify-content: space-between; }
-      .sello-cargo-box { display: flex; align-items: flex-start; }
-      .sello-cargo-img { width: 58mm; height: auto; display: block; margin-top: -8mm; margin-left: 2mm; }
+      .sello-cargo-box { display: flex; align-items: flex-start; margin-left: 22mm; }
+      .sello-cargo-img { width: 58mm; height: auto; display: block; margin-top: -8mm; margin-left: 0; }
       .sello-sign-wrapper { display: flex; align-items: flex-start; position: relative; }
       .sello-redondo-img {
         width: 30mm; height: 30mm; border-radius: 50%; object-fit: contain;
