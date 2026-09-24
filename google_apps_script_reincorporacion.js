@@ -231,7 +231,10 @@ function subirANube() {
     const descripcion = String(rowVals[7] || "").trim() || (DEFAULT_DESCRIPCION_PRE + " " + (motivo || "SUS ATENCIONES MEDICAS")); // Col H (8) : DESCRIPCION
     
     let docRef = String(rowVals[8] || "").trim().toUpperCase();      // Col I (9) : DOCUMENTO DE REFERENCIA
-    if (!docRef && motivo) docRef = formatearDocReferencia(motivo);
+    if (!docRef && motivo) {
+      docRef = formatearDocReferencia(motivo);
+      sheet.getRange(fila, 9).setValue(docRef);
+    }
 
     const quienOrdena = String(rowVals[9] || "").trim().toUpperCase() || DEFAULT_QUIEN_ORDENA; // Col J (10): QUIEN ORDENA
     const usuarioRegistra = String(rowVals[10] || "").trim() || DEFAULT_USUARIO_REGISTRA;     // Col K (11): USUARIO REGISTRA
@@ -252,7 +255,7 @@ function subirANube() {
         ? Utilities.formatDate(fecha, "GMT-5", "yyyy-MM-dd") 
         : (String(fecha || "").split("T")[0] || Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd"));
 
-      // Payload oficial para la tabla orden_reincorporacion
+      // Payload oficial para la tabla orden_reincorporacion (guarda en el campo documento_referencia)
       const payload = {
         numero_documento: fullNumDoc,
         fecha_documento: formattedFecha,
@@ -260,7 +263,7 @@ function subirANube() {
         grado_apellidos_nombres: gradoNombresFinal,
         unidad_procedencia: procedencia,
         destino: destino || "OFAD REGPOL HUANUCO",
-        documento_referencia: docRef || fullNumDoc,
+        documento_referencia: docRef || (motivo ? formatearDocReferencia(motivo) : ""),
         quien_ordena: quienOrdena,
         usuario_registra: usuarioRegistra
       };
