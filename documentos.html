@@ -2425,7 +2425,7 @@
       height: 148.5mm;
       max-height: 148.5mm;
       box-sizing: border-box;
-      padding: 8mm 12mm 0mm 5mm; /* Margen izquierdo 0.5 cm (5mm) */
+      padding: 5mm 12mm 0mm 5mm; /* Margen superior 0.5 cm y margen izquierdo 0.5 cm (5mm) */
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -2520,18 +2520,21 @@
     }
     #reincorporacionPreviewModal .divider-line,
     #reincorporacionBulkPrintContainer .divider-line {
-      width: 100%;
+      width: calc(100% - 20mm);
+      margin-left: 20mm; /* Tabula la línea a la misma distancia de 20mm */
       height: 1px;
       background-color: #000;
-      margin: 6px 0 3px 0;
+      margin-top: 6px;
+      margin-bottom: 3px;
     }
     #reincorporacionPreviewModal .sub-divider-row,
     #reincorporacionBulkPrintContainer .sub-divider-row {
+      width: calc(100% - 20mm);
+      margin-left: 20mm; /* Tabula también Generado Por y la Fecha */
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 6px;
-      width: 100%;
     }
     #reincorporacionPreviewModal .generado-por-foot,
     #reincorporacionBulkPrintContainer .generado-por-foot {
@@ -2570,6 +2573,7 @@
     #reincorporacionBulkPrintContainer .sello-cargo-box {
       display: flex;
       align-items: flex-start;
+      margin-left: 20mm; /* Tabula el sello de recepción a la misma distancia */
     }
     #reincorporacionPreviewModal .sello-cargo-img,
     #reincorporacionBulkPrintContainer .sello-cargo-img {
