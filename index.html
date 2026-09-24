@@ -970,7 +970,7 @@
       max-width: 210mm;
       min-height: 297mm;
       height: 297mm;
-      padding: 6mm 10mm 6mm 25mm; /* Margen izquierdo 2.5cm (25mm), derecho 1.0cm (10mm) */
+      padding: 3mm 10mm 3mm 3mm; /* Margen superior 0.3cm (3mm), izquierdo 0.3cm (3mm), derecho 1.0cm (10mm), inferior 3mm */
       box-shadow: 0 12px 35px rgba(0,0,0,0.35);
       color: #000000;
       box-sizing: border-box;
@@ -1060,7 +1060,8 @@
       font-size: 8.5pt;
       line-height: 1.25;
       color: #000;
-      margin: 0 0 4px 0;
+      margin: 0 0 4px 20mm; /* Tabulado a 2 cm */
+      width: calc(100% - 20mm);
     }
     .orden-data-row {
       display: grid;
@@ -1092,14 +1093,34 @@
     }
     .orden-divider-line {
       border-top: 1.2px solid #000;
-      margin: 3px 0 2px;
+      margin: 3px 0 2px 20mm; /* Tabulado a 2 cm */
+      width: calc(100% - 20mm);
+    }
+    .orden-sub-divider-row {
+      margin-left: 20mm; /* Tabulado a 2 cm */
+      width: calc(100% - 20mm);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .orden-generado-por {
+      font-family: 'Arial Narrow', Arial, sans-serif !important;
+      font-size: 6pt !important;
+      font-style: italic !important;
+      color: #000 !important;
+      text-align: left;
+      line-height: 1.1;
+      white-space: nowrap;
+      margin-top: 1px;
     }
     .orden-date-row {
       text-align: right;
       font-family: Arial, Helvetica, sans-serif;
       font-size: 8.5pt;
       font-weight: bold;
-      margin-bottom: 8px;
+      margin-bottom: 0;
+      white-space: nowrap;
     }
     .orden-footer-signature-row {
       display: flex;
@@ -1128,7 +1149,7 @@
       display: flex;
       align-items: flex-end;
       margin-bottom: 2px;
-      margin-left: -12px; /* Sello de cargo corre un espacio a la izquierda */
+      margin-left: 20mm; /* Sello de recepción tabulado a 2 cm */
     }
     .orden-cargo-recepcion-img {
       width: 100%;
@@ -3032,7 +3053,7 @@
       #ordenNuevoPersonalPreviewModal .orden-a4-sheet {
         box-shadow: none !important;
         border: none !important;
-        padding: 6mm 10mm 6mm 25mm !important;
+        padding: 3mm 10mm 3mm 3mm !important;
         margin: 0 !important;
         width: 210mm !important;
         max-width: 210mm !important;
@@ -4482,7 +4503,10 @@
             <!-- Linea horizontal y Fecha/Hora -->
             <div class="orden-footer-bottom-block">
               <div class="orden-divider-line"></div>
-              <div class="orden-date-row"><span class="orden-val-fechahora">Huanuco, domingo 6 de septiembre 2026 08:45 horas</span></div>
+              <div class="orden-sub-divider-row">
+                <div class="orden-generado-por">GENERADO POR: <span class="orden-val-generadopor">ST2 PNP MANSILLA SANTA MARIA JOSE LUIS</span></div>
+                <div class="orden-date-row"><span class="orden-val-fechahora">Huanuco, domingo 6 de septiembre 2026 08:45 horas</span></div>
+              </div>
 
               <!-- Sello Redondo y Firma con Posfirma Oficial -->
               <div class="orden-footer-signature-row">
@@ -4562,7 +4586,10 @@
             <!-- Linea horizontal y Fecha/Hora -->
             <div class="orden-footer-bottom-block">
               <div class="orden-divider-line"></div>
-              <div class="orden-date-row"><span class="orden-val-fechahora">Huanuco, domingo 6 de septiembre 2026 08:45 horas</span></div>
+              <div class="orden-sub-divider-row">
+                <div class="orden-generado-por">GENERADO POR: <span class="orden-val-generadopor">ST2 PNP MANSILLA SANTA MARIA JOSE LUIS</span></div>
+                <div class="orden-date-row"><span class="orden-val-fechahora">Huanuco, domingo 6 de septiembre 2026 08:45 horas</span></div>
+              </div>
 
               <!-- Sello Redondo y Firma con Posfirma Oficial -->
               <div class="orden-footer-signature-row has-cargo">
@@ -4688,7 +4715,10 @@
             <!-- Linea horizontal y Fecha/Hora -->
             <div class="orden-footer-bottom-block">
               <div class="orden-divider-line"></div>
-              <div class="orden-date-row"><span class="orden-nuevo-per-val-fechahora">Huanuco, domingo 6 de septiembre 2026 08:45 horas</span></div>
+              <div class="orden-sub-divider-row">
+                <div class="orden-generado-por">GENERADO POR: <span class="orden-nuevo-per-val-generadopor">ST2 PNP MANSILLA SANTA MARIA JOSE LUIS</span></div>
+                <div class="orden-date-row"><span class="orden-nuevo-per-val-fechahora">Huanuco, domingo 6 de septiembre 2026 08:45 horas</span></div>
+              </div>
 
               <!-- Sello Redondo y Firma con Posfirma Oficial -->
               <div class="orden-footer-signature-row">
@@ -4770,7 +4800,10 @@
             <!-- Linea horizontal y Fecha/Hora -->
             <div class="orden-footer-bottom-block">
               <div class="orden-divider-line"></div>
-              <div class="orden-date-row"><span class="orden-nuevo-per-val-fechahora">Huanuco, domingo 6 de septiembre 2026 08:45 horas</span></div>
+              <div class="orden-sub-divider-row">
+                <div class="orden-generado-por">GENERADO POR: <span class="orden-nuevo-per-val-generadopor">ST2 PNP MANSILLA SANTA MARIA JOSE LUIS</span></div>
+                <div class="orden-date-row"><span class="orden-nuevo-per-val-fechahora">Huanuco, domingo 6 de septiembre 2026 08:45 horas</span></div>
+              </div>
 
               <!-- Sello Redondo y Firma con Posfirma Oficial -->
               <div class="orden-footer-signature-row has-cargo">
@@ -8246,6 +8279,38 @@
       const subTitleEl = document.getElementById('ordenPreviewSub');
       if (subTitleEl) subTitleEl.textContent = isReincorp ? 'Documento oficial numerado para la reincorporación del personal policial' : 'Documento oficial numerado para la incorporación del personal policial';
 
+      // Obtener usuario logueado con grado para GENERADO POR
+      let uLogueado = (typeof currentUser !== 'undefined' && currentUser && (currentUser.fullName || currentUser.nombre)) ||
+                      (data && (data.usuario_registra || data.usuario)) ||
+                      (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
+                      (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
+                      'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      uLogueado = uLogueado.trim();
+      const hasGradePrefix = /^(GRAL|CRNL|CMDTE|MAY|CAP|TNTE|ALFZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO|SOP|EC|EMP|EMPLEADO)\b/i.test(uLogueado);
+      const cat = (typeof personalCatalog !== 'undefined' && personalCatalog) || (typeof personalCatalogDoc !== 'undefined' && personalCatalogDoc) || [];
+      if (!hasGradePrefix && cat.length) {
+        let uCip = (typeof currentUser !== 'undefined' && currentUser && (currentUser.cip || currentUser.CIP)) || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pnp_user_cip')) || '';
+        let foundU = null;
+        if (uCip) {
+          foundU = cat.find(p => String(p.CIP || p.cip || '').trim() === String(uCip).trim());
+        }
+        if (!foundU && uLogueado) {
+          const sU = uLogueado.toUpperCase();
+          foundU = cat.find(p => {
+            const pNom = String(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '').toUpperCase().trim();
+            return pNom && (sU.includes(pNom) || pNom.includes(sU));
+          });
+        }
+        if (foundU) {
+          const pGrd = (foundU.GRADO || foundU.grado || '').trim();
+          const pNom = (foundU['APELLIDOS Y NOMBRES'] || foundU.apellidos_y_nombres || uLogueado).trim();
+          if (pGrd) {
+            uLogueado = `${pGrd} ${pNom}`;
+          }
+        }
+      }
+      uLogueado = uLogueado.trim().toUpperCase();
+
       // Llenar datos en todos los elementos de ambas copias
       document.querySelectorAll('.orden-val-num').forEach(el => el.textContent = numPad);
       document.querySelectorAll('.orden-val-cip').forEach(el => el.textContent = cip);
@@ -8256,6 +8321,7 @@
       document.querySelectorAll('.orden-val-fechasalida').forEach(el => el.textContent = fechaSalida);
       document.querySelectorAll('.orden-val-motivo').forEach(el => el.textContent = motivoText);
       document.querySelectorAll('.orden-val-fechahora').forEach(el => el.textContent = fechaHoraText);
+      document.querySelectorAll('.orden-val-generadopor').forEach(el => el.textContent = uLogueado);
 
       // Actualizar párrafo de observación según el tipo de documento
       const obsIncorp = `SE PONE A DISPOSICION AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CUYA INCORPORACION DEBER&Aacute; SER COMUNICADO <span style="text-decoration:underline; font-weight:bold;">AL JEFE</span> DE DIVISION, JEFE DE DEPARTAMENTO (DE SER EL CASO), Y AL AREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO, MEDIANTE EL CORREO rphuanuco.arerehum@policia.gob.pe CON EL DOCUMENTO CORRESPONDIENTE, SIN PERJUICIO DE FORMULAR DOCUMENTACION SOBRE ALGUNA NOVEDAD QUE PUDIERA SUSCITARSE.`;
@@ -13743,6 +13809,37 @@ MOTIVO: ${d.motivo || 'ASIGNACIÓN DE CARGO'}`;
       }
       const fechaHora = formatFechaHoraMil(data.created_at || data.fecha_documento || new Date());
 
+      let uLogueado = (typeof currentUser !== 'undefined' && currentUser && (currentUser.fullName || currentUser.nombre)) ||
+                      (data && (data.usuario_registra || data.usuario)) ||
+                      (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
+                      (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
+                      'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      uLogueado = uLogueado.trim();
+      const hasGradePrefix = /^(GRAL|CRNL|CMDTE|MAY|CAP|TNTE|ALFZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO|SOP|EC|EMP|EMPLEADO)\b/i.test(uLogueado);
+      const cat = (typeof personalCatalog !== 'undefined' && personalCatalog) || (typeof personalCatalogDoc !== 'undefined' && personalCatalogDoc) || [];
+      if (!hasGradePrefix && cat.length) {
+        let uCip = (typeof currentUser !== 'undefined' && currentUser && (currentUser.cip || currentUser.CIP)) || (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pnp_user_cip')) || '';
+        let foundU = null;
+        if (uCip) {
+          foundU = cat.find(p => String(p.CIP || p.cip || '').trim() === String(uCip).trim());
+        }
+        if (!foundU && uLogueado) {
+          const sU = uLogueado.toUpperCase();
+          foundU = cat.find(p => {
+            const pNom = String(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '').toUpperCase().trim();
+            return pNom && (sU.includes(pNom) || pNom.includes(sU));
+          });
+        }
+        if (foundU) {
+          const pGrd = (foundU.GRADO || foundU.grado || '').trim();
+          const pNom = (foundU['APELLIDOS Y NOMBRES'] || foundU.apellidos_y_nombres || uLogueado).trim();
+          if (pGrd) {
+            uLogueado = `${pGrd} ${pNom}`;
+          }
+        }
+      }
+      uLogueado = uLogueado.trim().toUpperCase();
+
       document.querySelectorAll('.orden-nuevo-per-val-num').forEach(el => el.textContent = numPad);
       document.querySelectorAll('.orden-nuevo-per-val-cip').forEach(el => el.textContent = cip);
       document.querySelectorAll('.orden-nuevo-per-val-grado').forEach(el => el.textContent = grado);
@@ -13752,6 +13849,7 @@ MOTIVO: ${d.motivo || 'ASIGNACIÓN DE CARGO'}`;
       document.querySelectorAll('.orden-nuevo-per-val-fechaincorp, .orden-nuevo-per-val-fechasalida').forEach(el => el.textContent = fechaIncorp);
       document.querySelectorAll('.orden-nuevo-per-val-motivo').forEach(el => el.textContent = motivo);
       document.querySelectorAll('.orden-nuevo-per-val-fechahora').forEach(el => el.textContent = fechaHora);
+      document.querySelectorAll('.orden-nuevo-per-val-generadopor').forEach(el => el.textContent = uLogueado);
 
       const yearMatch = (data.numero_documento || '').match(/-(\d{4})-/);
       const yr = yearMatch ? yearMatch[1] : new Date().getFullYear();
