@@ -3238,7 +3238,7 @@
       <div class="footer" style="justify-content: space-between;">
         <button class="secondary" onclick="closeReincorporacionModal(event)">Cerrar</button>
         <div style="display:flex; gap:8px;">
-          <button type="button" class="secondary" onclick="descargarReincorpWord(event)" style="font-weight: bold; background: #e8f0fe; color: #1a73e8; border: 1.5px solid #1a73e8;"><span>📄</span> Descargar Word (.docx) [Prueba]</button>
+          <button type="button" class="secondary" onclick="descargarReincorpWord(event)" style="font-weight: bold; background: #e8f0fe; color: #1a73e8; border: 1.5px solid #1a73e8;"><span>📄</span> Descargar Word (.docx)</button>
           <button class="print-a4-btn" onclick="printReincorporacionDocument(event)"><span>🖨️</span> Imprimir / Guardar en PDF (2 Copias en A4)</button>
         </div>
       </div>
@@ -9018,6 +9018,9 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
           }
           const base64 = btoa(binary);
           sessionStorage.setItem('custom_reincorp_docx_b64', base64);
+          try {
+            localStorage.setItem('custom_reincorp_docx_b64', base64);
+          } catch (_) {}
         } catch (_) {}
         if (typeof toast === 'function') toast(`Plantilla "${file.name}" cargada. Ahora haga clic en "Generar y Descargar Word"`, 'success');
         else alert(`Plantilla "${file.name}" cargada con éxito.\nAhora haga clic en "Generar y Descargar Word (.docx)".`);
@@ -9218,7 +9221,10 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
         let content = customReincorpDocxBuffer;
         if (!content) {
           try {
-            const storedB64 = sessionStorage.getItem('custom_reincorp_docx_b64');
+            let storedB64 = '';
+            try {
+              storedB64 = sessionStorage.getItem('custom_reincorp_docx_b64') || localStorage.getItem('custom_reincorp_docx_b64');
+            } catch (_) {}
             if (storedB64) {
               const binStr = atob(storedB64);
               const len = binStr.length;
@@ -9234,7 +9240,7 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
 
         if (!content) {
           const response = await fetch('plantilla_reincorporacion.docx');
-          if (!response.ok) throw new Error('No se encontró el archivo plantilla_reincorporacion.docx en el servidor. Puede cargarlo haciendo clic en el botón "📁 Cargar mi Plantilla Word".');
+          if (!response.ok) throw new Error('No se encontró el archivo de plantilla Word (.docx). Puede cargarlo fácilmente usando el botón "📁 Cargar mi Plantilla Word".');
           content = await response.arrayBuffer();
         }
 
