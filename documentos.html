@@ -3063,15 +3063,17 @@
           <label for="ordenJefeSelect" style="font-size: 12px; font-weight: bold; color: #18372b; white-space: nowrap;">Firma la Orden:</label>
           <select id="ordenJefeSelect" onchange="updateOrdenSigner()" style="flex: 1; height: 36px; padding: 4px 10px; border-radius: 8px; border: 1.5px solid var(--line); font-size: 12.5px; font-weight: 600; background: #fff; color: #0b5a3c;"></select>
           <button type="button" class="secondary" onclick="openGestionJefesModal(event)" title="Gestionar firmantes (Buscar, Agregar, Editar Cargo, Eliminar)" style="height: 36px; padding: 0 10px; font-size: 12px; display: flex; align-items: center; gap: 4px; border-radius: 8px; white-space: nowrap; background: #fff; border: 1.5px solid #0b5a3c; color: #0b5a3c; font-weight: 600; cursor: pointer;"><span>&#9881;&#65039;</span> Gestionar</button>
-            <!-- Opciones cargadas dinamicamente -->
-          </select>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <input type="file" id="customIncorpDocxInput" accept=".docx" style="display:none;" onchange="onCustomIncorpDocxSelected(event)">
+          <button type="button" class="secondary" onclick="document.getElementById('customIncorpDocxInput').click()" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px; background: #fff8e1; color: #b78103; border: 1.5px solid #d4a017; font-weight: 700;" title="Subir archivo plantilla_incorporacion.docx">
+            <span>📁</span> Cargar mi Plantilla Word
+          </button>
+          <button type="button" class="secondary" onclick="descargarIncorpWord(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px; background: #e8f0fe; color: #1a73e8; border: 1.5px solid #1a73e8; font-weight: 700;">
+            <span>📄</span> Generar e Imprimir en Word (.docx)
+          </button>
           <button class="secondary" onclick="copyOrdenSummary(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px;">
             <span>&#128203;</span> Copiar datos
-          </button>
-          <button class="print-a4-btn" onclick="printOrdenDocument(event)" style="height: 36px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px; background: #0b5a3c; color: #fff; border-radius: 8px; border: none; padding: 0 16px; cursor: pointer; box-shadow: 0 2px 6px rgba(11,90,60,0.3);">
-            <span>&#128424;&#65039;</span> Guardar e Imprimir Orden (2 Copias en A4)
           </button>
         </div>
       </div>
@@ -6381,7 +6383,7 @@
       buildModalForm();
       
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
+      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
 
       document.getElementById('docModal').classList.add('active');
 
@@ -6482,8 +6484,7 @@
           saveBtn.style.color = '#ffffff';
         }
         if (btnVerOrden) {
-          btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+          btnVerOrden.style.display = 'none';
         }
       } else if (conf.isOrdenGravidez) {
         if (saveBtn) {
@@ -6523,9 +6524,6 @@
         container.innerHTML = `
           <div style="background:#e8f2ec; padding:10px 14px; border-radius:8px; border:1px solid #cce2d4; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <span style="font-weight:700; color:#0b5a3c; font-size:13px;">📑 Formulario de Orden de Incorporación</span>
-            <button type="button" onclick="verOrdenFromDocModal(event)" style="background:#0b5a3c; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 4px rgba(11,90,60,0.25);">
-              👁️ Vista Previa A4
-            </button>
           </div>
           <div class="form-group">
             <label>N&deg; Documento</label>
@@ -7302,7 +7300,7 @@
       buildModalForm(found);
 
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
+      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
 
       document.getElementById('docModal').classList.add('active');
     }
@@ -8423,6 +8421,290 @@ MOTIVO: ${motivoText}`;
       }).catch(() => {
         toast('No se pudo copiar al portapapeles', 'warning');
       });
+    }
+
+    let customIncorpDocxBuffer = null;
+
+    function onCustomIncorpDocxSelected(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        customIncorpDocxBuffer = evt.target.result;
+        try {
+          const bytes = new Uint8Array(customIncorpDocxBuffer);
+          let binary = '';
+          const len = bytes.byteLength;
+          for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          sessionStorage.setItem('custom_incorp_docx_b64', btoa(binary));
+        } catch (_) {}
+        if (typeof toast === 'function') toast('Plantilla Word personalizada cargada con éxito', 'success');
+        else alert('Plantilla Word cargada con éxito');
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    async function descargarIncorpWord(e) {
+      if (e) e.preventDefault();
+      if (!currentOrdenData) {
+        alert('No hay datos de Orden de Incorporación cargados.');
+        return;
+      }
+
+      const data = currentOrdenData;
+
+      // Si hay un guardado pendiente al generar la vista previa, guardarlo en la base de datos
+      if (data._pendingSave && data._payload) {
+        try {
+          const selSigner = document.getElementById('ordenJefeSelect');
+          if (selSigner) {
+            if (selSigner.value !== 'custom' && typeof jefesList !== 'undefined' && jefesList && jefesList.length > 0) {
+              const idx = parseInt(selSigner.value, 10) || 0;
+              const j = jefesList[idx];
+              if (j) {
+                const jGrd = j.GRADO || j.grado || 'PNP';
+                const jNom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
+                const jCrg = j.CARGO || j.cargo || '';
+                data._payload.quien_ordena = `${jGrd} ${jNom} - ${jCrg}`;
+              }
+            }
+          }
+
+          if (data._editingId) {
+            await apiRequest(`orden_incorporacion?id=eq.${data._editingId}`, {
+              method: 'PATCH',
+              body: JSON.stringify(data._payload)
+            });
+          } else {
+            await apiRequest('orden_incorporacion', {
+              method: 'POST',
+              body: JSON.stringify(data._payload)
+            });
+          }
+
+          data._pendingSave = false;
+          data._payload = null;
+          closeDocModal();
+
+          if (typeof BroadcastChannel !== 'undefined') {
+            try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'orden_incorporacion' }); } catch (_) {}
+          }
+          try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
+          if (typeof loadCurrentTableData === 'function') loadCurrentTableData();
+          if (typeof loadAllBadges === 'function') loadAllBadges();
+        } catch (saveErr) {
+          console.warn('Advertencia al guardar orden_incorporacion antes de generar Word:', saveErr);
+        }
+      }
+
+      let signer = null;
+      const selSigner = document.getElementById('ordenJefeSelect');
+      if (selSigner) {
+        if (selSigner.value !== 'custom' && typeof jefesList !== 'undefined' && jefesList && jefesList.length > 0) {
+          const idx = parseInt(selSigner.value, 10) || 0;
+          const j = jefesList[idx];
+          if (j) {
+            signer = {
+              cip: j.CIP || j.cip || '272624',
+              grado: j.GRADO || j.grado || 'GRAL PNP',
+              nombres: j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || 'Jose Luis GONZALES QUINTERO',
+              cargo: j.CARGO || j.cargo || 'JEFE REGPOL HUANUCO'
+            };
+          }
+        } else if (data.quien_ordena) {
+          signer = resolverFirmante(data.quien_ordena);
+        }
+      }
+      if (!signer && data.quien_ordena) {
+        signer = resolverFirmante(data.quien_ordena);
+      }
+      if (!signer) {
+        signer = {
+          cip: '272624',
+          grado: 'GRAL PNP',
+          nombres: 'Jose Luis GONZALES QUINTERO',
+          cargo: 'JEFE REGPOL HUANUCO'
+        };
+      }
+
+      const yr = new Date().getFullYear();
+      const numPad = data.numPadded || (data.numero_documento ? (data.numero_documento.match(/^(\d+)/)?.[1] || '001') : '001');
+      const padNum = String(numPad).padStart(3, '0');
+      const tituloDoc = `ORDEN DE INCORPORACION N°${padNum}-${yr}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/SEC-OFAD.AREREHUM`;
+
+      let cipVal = data.cip || data.CIP || '---';
+      let nombresVal = (data.apellidos_y_nombres || data.apellidos_nombres || data.grado_apellidos_nombres || '').toUpperCase().trim();
+      let gradoVal = (data.grado || 'PNP').toUpperCase().trim();
+      if (!nombresVal && data.descripcion) nombresVal = data.descripcion.toUpperCase().trim();
+
+      let procedenciaVal = (data.unidad_anterior || data.procedencia || data.unidad_de_origen || 'DIRREHUM PNP/DIVMRH-DIRREHUM PNP').toUpperCase().trim();
+      let destinoVal = (data.destino || data.unidad_destino || data.lista_de_revista || 'OFAD REGPOL HUANUCO').toUpperCase().trim();
+      let fechaSalidaVal = formatFechaCorta(data.fecha_salida || data.fecha_documento || new Date());
+      let fechaDocVal = formatFechaCorta(data.fecha_documento || data.fecha_salida || new Date());
+
+      let motivoVal = (data.motivo || data.descripcion || 'SE INCORPORA POR').toUpperCase().trim();
+      let refDocVal = (data.documento_referencia || data.numero_orden_incorporacion_dirrehum || data.referencia || '').trim();
+      if (!refDocVal && motivoVal) {
+        refDocVal = motivoVal.toUpperCase().startsWith('ORDEN') ? motivoVal : ('ORDEN ' + motivoVal);
+      }
+
+      const sGrd = (signer?.grado || signer?.GRADO || 'GRAL PNP').toUpperCase();
+      const sCip = formatPrefixCip(sGrd, signer?.cip || signer?.CIP || '272624');
+      const sNom = formatNombrePostFirma(signer?.nombres || signer?.apellidos_y_nombres || signer?.apellidos_nombres || signer?.['APELLIDOS Y NOMBRES'] || 'Jose Luis GONZALES QUINTERO');
+      const sCrg = (signer?.cargo || signer?.CARGO || 'JEFE REGPOL HUANUCO').toUpperCase();
+
+      const obsTexto = `SE PONE A DISPOSICION AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CUYA INCORPORACION DEBERÁ SER COMUNICADO AL JEFE DE DIVISION, JEFE DE DEPARTAMENTO (DE SER EL CASO), Y AL AREA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO, MEDIANTE EL CORREO rphuanuco.arerehum@policia.gob.pe CON EL DOCUMENTO CORRESPONDIENTE, SIN PERJUICIO DE FORMULAR DOCUMENTACION SOBRE ALGUNA NOVEDAD QUE PUDIERA SUSCITARSE.`;
+
+      const cleanSignerCip = String(signer?.cip || signer?.CIP || '272624').replace(/^(OA|SA|CIP)[\s\.\-:]*/i, '').trim() || '272624';
+
+      let uLogueado = (typeof currentUser !== 'undefined' && currentUser && (currentUser.fullName || currentUser.nombre || currentUser.apellidos_nombres)) ||
+                      (data && (data.usuario_registra || data.usuario)) ||
+                      (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
+                      (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
+                      'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      uLogueado = uLogueado.trim().toUpperCase();
+
+      const fechaHoraMil = formatFechaHoraMil(data.created_at || data.fecha_documento || new Date());
+
+      const tags = {
+        NUMERO_ORDEN: `${padNum}-${yr}`,
+        NUMERO_ORDEN_COMPLETO: tituloDoc,
+        TITULO_DOC: tituloDoc,
+        CIP: cipVal,
+        GRADO: gradoVal,
+        APELLIDOS_NOMBRES: nombresVal,
+        'APELLIDOS Y NOMBRES': nombresVal,
+        GRADO_APELLIDOS_NOMBRES: `${gradoVal} ${nombresVal}`.trim(),
+        PROCEDENCIA: procedenciaVal,
+        DESTINO: destinoVal,
+        FECHA_SALIDA: fechaSalidaVal,
+        FECHA_DOC: fechaSalidaVal,
+        'FECHA DOC': fechaSalidaVal,
+        MOTIVO: motivoVal,
+        DOC_REFERENCIA: refDocVal,
+        'DOCUMENTO DE REFERENCIA': refDocVal,
+        OBSERVACION: obsTexto,
+        'OBSERVACIÓN': obsTexto,
+        FIRMANTE_CIP: sCip,
+        FIRMANTE_CIP_COMPLETO: sCip,
+        FIRMANTE_CIP_NUMERO: cleanSignerCip,
+        FIRMANTE_NOMBRE: sNom,
+        FIRMANTE_GRADO: sGrd,
+        FIRMANTE_CARGO: sCrg,
+        USUARIO_LOGUEADO: uLogueado,
+        USUARIO_REGISTRA: uLogueado,
+        USUARIO_GRADO_Y_NOMBRES: uLogueado,
+        FECHA_HORA_TEXT: fechaHoraMil,
+        FECHA_HORA: fechaHoraMil,
+        GENERADO_POR: `GENERADO POR: ${uLogueado}`,
+        PIE_PAGINA: `GENERADO POR: ${uLogueado}`,
+        PIE_DOCUMENTO: `GENERADO POR: ${uLogueado}`
+      };
+
+      try {
+        const getPizZip = () => window.PizZip || (typeof PizZip !== 'undefined' ? PizZip : null);
+        const getDocx = () => window.docxtemplater || window.Docxtemplater || (typeof Docxtemplater !== 'undefined' ? Docxtemplater : null) || (typeof docxtemplater !== 'undefined' ? docxtemplater : null);
+
+        let PizZipClass = getPizZip();
+        let DocxClass = getDocx();
+
+        if (!PizZipClass || !DocxClass) {
+          const loadScript = (src) => new Promise((resolve) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = () => resolve(true);
+            s.onerror = () => resolve(false);
+            document.head.appendChild(s);
+          });
+
+          if (!PizZipClass) {
+            await loadScript('https://unpkg.com/pizzip@3.1.4/dist/pizzip.js');
+            PizZipClass = getPizZip();
+            if (!PizZipClass) {
+              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.4/pizzip.min.js');
+              PizZipClass = getPizZip();
+            }
+          }
+
+          if (!DocxClass) {
+            await loadScript('https://unpkg.com/docxtemplater@3.42.0/build/docxtemplater.js');
+            DocxClass = getDocx();
+            if (!DocxClass) {
+              await loadScript('https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.42.0/docxtemplater.js');
+              DocxClass = getDocx();
+            }
+          }
+        }
+
+        if (!PizZipClass || !DocxClass) {
+          throw new Error('No se pudieron cargar las librerías de Word.');
+        }
+
+        let content = customIncorpDocxBuffer;
+        if (!content) {
+          try {
+            let storedB64 = '';
+            try {
+              storedB64 = sessionStorage.getItem('custom_incorp_docx_b64') || localStorage.getItem('custom_incorp_docx_b64');
+            } catch (_) {}
+            if (storedB64) {
+              const binStr = atob(storedB64);
+              const len = binStr.length;
+              const bytes = new Uint8Array(len);
+              for (let i = 0; i < len; i++) {
+                bytes[i] = binStr.charCodeAt(i);
+              }
+              content = bytes.buffer;
+              customIncorpDocxBuffer = content;
+            }
+          } catch (_) {}
+        }
+
+        if (!content) {
+          const response = await fetch('plantilla_incorporacion.docx');
+          if (!response.ok) throw new Error('No se encontró el archivo de plantilla Word (plantilla_incorporacion.docx).');
+          content = await response.arrayBuffer();
+        }
+
+        const zip = new PizZipClass(content);
+        const doc = new DocxClass(zip, {
+          paragraphLoop: true,
+          linebreaks: true
+        });
+
+        doc.render(tags);
+
+        const out = doc.getZip().generate({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+
+        const nombreDescarga = `ORDEN_INCORPORACION_${padNum}-${yr}_${cipVal}.docx`;
+        if (typeof saveAs === 'function') {
+          saveAs(out, nombreDescarga);
+        } else if (typeof window.saveAs === 'function') {
+          window.saveAs(out, nombreDescarga);
+        } else {
+          const u = URL.createObjectURL(out);
+          const a = document.createElement('a');
+          a.href = u;
+          a.download = nombreDescarga;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(u);
+          }, 300);
+        }
+
+        if (typeof toast === 'function') toast(`Plantilla Word descargada: ${nombreDescarga}`, 'success');
+        else alert(`Documento Word descargado con éxito: ${nombreDescarga}`);
+      } catch (err) {
+        console.error('Error al generar Word:', err);
+        alert('Error al descargar en Word: ' + err.message);
+      }
     }
 
     function openOrdenDocumentFromRow(id) {
