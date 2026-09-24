@@ -8761,7 +8761,10 @@ MOTIVO: ${motivoText}`;
       const procedenciaVal = (item.unidad_procedencia || item.unidad_anterior_procedencia || item.procedencia || item.unidad_anterior || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD').toUpperCase();
       const destinoVal = (item.destino || item.unidad_destino || item.lista_de_revista || 'COMISARIA SECTORIAL HUANUCO').toUpperCase();
       const motivoVal = (item.descripcion || item.asunto || item.motivo || 'SE REINCORPORA AL TERMINO DE SUS ATENCIONES MEDICAS').toUpperCase().trim();
-      const refDocVal = (item.documento_referencia || item.numero_orden_incorporacion_dirrehum || item.referencia || '').trim();
+      let refDocVal = (item.documento_referencia || item.numero_orden_incorporacion_dirrehum || item.referencia || '').trim();
+      if (!refDocVal && motivoVal) {
+        refDocVal = motivoVal.toUpperCase().startsWith('ORDEN') ? motivoVal : ('ORDEN ' + motivoVal);
+      }
       const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
 
       const sGrd = (signer?.grado || signer?.GRADO || 'CMDTE PNP').toUpperCase();
@@ -9172,7 +9175,10 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
       const procedenciaVal = (item.unidad_procedencia || item.unidad_anterior_procedencia || item.procedencia || item.unidad_anterior || 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD').toUpperCase();
       const destinoVal = (item.destino || item.unidad_destino || item.lista_de_revista || 'COMISARIA SECTORIAL HUANUCO').toUpperCase();
       const motivoVal = (item.descripcion || item.asunto || item.motivo || 'SE REINCORPORA AL TERMINO DE SUS ATENCIONES MEDICAS').toUpperCase().trim();
-      const refDocVal = (item.documento_referencia || item.numero_orden_incorporacion_dirrehum || item.referencia || '---').trim();
+      let refDocVal = (item.documento_referencia || item.numero_orden_incorporacion_dirrehum || item.referencia || '').trim();
+      if ((!refDocVal || refDocVal === '---') && motivoVal) {
+        refDocVal = motivoVal.toUpperCase().startsWith('ORDEN') ? motivoVal : ('ORDEN ' + motivoVal);
+      }
       const fechaDocVal = formatFechaOficialReincorp(item.fecha_documento || item.created_at || new Date());
 
       const sGrd = (signer?.grado || signer?.GRADO || 'CMDTE PNP').toUpperCase();

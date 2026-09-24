@@ -406,12 +406,16 @@
         <label>Motivo:</label>
         <input type="text" id="in_motivo" value="VACACIONES" oninput="actualizarCamposEnVivo()" />
       </div>
+      <div class="test-input-group">
+        <label>Documento de Referencia:</label>
+        <input type="text" id="in_doc_ref" value="ORDEN VACACIONES" oninput="actualizarCamposEnVivo(true)" />
+      </div>
       <div class="test-input-group" style="grid-column: span 2;">
-        <label>DESTINO (Columna F):</label>
+        <label>DESTINO (Columna G):</label>
         <input type="text" id="in_destino" value="COMISARIA SECTORIAL HUANUCO" oninput="actualizarCamposEnVivo()" />
       </div>
       <div class="test-input-group" style="grid-column: span 2;">
-        <label>UNIDAD DE PROCEDENCIA (Columna G):</label>
+        <label>UNIDAD DE PROCEDENCIA (Columna H):</label>
         <input type="text" id="in_procedencia" value="COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD" oninput="actualizarCamposEnVivo()" />
       </div>
     </div>
@@ -471,6 +475,11 @@
             <td class="data-label">MOTIVO</td>
             <td class="data-sep">:</td>
             <td class="data-val">AL TÉRMINO DE: <b class="val-motivo">VACACIONES</b></td>
+          </tr>
+          <tr>
+            <td class="data-label">DOCUMENTO DE REFERENCIA</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold val-doc-ref">ORDEN VACACIONES</td>
           </tr>
           <tr>
             <td class="data-label">OBSERVACIÓN</td>
@@ -549,6 +558,11 @@
             <td class="data-val">AL TÉRMINO DE: <b class="val-motivo">VACACIONES</b></td>
           </tr>
           <tr>
+            <td class="data-label">DOCUMENTO DE REFERENCIA</td>
+            <td class="data-sep">:</td>
+            <td class="data-val bold val-doc-ref">ORDEN VACACIONES</td>
+          </tr>
+          <tr>
             <td class="data-label">OBSERVACIÓN</td>
             <td class="data-sep">:</td>
             <td class="data-val obs-paragraph">
@@ -600,7 +614,7 @@
     }
 
     // Función para actualizar en vivo ambas copias A5
-    function actualizarCamposEnVivo() {
+    function actualizarCamposEnVivo(manualDocRef) {
       const numRaw = document.getElementById('in_num').value || '001';
       const tituloFinal = formatearTitulo(numRaw);
       const cip = document.getElementById('in_cip').value || '---';
@@ -608,6 +622,13 @@
       const destino = document.getElementById('in_destino').value || '---';
       const procedencia = document.getElementById('in_procedencia').value || '---';
       const motivo = document.getElementById('in_motivo').value || '---';
+      
+      let docRef = document.getElementById('in_doc_ref').value || '';
+      if (!manualDocRef && motivo && (!docRef || docRef.startsWith('ORDEN'))) {
+        docRef = motivo.toUpperCase().startsWith('ORDEN') ? motivo.toUpperCase() : ('ORDEN ' + motivo.toUpperCase());
+        document.getElementById('in_doc_ref').value = docRef;
+      }
+      if (!docRef) docRef = '---';
 
       document.querySelectorAll('.val-titulo-doc').forEach(el => el.textContent = tituloFinal);
       document.querySelectorAll('.val-cip').forEach(el => el.textContent = cip);
@@ -615,6 +636,7 @@
       document.querySelectorAll('.val-destino').forEach(el => el.textContent = destino);
       document.querySelectorAll('.val-procedencia').forEach(el => el.textContent = procedencia);
       document.querySelectorAll('.val-motivo').forEach(el => el.textContent = motivo);
+      document.querySelectorAll('.val-doc-ref').forEach(el => el.textContent = docRef);
     }
 
     // Ejemplos de prueba rápidos
@@ -626,6 +648,7 @@
         document.getElementById('in_destino').value = 'COMISARIA SECTORIAL HUANUCO';
         document.getElementById('in_procedencia').value = 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
         document.getElementById('in_motivo').value = 'VACACIONES';
+        document.getElementById('in_doc_ref').value = 'ORDEN VACACIONES';
       } else if (tipo === 2) {
         document.getElementById('in_num').value = '016';
         document.getElementById('in_cip').value = '30998877';
@@ -633,6 +656,7 @@
         document.getElementById('in_destino').value = 'DEPINCRI HUANUCO';
         document.getElementById('in_procedencia').value = 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
         document.getElementById('in_motivo').value = 'PERMISO A CUENTA DE VACACIONES';
+        document.getElementById('in_doc_ref').value = 'ORDEN PERMISO A CUENTA DE VACACIONES';
       } else if (tipo === 3) {
         document.getElementById('in_num').value = '017';
         document.getElementById('in_cip').value = '31554433';
@@ -640,8 +664,9 @@
         document.getElementById('in_destino').value = 'SECESP REGPOL HUANUCO';
         document.getElementById('in_procedencia').value = 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD';
         document.getElementById('in_motivo').value = 'COMISION DEL SERVICIO';
+        document.getElementById('in_doc_ref').value = 'ORDEN COMISION DEL SERVICIO';
       }
-      actualizarCamposEnVivo();
+      actualizarCamposEnVivo(true);
     }
   </script>
 
