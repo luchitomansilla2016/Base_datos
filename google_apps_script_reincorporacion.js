@@ -5,21 +5,21 @@
  * SCRIPT OFICIAL: CARGA MASIVA DE ÓRDENES DE REINCORPORACIÓN
  * =========================================================================================
  * 
- * ORDEN DE COLUMNAS OFICIAL:
- * A: FECHA DOCUMENTO          (Col 1)
- * B: CIP                      (Col 2)
- * C: GRADO                    (Col 3)
- * D: APELLIDOS Y NOMBRES      (Col 4)
- * E: MOTIVO                   (Col 5)
- * F: DOCUMENTO DE REFERENCIA  (Col 6)
- * G: DESTINO                  (Col 7)
- * H: UNIDAD DE PROCEDENCIA    (Col 8)
- * I: DESCRIPCION              (Col 9)
- * J: QUIEN ORDENA             (Col 10)
- * K: USUARIO REGISTRA         (Col 11)
- * L: ESTADO                   (Col 12)
- * M: NUMERO DOCUMENTO         (Col 13)
- * N: ID NUBE                  (Col 14)
+ * ORDEN EXACTO DE COLUMNAS:
+ * Col A (1) : FECHA DOCUMENTO
+ * Col B (2) : CIP
+ * Col C (3) : GRADO
+ * Col D (4) : APELLIDOS Y NOMBRES
+ * Col E (5) : MOTIVO
+ * Col F (6) : DESTINO
+ * Col G (7) : UNIDAD DE PROCEDENCIA
+ * Col H (8) : DESCRIPCION
+ * Col I (9) : DOCUMENTO DE REFERENCIA
+ * Col J (10): QUIEN ORDENA
+ * Col K (11): USUARIO REGISTRA
+ * Col L (12): ESTADO
+ * Col M (13): NUMERO DOCUMENTO
+ * Col N (14): ID NUBE
  * =========================================================================================
  */
 
@@ -75,18 +75,6 @@ function onEdit(e) {
 }
 
 /**
- * Helper que detecta si la hoja usa la estructura de 14 columnas (con Col F = DOCUMENTO DE REFERENCIA)
- */
-function tieneColumnaDocReferencia(sheet) {
-  try {
-    const h6 = String(sheet.getRange(1, 6).getValue() || "").toUpperCase();
-    return h6.includes("REFERENCIA") || h6.includes("DOC");
-  } catch (_) {
-    return true;
-  }
-}
-
-/**
  * Genera el texto del Documento de Referencia anteponiendo la palabra ORDEN
  */
 function formatearDocReferencia(motivoRaw) {
@@ -107,95 +95,81 @@ function formatearDocReferencia(motivoRaw) {
  * Llena automáticamente los campos predeterminados de una fila mientras el usuario escribe
  */
 function autoCompletarFila(sheet, fila) {
-  const hasRefCol = tieneColumnaDocReferencia(sheet);
-  const maxCols = hasRefCol ? 14 : 13;
-  const rowVals = sheet.getRange(fila, 1, 1, maxCols).getValues()[0];
+  const rowVals = sheet.getRange(fila, 1, 1, 14).getValues()[0];
   
   let fecha = rowVals[0];                                          // Col A (1) : FECHA DOCUMENTO
   let cip = String(rowVals[1] || "").trim();                       // Col B (2) : CIP
   let grado = String(rowVals[2] || "").trim().toUpperCase();       // Col C (3) : GRADO
   let nombres = String(rowVals[3] || "").trim().toUpperCase();     // Col D (4) : APELLIDOS Y NOMBRES
   let motivo = String(rowVals[4] || "").trim().toUpperCase();      // Col E (5) : MOTIVO
-  
-  let docRef = hasRefCol ? String(rowVals[5] || "").trim().toUpperCase() : "";
-  let colOff = hasRefCol ? 1 : 0;
-
-  let destino = String(rowVals[5 + colOff] || "").trim().toUpperCase();     // Col F o G : DESTINO
-  let procedencia = String(rowVals[6 + colOff] || "").trim().toUpperCase(); // Col G o H : UNIDAD DE PROCEDENCIA
-  let descripcion = String(rowVals[7 + colOff] || "").trim();               // Col H o I : DESCRIPCION
-  let quienOrdena = String(rowVals[8 + colOff] || "").trim().toUpperCase(); // Col I o J : QUIEN ORDENA
-  let usuarioRegistra = String(rowVals[9 + colOff] || "").trim();           // Col J o K : USUARIO REGISTRA
-  let estado = String(rowVals[10 + colOff] || "").trim().toUpperCase();     // Col K o L : ESTADO
-  let numDoc = String(rowVals[11 + colOff] || "").trim();                   // Col L o M : NUMERO DOCUMENTO
+  let destino = String(rowVals[5] || "").trim().toUpperCase();     // Col F (6) : DESTINO
+  let procedencia = String(rowVals[6] || "").trim().toUpperCase(); // Col G (7) : UNIDAD DE PROCEDENCIA
+  let descripcion = String(rowVals[7] || "").trim();               // Col H (8) : DESCRIPCION
+  let docRef = String(rowVals[8] || "").trim().toUpperCase();      // Col I (9) : DOCUMENTO DE REFERENCIA
+  let quienOrdena = String(rowVals[9] || "").trim().toUpperCase(); // Col J (10): QUIEN ORDENA
+  let usuarioRegistra = String(rowVals[10] || "").trim();          // Col K (11): USUARIO REGISTRA
+  let estado = String(rowVals[11] || "").trim().toUpperCase();     // Col L (12): ESTADO
+  let numDoc = String(rowVals[12] || "").trim();                   // Col M (13): NUMERO DOCUMENTO
 
   if (!cip && !nombres && !destino && !grado && !motivo) return;
 
   const todayStr = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
 
-  // 1. FECHA DOCUMENTO (Col A)
+  // 1. FECHA DOCUMENTO (Col A - 1)
   if (!fecha) {
     sheet.getRange(fila, 1).setValue(todayStr);
   }
 
-  // 2. GRADO (Col C) y APELLIDOS Y NOMBRES (Col D)
+  // 2. GRADO (Col C - 3) y APELLIDOS Y NOMBRES (Col D - 4)
   if (grado) sheet.getRange(fila, 3).setValue(grado);
   if (nombres) sheet.getRange(fila, 4).setValue(nombres);
 
-  // 3. MOTIVO (Col E)
+  // 3. MOTIVO (Col E - 5)
   if (motivo) sheet.getRange(fila, 5).setValue(motivo);
 
-  // 4. DOCUMENTO DE REFERENCIA (Col F si está activa)
-  if (hasRefCol) {
-    const docRefAuto = formatearDocReferencia(motivo);
-    if (!docRef && docRefAuto) {
-      sheet.getRange(fila, 6).setValue(docRefAuto);
-    }
-  }
+  // 4. DESTINO (Col F - 6)
+  if (destino) sheet.getRange(fila, 6).setValue(destino);
 
-  // 5. DESTINO (Col F o G)
-  const colDestino = 6 + colOff;
-  if (destino) sheet.getRange(fila, colDestino).setValue(destino);
-
-  // 6. UNIDAD DE PROCEDENCIA (Col G o H)
-  const colProcedencia = 7 + colOff;
+  // 5. UNIDAD DE PROCEDENCIA (Col G - 7)
   if (!procedencia) {
-    sheet.getRange(fila, colProcedencia).setValue(DEFAULT_PROCEDENCIA);
+    sheet.getRange(fila, 7).setValue(DEFAULT_PROCEDENCIA);
   } else {
-    sheet.getRange(fila, colProcedencia).setValue(procedencia);
+    sheet.getRange(fila, 7).setValue(procedencia);
   }
 
-  // 7. DESCRIPCION (Col H o I)
-  const colDesc = 8 + colOff;
+  // 6. DESCRIPCION (Col H - 8)
   const detalleMotivo = motivo ? motivo : "SUS ATENCIONES MEDICAS";
   const textoEsperado = DEFAULT_DESCRIPCION_PRE + " " + detalleMotivo;
   if (!descripcion || descripcion === DEFAULT_DESCRIPCION_PRE || descripcion.startsWith(DEFAULT_DESCRIPCION_PRE)) {
-    sheet.getRange(fila, colDesc).setValue(textoEsperado);
+    sheet.getRange(fila, 8).setValue(textoEsperado);
   }
 
-  // 8. QUIEN ORDENA (Col I o J)
-  const colQuienOrdena = 9 + colOff;
+  // 7. DOCUMENTO DE REFERENCIA (Col I - 9)
+  const docRefAuto = formatearDocReferencia(motivo);
+  if (!docRef && docRefAuto) {
+    sheet.getRange(fila, 9).setValue(docRefAuto);
+  }
+
+  // 8. QUIEN ORDENA (Col J - 10)
   if (!quienOrdena) {
-    sheet.getRange(fila, colQuienOrdena).setValue(DEFAULT_QUIEN_ORDENA);
+    sheet.getRange(fila, 10).setValue(DEFAULT_QUIEN_ORDENA);
   } else {
-    sheet.getRange(fila, colQuienOrdena).setValue(quienOrdena);
+    sheet.getRange(fila, 10).setValue(quienOrdena);
   }
 
-  // 9. USUARIO REGISTRA (Col J o K)
-  const colUsuarioRegistra = 10 + colOff;
+  // 9. USUARIO REGISTRA (Col K - 11)
   if (!usuarioRegistra) {
-    sheet.getRange(fila, colUsuarioRegistra).setValue(DEFAULT_USUARIO_REGISTRA);
+    sheet.getRange(fila, 11).setValue(DEFAULT_USUARIO_REGISTRA);
   }
 
-  // 10. ESTADO y NUMERO DOCUMENTO
-  const colEstado = 11 + colOff;
-  const colNumDoc = 12 + colOff;
+  // 10. ESTADO (Col L - 12) y NUMERO DOCUMENTO (Col M - 13)
   if (!estado || estado !== "REGISTRADO EN NUBE") {
-    sheet.getRange(fila, colEstado).setValue("PENDIENTE DE SUBIR");
-    sheet.getRange(fila, colEstado).setBackground("#fff3cd").setFontColor("#856404").setFontWeight("bold");
+    sheet.getRange(fila, 12).setValue("PENDIENTE DE SUBIR");
+    sheet.getRange(fila, 12).setBackground("#fff3cd").setFontColor("#856404").setFontWeight("bold");
     
     if (!numDoc) {
-      sheet.getRange(fila, colNumDoc).setValue("(Se asignará al registrar)");
-      sheet.getRange(fila, colNumDoc).setFontColor("#888888").setFontStyle("italic");
+      sheet.getRange(fila, 13).setValue("(Se asignará al registrar)");
+      sheet.getRange(fila, 13).setFontColor("#888888").setFontStyle("italic");
     }
   }
 }
@@ -237,10 +211,6 @@ function subirANube() {
     return;
   }
 
-  const hasRefCol = tieneColumnaDocReferencia(sheet);
-  const maxCols = hasRefCol ? 14 : 13;
-  const colOff = hasRefCol ? 1 : 0;
-
   // 1. Obtener el número correlativo máximo actual directo de la tabla orden_reincorporacion
   let maxCorrelativo = obtenerUltimoCorrelativoSupabase();
   const yr = new Date().getFullYear();
@@ -249,23 +219,23 @@ function subirANube() {
 
   for (let fila = 2; fila <= lastRow; fila++) {
     autoCompletarFila(sheet, fila);
-    const rowVals = sheet.getRange(fila, 1, 1, maxCols).getValues()[0];
+    const rowVals = sheet.getRange(fila, 1, 1, 14).getValues()[0];
 
     const fecha = rowVals[0];                                          // Col A (1) : FECHA DOCUMENTO
     const cip = String(rowVals[1] || "").trim();                       // Col B (2) : CIP
     const grado = String(rowVals[2] || "").trim().toUpperCase();       // Col C (3) : GRADO
     const nombres = String(rowVals[3] || "").trim().toUpperCase();     // Col D (4) : APELLIDOS Y NOMBRES
     const motivo = String(rowVals[4] || "").trim().toUpperCase();      // Col E (5) : MOTIVO
+    const destino = String(rowVals[5] || "").trim().toUpperCase();     // Col F (6) : DESTINO
+    const procedencia = String(rowVals[6] || "").trim().toUpperCase() || DEFAULT_PROCEDENCIA; // Col G (7) : UNIDAD PROCEDENCIA
+    const descripcion = String(rowVals[7] || "").trim() || (DEFAULT_DESCRIPCION_PRE + " " + (motivo || "SUS ATENCIONES MEDICAS")); // Col H (8) : DESCRIPCION
     
-    let docRef = hasRefCol ? String(rowVals[5] || "").trim().toUpperCase() : "";
+    let docRef = String(rowVals[8] || "").trim().toUpperCase();      // Col I (9) : DOCUMENTO DE REFERENCIA
     if (!docRef && motivo) docRef = formatearDocReferencia(motivo);
 
-    const destino = String(rowVals[5 + colOff] || "").trim().toUpperCase();     // Col F o G : DESTINO
-    const procedencia = String(rowVals[6 + colOff] || "").trim().toUpperCase() || DEFAULT_PROCEDENCIA; // Col G o H: UNIDAD PROCEDENCIA
-    const descripcion = String(rowVals[7 + colOff] || "").trim() || (DEFAULT_DESCRIPCION_PRE + " " + (motivo || "SUS ATENCIONES MEDICAS")); // Col H o I: DESCRIPCION
-    const quienOrdena = String(rowVals[8 + colOff] || "").trim().toUpperCase() || DEFAULT_QUIEN_ORDENA; // Col I o J: QUIEN ORDENA
-    const usuarioRegistra = String(rowVals[9 + colOff] || "").trim() || DEFAULT_USUARIO_REGISTRA; // Col J o K: USUARIO REGISTRA
-    const estado = String(rowVals[10 + colOff] || "").trim().toUpperCase();     // Col K o L: ESTADO
+    const quienOrdena = String(rowVals[9] || "").trim().toUpperCase() || DEFAULT_QUIEN_ORDENA; // Col J (10): QUIEN ORDENA
+    const usuarioRegistra = String(rowVals[10] || "").trim() || DEFAULT_USUARIO_REGISTRA;     // Col K (11): USUARIO REGISTRA
+    const estado = String(rowVals[11] || "").trim().toUpperCase();                             // Col L (12): ESTADO
 
     // Procesar solo filas con datos que aún no están registradas en la nube
     if ((cip || nombres) && estado !== "REGISTRADO EN NUBE") {
@@ -318,17 +288,13 @@ function subirANube() {
           const newId = (Array.isArray(data) && data[0]) ? data[0].id : "";
           
           // Actualizar la fila en Google Sheets con el número oficial registrado
-          const colEstado = 11 + colOff;
-          const colNumDoc = 12 + colOff;
-          const colIdNube = 13 + colOff;
-
-          sheet.getRange(fila, colEstado).setValue("REGISTRADO EN NUBE");
-          sheet.getRange(fila, colEstado).setBackground("#d4edda").setFontColor("#155724").setFontWeight("bold");
+          sheet.getRange(fila, 12).setValue("REGISTRADO EN NUBE");
+          sheet.getRange(fila, 12).setBackground("#d4edda").setFontColor("#155724").setFontWeight("bold");
           
-          sheet.getRange(fila, colNumDoc).setValue(fullNumDoc);
-          sheet.getRange(fila, colNumDoc).setFontColor("#000000").setFontStyle("normal").setFontWeight("bold");
+          sheet.getRange(fila, 13).setValue(fullNumDoc);
+          sheet.getRange(fila, 13).setFontColor("#000000").setFontStyle("normal").setFontWeight("bold");
 
-          if (newId) sheet.getRange(fila, colIdNube).setValue(newId);
+          if (newId) sheet.getRange(fila, 14).setValue(newId);
           subidos++;
         } else {
           errores++;
@@ -399,16 +365,14 @@ function imprimirFilaActual() {
     SpreadsheetApp.getUi().alert("Por favor, seleccione una fila con datos de un efectivo (a partir de la fila 2).");
     return;
   }
-  const hasRefCol = tieneColumnaDocReferencia(sheet);
-  const maxCols = hasRefCol ? 14 : 13;
-  const rowVals = sheet.getRange(row, 1, 1, maxCols).getValues()[0];
+  const rowVals = sheet.getRange(row, 1, 1, 14).getValues()[0];
   const cip = String(rowVals[1] || "").trim();
   const nombres = String(rowVals[3] || "").trim();
   if (!cip && !nombres) {
     SpreadsheetApp.getUi().alert("La fila seleccionada (" + row + ") no contiene datos de un efectivo.");
     return;
   }
-  const pageHTML = generarHtmlA4Reincorporacion(rowVals, row - 1, hasRefCol);
+  const pageHTML = generarHtmlA4Reincorporacion(rowVals, row - 1);
   const fullHtml = envolverHtmlImpresion([pageHTML], "Impresión Individual - Fila " + row);
   const htmlOutput = HtmlService.createHtmlOutput(fullHtml).setWidth(960).setHeight(750);
   SpreadsheetApp.getUi().showModalDialog(htmlOutput, "Vista Previa e Impresión Oficial A4");
@@ -424,16 +388,14 @@ function imprimirLoteMasivo() {
     SpreadsheetApp.getUi().alert("No hay registros en la hoja para imprimir.");
     return;
   }
-  const hasRefCol = tieneColumnaDocReferencia(sheet);
-  const maxCols = hasRefCol ? 14 : 13;
-  const allRows = sheet.getRange(2, 1, lastRow - 1, maxCols).getValues();
+  const allRows = sheet.getRange(2, 1, lastRow - 1, 14).getValues();
   const pages = [];
   for (let i = 0; i < allRows.length; i++) {
     const rowVals = allRows[i];
     const cip = String(rowVals[1] || "").trim();
     const nombres = String(rowVals[3] || "").trim();
     if (cip || nombres) {
-      pages.push(generarHtmlA4Reincorporacion(rowVals, i + 1, hasRefCol));
+      pages.push(generarHtmlA4Reincorporacion(rowVals, i + 1));
     }
   }
   if (pages.length === 0) {
@@ -695,12 +657,9 @@ function resolverFirmante(quienOrdenaRaw) {
 /**
  * Genera el contenido HTML de una página A4 con 2 copias A5 idénticas
  */
-function generarHtmlA4Reincorporacion(rowVals, correlativoFallback, hasRefColParam) {
-  const hasRefCol = (typeof hasRefColParam === "boolean") ? hasRefColParam : (rowVals.length >= 14);
-  const colOff = hasRefCol ? 1 : 0;
-
+function generarHtmlA4Reincorporacion(rowVals, correlativoFallback) {
   const yr = new Date().getFullYear();
-  const rawNumDoc = String(rowVals[11 + colOff] || "").trim();
+  const rawNumDoc = String(rowVals[12] || "").trim(); // Col M (13) : NUMERO DOCUMENTO
   let numDocFinal = rawNumDoc;
   if (!numDocFinal || numDocFinal.includes("Se asignará")) {
     const numPadded = String(correlativoFallback || 1).padStart(3, "0");
@@ -711,23 +670,23 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback, hasRefColPar
     numDocFinal = `ÓRDEN DE REINCORPORACION N°${numPadded}-${yr}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
   }
 
-  const fechaRaw = rowVals[0];
+  const fechaRaw = rowVals[0]; // Col A (1) : FECHA DOCUMENTO
   let fechaDocTexto = "22 DE SETIEMBRE DE 2026";
   const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SETIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
   let d = (fechaRaw instanceof Date) ? fechaRaw : new Date();
   if (isNaN(d.getTime())) d = new Date();
   fechaDocTexto = d.getDate() + " DE " + meses[d.getMonth()] + " DE " + d.getFullYear();
 
-  const cip = String(rowVals[1] || "---").trim();
-  const grado = String(rowVals[2] || "").trim().toUpperCase();
-  let nombres = String(rowVals[3] || "---").trim().toUpperCase();
+  const cip = String(rowVals[1] || "---").trim();                   // Col B (2) : CIP
+  const grado = String(rowVals[2] || "").trim().toUpperCase();       // Col C (3) : GRADO
+  let nombres = String(rowVals[3] || "---").trim().toUpperCase();     // Col D (4) : APELLIDOS Y NOMBRES
   if (grado && !nombres.startsWith(grado)) {
     nombres = grado + " " + nombres;
   }
 
   // Extraer el motivo limpio
-  let descRaw = String(rowVals[7 + colOff] || "").trim();
-  let motivoRaw = String(rowVals[4] || "").trim();
+  let descRaw = String(rowVals[7] || "").trim();                     // Col H (8) : DESCRIPCION
+  let motivoRaw = String(rowVals[4] || "").trim();                   // Col E (5) : MOTIVO
   
   let motivoLimpio = descRaw.replace(/^(SE\s+)?PONE\s+A\s+DISPOSICI[OÓ]N\s+(AL\s+T[EÉ]RMINO\s+DE\s*:?|AL\s*:?|POR\s*:?|CONFORME\s*:?)/i, "")
                             .replace(/^REINCORPORACI[OÓ]N\s*(POR|AL|A|DE|EN)?\s*(T[EÉ]RMINO\s*DE\s*:?)?/i, "")
@@ -742,19 +701,19 @@ function generarHtmlA4Reincorporacion(rowVals, correlativoFallback, hasRefColPar
   }
   const motivo = (motivoLimpio || "SUS ATENCIONES MEDICAS").toUpperCase();
 
+  const destino = String(rowVals[5] || "COMISARIA SECTORIAL HUANUCO").trim().toUpperCase(); // Col F (6) : DESTINO
+  const procedencia = String(rowVals[6] || DEFAULT_PROCEDENCIA).trim().toUpperCase();         // Col G (7) : UNIDAD PROCEDENCIA
+  
   // Documento de Referencia
-  let docRefRaw = hasRefCol ? String(rowVals[5] || "").trim().toUpperCase() : "";
+  let docRefRaw = String(rowVals[8] || "").trim().toUpperCase();      // Col I (9) : DOCUMENTO DE REFERENCIA
   let docRefFinal = docRefRaw || formatearDocReferencia(motivo);
   if (!docRefFinal) docRefFinal = "---";
 
-  const destino = String(rowVals[5 + colOff] || "COMISARIA SECTORIAL HUANUCO").trim().toUpperCase();
-  const procedencia = String(rowVals[6 + colOff] || DEFAULT_PROCEDENCIA).trim().toUpperCase();
-  
   // Extraer y resolver firmante
-  const quienOrdenaRaw = String(rowVals[8 + colOff] || "").trim();
+  const quienOrdenaRaw = String(rowVals[9] || "").trim();             // Col J (10): QUIEN ORDENA
   const firmanteObj = resolverFirmante(quienOrdenaRaw);
   const sCip = formatPrefixCip(firmanteObj.grado, firmanteObj.cip);
-  const usuarioRegistra = String(rowVals[9 + colOff] || DEFAULT_USUARIO_REGISTRA).trim();
+  const usuarioRegistra = String(rowVals[10] || DEFAULT_USUARIO_REGISTRA).trim(); // Col K (11): USUARIO REGISTRA
 
   const obsHTML = "SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.";
 
@@ -1021,28 +980,22 @@ function marcarTodoPendiente() {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return;
 
-  const hasRefCol = tieneColumnaDocReferencia(sheet);
-  const colOff = hasRefCol ? 1 : 0;
-  const colEstado = 11 + colOff;
-  const colNumDoc = 12 + colOff;
-  const colIdNube = 13 + colOff;
-
   for (let fila = 2; fila <= lastRow; fila++) {
     const cip = sheet.getRange(fila, 2).getValue();
     const nombres = sheet.getRange(fila, 4).getValue();
     if (cip || nombres) {
-      sheet.getRange(fila, colEstado).setValue("PENDIENTE DE SUBIR");
-      sheet.getRange(fila, colEstado).setBackground("#fff3cd").setFontColor("#856404").setFontWeight("bold");
-      sheet.getRange(fila, colNumDoc).setValue("(Se asignará al registrar)");
-      sheet.getRange(fila, colNumDoc).setFontColor("#888888").setFontStyle("italic");
-      sheet.getRange(fila, colIdNube).setValue("");
+      sheet.getRange(fila, 12).setValue("PENDIENTE DE SUBIR");
+      sheet.getRange(fila, 12).setBackground("#fff3cd").setFontColor("#856404").setFontWeight("bold");
+      sheet.getRange(fila, 13).setValue("(Se asignará al registrar)");
+      sheet.getRange(fila, 13).setFontColor("#888888").setFontStyle("italic");
+      sheet.getRange(fila, 14).setValue("");
     }
   }
   SpreadsheetApp.getUi().alert("🔄 Todas las filas han sido marcadas como 'PENDIENTE DE SUBIR'.");
 }
 
 /**
- * Restaura los encabezados oficiales en la Fila 1 incluyendo DOCUMENTO DE REFERENCIA
+ * Restaura los encabezados oficiales en la Fila 1 en el orden exacto solicitado
  */
 function crearEncabezadosOficiales() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -1052,10 +1005,10 @@ function crearEncabezadosOficiales() {
     "GRADO",
     "APELLIDOS Y NOMBRES",
     "MOTIVO",
-    "DOCUMENTO DE REFERENCIA",
     "DESTINO",
     "UNIDAD DE PROCEDENCIA",
     "DESCRIPCION",
+    "DOCUMENTO DE REFERENCIA",
     "QUIEN ORDENA",
     "USUARIO REGISTRA",
     "ESTADO",
@@ -1070,5 +1023,5 @@ function crearEncabezadosOficiales() {
     .setFontWeight("bold")
     .setHorizontalAlignment("center");
   sheet.setFrozenRows(1);
-  SpreadsheetApp.getUi().alert("✨ Encabezados oficiales aplicados con éxito (incluye columna DOCUMENTO DE REFERENCIA).");
+  SpreadsheetApp.getUi().alert("✨ Encabezados oficiales aplicados en el orden exacto solicitado.");
 }
