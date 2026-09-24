@@ -3297,9 +3297,6 @@
           <button class="secondary" onclick="copyReincorpSummary(event)" style="font-size: 12px; height: 36px; display: flex; align-items: center; gap: 5px;">
             <span>📋</span> Copiar datos
           </button>
-          <button class="print-a4-btn" onclick="printReincorporacionDocument(event)" style="height: 36px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
-            <span>🖨️</span> Imprimir / Guardar PDF (2 Copias en A4)
-          </button>
         </div>
       </div>
 
@@ -3312,7 +3309,6 @@
         <button class="secondary" onclick="closeReincorporacionModal(event)">Cerrar</button>
         <div style="display:flex; gap:8px;">
           <button type="button" class="secondary" onclick="descargarReincorpWord(event)" style="font-weight: bold; background: #e8f0fe; color: #1a73e8; border: 1.5px solid #1a73e8;"><span>📄</span> Descargar Word (.docx)</button>
-          <button class="print-a4-btn" onclick="printReincorporacionDocument(event)"><span>🖨️</span> Imprimir / Guardar en PDF (2 Copias en A4)</button>
         </div>
       </div>
     </div>
@@ -6367,7 +6363,7 @@
       buildModalForm();
       
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenReincorporacion || conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
+      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
 
       document.getElementById('docModal').classList.add('active');
 
@@ -6459,8 +6455,7 @@
           saveBtn.style.background = '#0b5a3c';
         }
         if (btnVerOrden) {
-          btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+          btnVerOrden.style.display = 'none';
         }
       } else if (conf.isOrdenIncorporacion) {
         if (saveBtn) {
@@ -6577,9 +6572,6 @@
         container.innerHTML = `
           <div style="background:#e8f2ec; padding:10px 14px; border-radius:8px; border:1px solid #cce2d4; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
             <span style="font-weight:700; color:#0b5a3c; font-size:13px;">📑 Formulario de Orden de Reincorporación</span>
-            <button type="button" onclick="verOrdenFromDocModal(event)" style="background:#0b5a3c; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 4px rgba(11,90,60,0.25);">
-              👁️ Vista Previa A4
-            </button>
           </div>
           <div class="form-group">
             <label>N&uacute;mero de Documento</label>
@@ -7292,7 +7284,7 @@
       buildModalForm(found);
 
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
-      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenReincorporacion || conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
+      if (btnVerOrden) btnVerOrden.style.display = (conf.isOrdenIncorporacion || conf.isOrdenGravidez || conf.isOrdenLactancia) ? 'inline-flex' : 'none';
 
       document.getElementById('docModal').classList.add('active');
     }
