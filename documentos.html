@@ -8530,9 +8530,19 @@ MOTIVO: ${motivoText}`;
       }
 
       const yr = new Date().getFullYear();
-      const numPad = data.numPadded || (data.numero_documento ? (data.numero_documento.match(/^(\d+)/)?.[1] || '001') : '001');
-      const padNum = String(numPad).padStart(3, '0');
-      const tituloDoc = `ORDEN DE INCORPORACION N°${padNum}-${yr}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/SEC-OFAD.AREREHUM`;
+      let rawDocNum = String(data.numero_documento || '').trim();
+      let padNum = '001';
+      const mNum = rawDocNum.match(/(\d+)/);
+      if (mNum) padNum = mNum[1].padStart(3, '0');
+      const mYr = rawDocNum.match(/-(\d{4})/);
+      const docYr = mYr ? mYr[1] : yr;
+
+      let tituloDoc = '';
+      if (rawDocNum.toUpperCase().startsWith('ORDEN DE INCORPORACI')) {
+        tituloDoc = rawDocNum.toUpperCase();
+      } else {
+        tituloDoc = `ORDEN DE INCORPORACION N°${padNum}-${docYr}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/SEC-OFAD.AREREHUM`;
+      }
 
       let cipVal = data.cip || data.CIP || '---';
       let nombresVal = (data.apellidos_y_nombres || data.apellidos_nombres || data.grado_apellidos_nombres || '').toUpperCase().trim();
@@ -8569,9 +8579,11 @@ MOTIVO: ${motivoText}`;
       const fechaHoraMil = formatFechaHoraMil(data.created_at || data.fecha_documento || new Date());
 
       const tags = {
-        NUMERO_ORDEN: `${padNum}-${yr}`,
+        NUMERO_ORDEN: tituloDoc,
         NUMERO_ORDEN_COMPLETO: tituloDoc,
         TITULO_DOC: tituloDoc,
+        NUMERO_DOCUMENTO: tituloDoc,
+        NUMERO_CORTO: `${padNum}-${docYr}`,
         CIP: cipVal,
         GRADO: gradoVal,
         APELLIDOS_NOMBRES: nombresVal,
@@ -9646,9 +9658,11 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
       uLogueado = uLogueado.trim().toUpperCase();
 
       const tags = {
-        NUMERO_ORDEN: `${padNum}-${yr}`,
+        NUMERO_ORDEN: tituloDoc,
         NUMERO_ORDEN_COMPLETO: tituloDoc,
         TITULO_DOC: tituloDoc,
+        NUMERO_DOCUMENTO: tituloDoc,
+        NUMERO_CORTO: `${padNum}-${yr}`,
         CIP: cipVal,
         APELLIDOS_NOMBRES: nombresVal,
         PROCEDENCIA: procedenciaVal,
