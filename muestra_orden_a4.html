@@ -157,10 +157,10 @@
     /* ENCABEZADO: MEMBRETE IZQUIERDA + TÍTULO LATERAL DERECHO */
     .header-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: flex-start;
       gap: 12px;
-      margin-bottom: 6px;
+      margin-bottom: 12px; /* Baja 2 espacios el cuerpo */
     }
     .header-membrete-box {
       flex-shrink: 0;
@@ -175,6 +175,7 @@
     .doc-title-container {
       flex: 1;
       text-align: center;
+      padding-top: 14px; /* Baja 2 espacios el título */
     }
     .doc-title {
       font-family: 'Impact', 'Arial Black', sans-serif;
@@ -282,7 +283,7 @@
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
-      margin-top: 64px;
+      margin-top: 50px;
       margin-right: 23px;
     }
     .footer-sign-block.has-cargo {

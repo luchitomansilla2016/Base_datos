@@ -2439,10 +2439,10 @@
     #reincorporacionPreviewModal .header-row,
     #reincorporacionBulkPrintContainer .header-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: flex-start;
       gap: 12px;
-      margin-bottom: 6px;
+      margin-bottom: 12px; /* Baja 2 espacios el cuerpo */
     }
     #reincorporacionPreviewModal .membrete-img,
     #reincorporacionBulkPrintContainer .membrete-img {
@@ -2454,6 +2454,7 @@
     #reincorporacionBulkPrintContainer .doc-title-container {
       flex: 1;
       text-align: center;
+      padding-top: 14px; /* Baja 2 espacios el título */
     }
     #reincorporacionPreviewModal .doc-title,
     #reincorporacionBulkPrintContainer .doc-title {
@@ -2562,7 +2563,7 @@
       display: flex;
       justify-content: flex-end;
       align-items: flex-start;
-      margin-top: 64px;
+      margin-top: 50px;
       margin-right: 23px;
     }
     #reincorporacionPreviewModal .footer-sign-block.has-cargo,
