@@ -2425,7 +2425,7 @@
       height: 148.5mm;
       max-height: 148.5mm;
       box-sizing: border-box;
-      padding: 10mm 12mm 0mm 25mm;
+      padding: 8mm 12mm 0mm 5mm; /* Margen izquierdo 0.5 cm (5mm) */
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -2468,7 +2468,8 @@
     }
     #reincorporacionPreviewModal .data-table,
     #reincorporacionBulkPrintContainer .data-table {
-      width: 100%;
+      width: calc(100% - 20mm);
+      margin-left: 20mm; /* Mantiene la tabulación exacta de 25mm del cuerpo */
       border-collapse: collapse;
       margin-bottom: 2px;
       font-family: Arial, sans-serif;
@@ -2522,7 +2523,26 @@
       width: 100%;
       height: 1px;
       background-color: #000;
-      margin: 6px 0 5px 0;
+      margin: 6px 0 3px 0;
+    }
+    #reincorporacionPreviewModal .sub-divider-row,
+    #reincorporacionBulkPrintContainer .sub-divider-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      width: 100%;
+    }
+    #reincorporacionPreviewModal .generado-por-foot,
+    #reincorporacionBulkPrintContainer .generado-por-foot {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 6pt;
+      font-style: italic;
+      color: #000;
+      text-align: left;
+      line-height: 1.1;
+      white-space: nowrap;
+      margin-top: 1px;
     }
     #reincorporacionPreviewModal .date-row,
     #reincorporacionBulkPrintContainer .date-row {
@@ -2531,7 +2551,8 @@
       font-size: 9pt;
       font-weight: bold;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-bottom: 0;
+      white-space: nowrap;
     }
     #reincorporacionPreviewModal .footer-sign-block,
     #reincorporacionBulkPrintContainer .footer-sign-block {
@@ -8745,6 +8766,59 @@ MOTIVO: ${motivoText}`;
 
       const obsHTML = `SE PONE A DISPOSICI&Oacute;N AL ADMINISTRADO CONFORME AL MOTIVO ANTES INDICADO; CABE PRECISAR QUE SU REINCORPORACI&Oacute;N DEBER&Aacute; SER COMUNICADO AL JEFE DE DIVISI&Oacute;N, JEFE DE DEPARTAMENTO (SI FUERA EL CASO) Y A AL &Aacute;REA DE RECURSOS HUMANOS DE LA REGPOL HUANUCO CON EL DOCUMENTO CORRESPONDIENTE MEDIANTE EL CORREO ELECTR&Oacute;NICO rphuanuco.arerehum@policia.gob.pe, SIN PERJUICIO DE FORMULAR LA DOCUMENTACI&Oacute;N CORRESPONDIENTE ANTE CUALQUIER NOVEDAD QUE PUDIERA SUSCITARSE.`;
 
+      let uLogueado = '';
+      let uCip = '';
+      if (typeof currentUser !== 'undefined' && currentUser) {
+        uLogueado = currentUser.apellidos_nombres || currentUser['APELLIDOS Y NOMBRES'] || currentUser.nombre || '';
+        uCip = currentUser.cip || currentUser.CIP || '';
+      }
+      if (!uLogueado) {
+        try {
+          const stored = localStorage.getItem('regpol_docs_user') || sessionStorage.getItem('regpol_docs_user');
+          if (stored) {
+            const parsedUser = JSON.parse(stored);
+            uLogueado = parsedUser.apellidos_nombres || parsedUser['APELLIDOS Y NOMBRES'] || parsedUser.nombre || '';
+            uCip = parsedUser.cip || parsedUser.CIP || '';
+          }
+        } catch (_) {}
+      }
+      if (!uCip) {
+        uCip = (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('pnp_user_cip')) ||
+               (typeof localStorage !== 'undefined' && localStorage.getItem('pnp_user_cip')) || '';
+      }
+      if (!uLogueado && typeof getUsuarioRegistraNombre === 'function') {
+        uLogueado = getUsuarioRegistraNombre();
+      }
+      if (!uLogueado) {
+        uLogueado = (typeof sessionStorage !== 'undefined' && (sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name'))) ||
+                    (typeof localStorage !== 'undefined' && (localStorage.getItem('pnp_user_fullname') || localStorage.getItem('usuario_nombre'))) ||
+                    'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      }
+      uLogueado = uLogueado.trim();
+
+      const hasGradePrefix = /^(GRAL|CRNL|CMDTE|MAY|CAP|TNTE|ALFZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO|SOP|EC|EMP|EMPLEADO)\b/i.test(uLogueado);
+      if (!hasGradePrefix && (personalCatalogDoc && personalCatalogDoc.length)) {
+        let foundU = null;
+        if (uCip) {
+          foundU = personalCatalogDoc.find(p => String(p.CIP || p.cip || '').trim() === String(uCip).trim());
+        }
+        if (!foundU && uLogueado) {
+          const sU = uLogueado.toUpperCase();
+          foundU = personalCatalogDoc.find(p => {
+            const pNom = String(p['APELLIDOS Y NOMBRES'] || p.apellidos_y_nombres || '').toUpperCase().trim();
+            return pNom && (sU.includes(pNom) || pNom.includes(sU));
+          });
+        }
+        if (foundU) {
+          const pGrd = (foundU.GRADO || foundU.grado || '').trim();
+          const pNom = (foundU['APELLIDOS Y NOMBRES'] || foundU.apellidos_y_nombres || uLogueado).trim();
+          if (pGrd) {
+            uLogueado = `${pGrd} ${pNom}`;
+          }
+        }
+      }
+      uLogueado = uLogueado.trim().toUpperCase();
+
       return `
       <div class="a4-page">
         <!-- COPIA 1 (SUPERIOR 148.5mm) -->
@@ -8800,7 +8874,10 @@ MOTIVO: ${motivoText}`;
 
           <div>
             <div class="divider-line"></div>
-            <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocVal}</span></div>
+            <div class="sub-divider-row">
+              <div class="generado-por-foot">GENERADO POR: ${uLogueado}</div>
+              <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocVal}</span></div>
+            </div>
 
             <div class="footer-sign-block">
               <div class="sello-sign-wrapper">
@@ -8870,7 +8947,10 @@ MOTIVO: ${motivoText}`;
 
           <div>
             <div class="divider-line"></div>
-            <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocVal}</span></div>
+            <div class="sub-divider-row">
+              <div class="generado-por-foot">GENERADO POR: ${uLogueado}</div>
+              <div class="date-row">HU&Aacute;NUCO, <span>${fechaDocVal}</span></div>
+            </div>
 
             <div class="footer-sign-block has-cargo">
               <div class="sello-cargo-box">

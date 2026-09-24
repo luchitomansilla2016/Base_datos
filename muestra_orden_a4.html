@@ -141,8 +141,8 @@
       height: 148.5mm;
       max-height: 148.5mm;
       box-sizing: border-box;
-      /* Márgenes oficiales: Superior 1.0cm, Derecha 1.2cm, Inferior 0cm, Izquierdo 2.5cm */
-      padding: 10mm 12mm 0mm 25mm;
+      /* Márgenes oficiales: Superior 0.8cm, Derecha 1.2cm, Inferior 0cm, Izquierdo 0.5cm */
+      padding: 8mm 12mm 0mm 5mm;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
@@ -189,7 +189,8 @@
 
     /* TABLA DE CAMPOS ESTRUCTURADOS */
     .data-table {
-      width: 100%;
+      width: calc(100% - 20mm);
+      margin-left: 20mm; /* Mantiene la tabulación exacta de 25mm del cuerpo */
       border-collapse: collapse;
       margin-bottom: 2px;
       font-family: Arial, sans-serif;
@@ -240,7 +241,26 @@
       width: 100%;
       height: 1px;
       background-color: #000;
-      margin: 6px 0 5px 0;
+      margin: 6px 0 3px 0;
+    }
+
+    .sub-divider-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+      width: 100%;
+    }
+
+    .generado-por-foot {
+      font-family: 'Arial Narrow', Arial, sans-serif;
+      font-size: 6pt;
+      font-style: italic;
+      color: #000;
+      text-align: left;
+      line-height: 1.1;
+      white-space: nowrap;
+      margin-top: 1px;
     }
 
     /* FECHA Y LUGAR */
@@ -250,7 +270,8 @@
       font-size: 9pt;
       font-weight: bold;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-bottom: 0;
+      white-space: nowrap;
     }
 
     /* BLOQUE DE FIRMA Y SELLO REDONDO */
@@ -459,7 +480,10 @@
       <!-- Pie de Página -->
       <div>
         <div class="divider-line"></div>
-        <div class="date-row">HUÁNUCO, <span class="val-fecha">21 DE SETIEMBRE DE 2026</span></div>
+        <div class="sub-divider-row">
+          <div class="generado-por-foot">GENERADO POR: ST2 PNP MANSILLA SANTA MARIA JOSE LUIS</div>
+          <div class="date-row">HUÁNUCO, <span class="val-fecha">21 DE SETIEMBRE DE 2026</span></div>
+        </div>
 
         <div class="footer-sign-block">
           <!-- Sello Redondo Oficial de 3cm pegado por su extremo derecho a la línea de post-firma -->
@@ -532,7 +556,10 @@
       <!-- Pie de Página -->
       <div>
         <div class="divider-line"></div>
-        <div class="date-row">HUÁNUCO, <span class="val-fecha">21 DE SETIEMBRE DE 2026</span></div>
+        <div class="sub-divider-row">
+          <div class="generado-por-foot">GENERADO POR: ST2 PNP MANSILLA SANTA MARIA JOSE LUIS</div>
+          <div class="date-row">HUÁNUCO, <span class="val-fecha">21 DE SETIEMBRE DE 2026</span></div>
+        </div>
 
         <div class="footer-sign-block has-cargo">
           <!-- Sello de Cargo únicamente en la segunda copia (inferior) -->
