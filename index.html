@@ -1045,17 +1045,17 @@
       font-size: 15px !important;
       font-weight: normal !important;
       text-transform: uppercase;
-      line-height: 1.18;
+      line-height: 1.25;
       color: #000;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.02em;
       text-align: center;
       width: 100%;
-      margin-top: 34px; /* Título baja dos espacios */
+      margin-top: 45px !important; /* Título baja dos espacios */
       text-decoration: underline;
     }
     .orden-doc-number-title div {
       white-space: nowrap;
-      text-decoration: underline;
+      text-decoration: underline !important;
       font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif !important;
       font-size: 15px !important;
       font-weight: normal !important;
@@ -4496,6 +4496,11 @@
                 <div class="orden-data-sep">:</div>
                 <div class="orden-data-val"><span class="orden-val-motivo">---</span></div>
               </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">DOC REFERENCIA</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-docreferencia">---</span></div>
+              </div>
               <div class="orden-data-row" style="align-items:flex-start; margin-top:1px;">
                 <div class="orden-data-label">OBSERVACION</div>
                 <div class="orden-data-sep">:</div>
@@ -4578,6 +4583,11 @@
                 <div class="orden-data-label">MOTIVO</div>
                 <div class="orden-data-sep">:</div>
                 <div class="orden-data-val"><span class="orden-val-motivo">---</span></div>
+              </div>
+              <div class="orden-data-row">
+                <div class="orden-data-label">DOC REFERENCIA</div>
+                <div class="orden-data-sep">:</div>
+                <div class="orden-data-val"><span class="orden-val-docreferencia">---</span></div>
               </div>
               <div class="orden-data-row" style="align-items:flex-start; margin-top:1px;">
                 <div class="orden-data-label">OBSERVACION</div>
@@ -8316,6 +8326,13 @@
       }
       uLogueado = uLogueado.trim().toUpperCase();
 
+      // Documento de Referencia
+      let docRefVal = (data.documento_referencia || data.numero_orden_incorporacion_dirrehum || data.referencia || '').trim();
+      if (!docRefVal && motivoText) {
+        docRefVal = motivoText.toUpperCase().startsWith('ORDEN') ? motivoText : `ORDEN ${motivoText}`;
+      }
+      if (!docRefVal) docRefVal = '---';
+
       // Llenar datos en todos los elementos de ambas copias
       document.querySelectorAll('.orden-val-num').forEach(el => el.textContent = numPad);
       document.querySelectorAll('.orden-val-cip').forEach(el => el.textContent = cip);
@@ -8325,6 +8342,7 @@
       document.querySelectorAll('.orden-val-destino').forEach(el => el.textContent = destino);
       document.querySelectorAll('.orden-val-fechasalida').forEach(el => el.textContent = fechaSalida);
       document.querySelectorAll('.orden-val-motivo').forEach(el => el.textContent = motivoText);
+      document.querySelectorAll('.orden-val-docreferencia').forEach(el => el.textContent = docRefVal);
       document.querySelectorAll('.orden-val-fechahora').forEach(el => el.textContent = fechaHoraText);
       document.querySelectorAll('.orden-val-generadopor').forEach(el => el.textContent = uLogueado);
 
