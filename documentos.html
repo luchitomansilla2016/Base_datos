@@ -9658,11 +9658,9 @@ MOTIVO: AL TÉRMINO DE: ${motivoVal}`;
       uLogueado = uLogueado.trim().toUpperCase();
 
       const tags = {
-        NUMERO_ORDEN: tituloDoc,
+        NUMERO_ORDEN: `${padNum}-${yr}`,
         NUMERO_ORDEN_COMPLETO: tituloDoc,
         TITULO_DOC: tituloDoc,
-        NUMERO_DOCUMENTO: tituloDoc,
-        NUMERO_CORTO: `${padNum}-${yr}`,
         CIP: cipVal,
         APELLIDOS_NOMBRES: nombresVal,
         PROCEDENCIA: procedenciaVal,
