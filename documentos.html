@@ -525,6 +525,63 @@
       background: var(--primary-light);
     }
 
+    .btn-proximamente-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .floating-proximamente-badge {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: linear-gradient(135deg, #d84315 0%, #f57c00 100%);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      box-shadow: 0 4px 14px rgba(216, 67, 21, 0.45);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 99999;
+      text-transform: uppercase;
+      display: none;
+    }
+
+    .floating-proximamente-badge::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px;
+      border-style: solid;
+      border-color: #f57c00 transparent transparent transparent;
+    }
+
+    .btn-proximamente-wrapper.active-proximamente .floating-proximamente-badge {
+      display: block;
+    }
+
+    .btn-proximamente-wrapper.active-proximamente:hover .floating-proximamente-badge,
+    .btn-proximamente-wrapper.active-proximamente .floating-proximamente-badge.show-floating {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+      animation: floatBadgeAnim 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatBadgeAnim {
+      0% { transform: translateX(-50%) translateY(0); }
+      100% { transform: translateX(-50%) translateY(-5px); }
+    }
+
     .content-body {
       flex: 1;
       padding: 20px 24px;
@@ -2892,7 +2949,10 @@
           <button type="button" class="btn-secondary-action" id="btnCancelDocModal" onclick="closeDocModal()">CANCELAR</button>
           <button type="button" class="btn-secondary-action" id="btnVerOrdenFromDocModal" onclick="verOrdenFromDocModal(event)" style="background:#e8f2ec; color:#0b5a3c; border: 1.5px solid #0b5a3c; font-weight:700; display:none;">👁️ Ver / Imprimir Orden</button>
           <button type="button" class="btn-secondary-action" id="btnSaveDocOnly" onclick="saveDocRecord(false)" style="background:#e8f2ec; color:#0b5a3c; border: 1.5px solid #0b5a3c; font-weight:700; display:none;">&#128190; SOLO GUARDAR REGISTRO</button>
-          <button type="submit" class="btn-primary-action" id="btnSaveDoc">&#128190; Guardar Registro</button>
+          <div class="btn-proximamente-wrapper" id="wrapperBtnSaveDoc">
+            <div class="floating-proximamente-badge" id="badgeProximamente">PROXIMAMENTE</div>
+            <button type="submit" class="btn-primary-action" id="btnSaveDoc">&#128190; Guardar Registro</button>
+          </div>
         </div>
       </form>
     </div>
@@ -6473,9 +6533,14 @@
       const saveBtn = document.getElementById('btnSaveDoc');
       const btnVerOrden = document.getElementById('btnVerOrdenFromDocModal');
 
+      const wrapperBtnSaveDoc = document.getElementById('wrapperBtnSaveDoc');
+      const badgeProximamente = document.getElementById('badgeProximamente');
+
       if (btnCancel) btnCancel.textContent = 'CANCELAR';
 
       if (currentTable === 'oficios') {
+        if (wrapperBtnSaveDoc) wrapperBtnSaveDoc.classList.add('active-proximamente');
+        if (badgeProximamente) badgeProximamente.textContent = 'PROXIMAMENTE';
         if (btnSaveDocOnly) {
           btnSaveDocOnly.style.display = 'inline-flex';
           btnSaveDocOnly.innerHTML = '&#128190; SOLO GUARDAR REGISTRO';
@@ -6488,61 +6553,73 @@
           saveBtn.innerHTML = '&#128196; GUARDAR Y GENERAR OFICIO';
           saveBtn.style.background = '#0b5a3c';
           saveBtn.style.color = '#ffffff';
+          saveBtn.setAttribute('title', 'PROXIMAMENTE');
+          saveBtn.onclick = function(e) {
+            if (e) e.preventDefault();
+            triggerProximamenteFloating();
+          };
         }
         if (btnVerOrden) {
           btnVerOrden.style.display = 'none';
-        }
-      } else if (conf.isOrdenReincorporacion) {
-        if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
-          saveBtn.style.background = '#0b5a3c';
-          saveBtn.style.color = '#ffffff';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'none';
-        }
-      } else if (conf.isOrdenIncorporacion) {
-        if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
-          saveBtn.style.background = '#0b5a3c';
-          saveBtn.style.color = '#ffffff';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'none';
-        }
-      } else if (conf.isOrdenGravidez) {
-        if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
-          saveBtn.style.background = '#0b5a3c';
-          saveBtn.style.color = '#ffffff';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
-        }
-      } else if (conf.isOrdenLactancia) {
-        if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
-        if (saveBtn) {
-          saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
-          saveBtn.style.background = '#0b5a3c';
-          saveBtn.style.color = '#ffffff';
-        }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'inline-flex';
-          btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
         }
       } else {
-        if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
+        if (wrapperBtnSaveDoc) wrapperBtnSaveDoc.classList.remove('active-proximamente');
         if (saveBtn) {
-          saveBtn.innerHTML = '&#128190; Guardar Registro';
-          saveBtn.style.background = '';
-          saveBtn.style.color = '';
+          saveBtn.removeAttribute('title');
+          saveBtn.onclick = null;
         }
-        if (btnVerOrden) {
-          btnVerOrden.style.display = 'none';
+        if (conf.isOrdenReincorporacion) {
+          if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
+          if (saveBtn) {
+            saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
+            saveBtn.style.background = '#0b5a3c';
+            saveBtn.style.color = '#ffffff';
+          }
+          if (btnVerOrden) {
+            btnVerOrden.style.display = 'none';
+          }
+        } else if (conf.isOrdenIncorporacion) {
+          if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
+          if (saveBtn) {
+            saveBtn.innerHTML = '&#128424;&#65039; Generar y Ver Vista Previa';
+            saveBtn.style.background = '#0b5a3c';
+            saveBtn.style.color = '#ffffff';
+          }
+          if (btnVerOrden) {
+            btnVerOrden.style.display = 'none';
+          }
+        } else if (conf.isOrdenGravidez) {
+          if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
+          if (saveBtn) {
+            saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
+            saveBtn.style.background = '#0b5a3c';
+            saveBtn.style.color = '#ffffff';
+          }
+          if (btnVerOrden) {
+            btnVerOrden.style.display = 'inline-flex';
+            btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+          }
+        } else if (conf.isOrdenLactancia) {
+          if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
+          if (saveBtn) {
+            saveBtn.innerHTML = '&#128065;&#65039; Ver Plantilla y Guardar';
+            saveBtn.style.background = '#0b5a3c';
+            saveBtn.style.color = '#ffffff';
+          }
+          if (btnVerOrden) {
+            btnVerOrden.style.display = 'inline-flex';
+            btnVerOrden.innerHTML = '&#128065;&#65039; Vista Previa A4';
+          }
+        } else {
+          if (btnSaveDocOnly) btnSaveDocOnly.style.display = 'none';
+          if (saveBtn) {
+            saveBtn.innerHTML = '&#128190; Guardar Registro';
+            saveBtn.style.background = '';
+            saveBtn.style.color = '';
+          }
+          if (btnVerOrden) {
+            btnVerOrden.style.display = 'none';
+          }
         }
       }
 
@@ -6995,6 +7072,17 @@
       container.innerHTML = html;
     }
 
+    function triggerProximamenteFloating() {
+      const badge = document.getElementById('badgeProximamente');
+      if (badge) {
+        badge.classList.add('show-floating');
+        clearTimeout(badge._hideTimer);
+        badge._hideTimer = setTimeout(() => {
+          badge.classList.remove('show-floating');
+        }, 3000);
+      }
+    }
+
     function getUsuarioRegistraNombre() {
       if (!currentUser) return 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
       const grado = String(currentUser.grado || currentUser.GRADO || '').trim();
@@ -7008,6 +7096,10 @@
     async function saveDocRecord(generateOficio = null) {
       if (generateOficio === null) {
         generateOficio = (currentTable === 'oficios');
+      }
+      if (currentTable === 'oficios' && generateOficio === true) {
+        triggerProximamenteFloating();
+        return;
       }
       const conf = TABLES_CONFIG[currentTable];
       const payload = {};
