@@ -3032,8 +3032,8 @@
 
 
   <!-- MODAL OFICIAL: GENERADOR DE OFICIOS PNP -->
-  <div id="modalGeneradorOficios" class="modal" style="z-index: 10005; display: none;">
-    <div class="dialog" style="max-width: 880px; width: 95%; border-top: 5px solid #0b5a3c; border-radius: 14px; overflow: hidden; background: #ffffff;">
+  <div id="modalGeneradorOficios" class="doc-modal" style="z-index: 10005;">
+    <div class="doc-dialog" style="max-width: 880px; width: 95%; border-top: 5px solid #0b5a3c; border-radius: 14px; overflow: hidden; background: #ffffff;">
       <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f3ec 100%); padding: 16px 20px; border-bottom: 1px solid #cce2d4; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <h1 style="color: #0b5a3c; font-size: 18px; display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 800;">
@@ -6687,6 +6687,25 @@
     function closeDocModal() {
       document.getElementById('docModal').classList.remove('active');
       editingId = null;
+    }
+
+    function getTodayPeruYMD() {
+      try {
+        const d = new Date();
+        const peruDateStr = d.toLocaleDateString('en-CA', { timeZone: 'America/Lima' });
+        if (peruDateStr && peruDateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return peruDateStr;
+      } catch (_) {}
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function formatFechaPeru(ymdStr) {
+      if (!ymdStr) return '';
+      const str = String(ymdStr).trim().split('T')[0];
+      const p = str.split('-');
+      if (p.length === 3) {
+        return `${p[2]}/${p[1]}/${p[0]}`;
+      }
+      return str;
     }
 
     function escapeHtml(str) {
