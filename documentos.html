@@ -6675,7 +6675,7 @@
 
       document.getElementById('docModal').classList.add('active');
 
-      if (!conf.isUserTable && currentTable !== 'orden_reincorporacion' && currentTable !== 'orden_incorporacion' && currentTable !== 'orden_gravidez' && currentTable !== 'orden_lactancia') {
+      if (!conf.isUserTable && currentTable !== 'orden_reincorporacion' && currentTable !== 'orden_incorporacion' && currentTable !== 'orden_gravidez' && currentTable !== 'orden_lactancia' && currentTable !== 'oficios') {
         const docNumInput = document.getElementById('f_numero_documento');
         if (docNumInput) {
           getNextDocCorrelative(currentTable).then(nextNum => {
@@ -7233,7 +7233,15 @@
       }
 
       let numSugerido = '';
-      if (existing.numero_documento) {
+      let isNumLocked = false;
+      if (currentTable === 'oficios') {
+        if (existing.numero_documento) {
+          numSugerido = existing.numero_documento;
+        } else {
+          numSugerido = 'AUTOGENERADO';
+        }
+        isNumLocked = true;
+      } else if (existing.numero_documento) {
         numSugerido = formatShortDocNumber(existing.numero_documento);
       } else if (currentData.length > 0) {
         const nextNum = String(currentData.length + 1).padStart(3, '0');
@@ -7243,12 +7251,14 @@
         numSugerido = `001-${new Date().getFullYear()}`;
       }
 
-      const placeholderDoc = `Ej. 001-${new Date().getFullYear()}`;
+      const placeholderDoc = currentTable === 'oficios' ? 'AUTOGENERADO AL GUARDAR' : `Ej. 001-${new Date().getFullYear()}`;
+      const lockedStyle = isNumLocked ? 'background:#e9ecef; cursor:not-allowed; font-weight:700; color:#495057;' : '';
+      const lockedAttr = isNumLocked ? 'readonly title="El correlativo oficial se generará automáticamente en tiempo real al guardar"' : '';
 
       let html = `
         <div class="form-group">
-          <label>N&uacute;mero de Documento</label>
-          <input id="f_numero_documento" class="form-control" type="text" value="${numSugerido}" placeholder="${placeholderDoc}" required />
+          <label>N&uacute;mero de Documento ${isNumLocked ? '<span style="color:#0b5a3c; font-size:11px; font-weight:bold;">(🔒 Autogenerado al guardar)</span>' : ''}</label>
+          <input id="f_numero_documento" class="form-control" type="text" value="${numSugerido}" placeholder="${placeholderDoc}" ${lockedAttr} style="${lockedStyle}" required />
         </div>
         <div class="form-group">
           <label>Fecha del Documento</label>
@@ -7556,33 +7566,37 @@
         payload['contrase\u00f1a'] = document.getElementById('f_pass').value.trim();
       } else {
         let rawNum = document.getElementById('f_numero_documento').value.trim();
-        const mNum = rawNum.match(/(\d+)/);
-        const mYear = rawNum.match(/-(\d{4})/);
-        const numPadded = mNum ? mNum[1].padStart(3, '0') : '001';
-        const yearVal = mYear ? mYear[1] : String(new Date().getFullYear());
+        if (currentTable === 'oficios' && (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO') || !editingId)) {
+          rawNum = await getNextDocCorrelative('oficios');
+        } else {
+          const mNum = rawNum.match(/(\d+)/);
+          const mYear = rawNum.match(/-(\d{4})/);
+          const numPadded = mNum ? mNum[1].padStart(3, '0') : '001';
+          const yearVal = mYear ? mYear[1] : String(new Date().getFullYear());
 
-        const DOC_PREFIX_MAP = {
-          oficios: 'OFICIO',
-          informes: 'INFORME',
-          memorandum: 'MEMORANDUM',
-          informe_administrativo: 'INFORME ADMINISTRATIVO',
-          decreto: 'DECRETO',
-          carta_informativa: 'CARTA INFORMATIVA',
-          devolucion: 'DEVOLUCION',
-          resolucion: 'RESOLUCION',
-          orden_incorporacion: 'ORDEN DE INCORPORACION',
-          orden_reincorporacion: 'ORDEN DE REINCORPORACION',
-          comunicacion_telefonica: 'COMUNICACION TELEFONICA',
-          orden_telefonica: 'ORDEN TELEFONICA',
-          orden_lactancia: 'ORDEN DE LACTANCIA',
-          orden_gravidez: 'ORDEN DE GRAVIDEZ'
-        };
+          const DOC_PREFIX_MAP = {
+            oficios: 'OFICIO',
+            informes: 'INFORME',
+            memorandum: 'MEMORANDUM',
+            informe_administrativo: 'INFORME ADMINISTRATIVO',
+            decreto: 'DECRETO',
+            carta_informativa: 'CARTA INFORMATIVA',
+            devolucion: 'DEVOLUCION',
+            resolucion: 'RESOLUCION',
+            orden_incorporacion: 'ORDEN DE INCORPORACION',
+            orden_reincorporacion: 'ORDEN DE REINCORPORACION',
+            comunicacion_telefonica: 'COMUNICACION TELEFONICA',
+            orden_telefonica: 'ORDEN TELEFONICA',
+            orden_lactancia: 'ORDEN DE LACTANCIA',
+            orden_gravidez: 'ORDEN DE GRAVIDEZ'
+          };
 
-        if (DOC_PREFIX_MAP[currentTable]) {
-          const docTypePrefix = DOC_PREFIX_MAP[currentTable];
-          const sigla = (currentTable === 'oficios') ? 'COMOPPOL/DIRNOS PNP/EM-OFAD.AREREHUM' : 'COMOPPOL/DIRNOS PNP/EM-OFAD.AREREHUM.MP';
-          if (!rawNum.toUpperCase().includes('COMOPPOL')) {
-            rawNum = `${docTypePrefix} N°${numPadded}-${yearVal}-${sigla}`;
+          if (DOC_PREFIX_MAP[currentTable]) {
+            const docTypePrefix = DOC_PREFIX_MAP[currentTable];
+            const sigla = (currentTable === 'oficios') ? 'COMOPPOL/DIRNOS PNP/EM-OFAD.AREREHUM' : 'COMOPPOL/DIRNOS PNP/EM-OFAD.AREREHUM.MP';
+            if (!rawNum.toUpperCase().includes('COMOPPOL')) {
+              rawNum = `${docTypePrefix} N°${numPadded}-${yearVal}-${sigla}`;
+            }
           }
         }
         payload.numero_documento = rawNum;
@@ -7835,12 +7849,10 @@
       const fFecha = document.getElementById('f_fecha_documento');
       const fDesc = document.getElementById('f_descripcion');
       const fDestino = document.getElementById('f_destino');
-      const fNumDoc = document.getElementById('f_numero_documento');
 
       const fechaVal = fFecha ? fFecha.value : getTodayPeruYMD();
       const descVal = fDesc ? fDesc.value.trim() : '';
       const destinoVal = fDestino ? fDestino.value.trim() : '';
-      let numDocVal = fNumDoc ? fNumDoc.value.trim() : '';
 
       if (!fechaVal) {
         if (typeof toast === 'function') toast('Por favor ingrese la fecha del documento', 'warning');
@@ -7848,17 +7860,9 @@
         return;
       }
 
-      if (!numDocVal || numDocVal.toUpperCase().includes('AUTOGENERADO')) {
-        try {
-          numDocVal = await getNextDocCorrelative('oficios');
-        } catch (_) {
-          numDocVal = 'OFICIO N°001-2026-COMOPPOL/DIRNOS PNP/EM-OFAD.AREREHUM';
-        }
-      }
-
       const tempOficioData = {
         id: editingId || null,
-        numero_documento: numDocVal,
+        numero_documento: editingId ? (document.getElementById('f_numero_documento')?.value || 'OFICIO N° [AUTOGENERADO]') : 'OFICIO N° [AUTOGENERADO AL GUARDAR]',
         fecha_documento: fechaVal,
         descripcion: descVal || 'SE COMUNICA LO QUE SE INDICA',
         destino: destinoVal,
@@ -7888,7 +7892,7 @@
         const firmanteStr = (grdVal && nomVal) ? `${grdVal} ${nomVal}${crgVal ? ' - ' + crgVal : ''}` : '';
 
         let rawNum = currentGenOficioData?.numero_documento || '';
-        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO')) {
+        if (!rawNum || rawNum.toUpperCase().includes('AUTOGENERADO') || !currentGenOficioData?.id) {
           rawNum = await getNextDocCorrelative('oficios');
         }
 
