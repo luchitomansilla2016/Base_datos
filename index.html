@@ -813,6 +813,11 @@
       color: white;
     }
 
+    .ficha-print-header,
+    .ficha-print-footer {
+      display: none;
+    }
+
     .login-overlay {
       position: fixed;
       inset: 0;
@@ -3124,51 +3129,224 @@
         font-size: 7.5pt !important;
         color: #666 !important;
       }
+      body.printing-ficha > *:not(#fichaModal) {
+        display: none !important;
+      }
+
       #fichaModal {
         display: block !important;
         position: static !important;
         inset: auto !important;
         width: 100% !important;
         padding: 0 !important;
+        margin: 0 !important;
         background: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
       #fichaModal .dialog {
         width: 100% !important;
-        max-width: none !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 10mm 14mm !important;
+        box-sizing: border-box !important;
         box-shadow: none !important;
         border: none !important;
-      }
-
-      #fichaModal header {
-        display: block !important;
         background: white !important;
-        border-bottom: 2px solid #0b5a3c !important;
-        padding: 0 0 6px 0 !important;
-        margin-bottom: 8px !important;
       }
 
-      #fichaModal header h1 { font-size: 16px !important; color: #06351f !important; }
-      #fichaModal .close-btn, #fichaModal .footer { display: none !important; }
-      #fichaModal .ficha-box { padding: 0 !important; max-height: none !important; overflow: visible !important; }
-      #fichaModal .ficha-list { grid-template-columns: repeat(2, 1fr) !important; gap: 0 10mm !important; }
-      #fichaModal .ficha-list-section {
-        grid-column: span 2 !important;
-        background: #fff6dc !important;
-        border-left: 3px solid #d8b23f !important;
-        padding: 4px 6px !important;
-        margin: 6px 0 2px !important;
-        font-size: 10px !important;
+      #fichaModal header,
+      #fichaModal .close-btn,
+      #fichaModal .footer {
+        display: none !important;
+      }
+
+      .ficha-print-header {
+        display: block !important;
+        margin-bottom: 4mm !important;
+        border-bottom: 2px solid #0b5a3c !important;
+        padding-bottom: 3mm !important;
         break-inside: avoid !important;
       }
+
+      .ficha-print-brand {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 12px !important;
+      }
+
+      .ficha-print-logo {
+        height: 48px !important;
+        width: auto !important;
+        object-fit: contain !important;
+      }
+
+      .ficha-print-titles {
+        flex-grow: 1 !important;
+        text-align: center !important;
+      }
+
+      .ficha-print-main-title {
+        font-size: 11pt !important;
+        font-weight: 900 !important;
+        color: #0b5a3c !important;
+        letter-spacing: 0.5px !important;
+        margin-bottom: 1px !important;
+        font-family: Arial, sans-serif !important;
+      }
+
+      .ficha-print-sub-title {
+        font-size: 8pt !important;
+        font-weight: 700 !important;
+        color: #333 !important;
+        letter-spacing: 0.3px !important;
+        margin-bottom: 2px !important;
+        font-family: Arial, sans-serif !important;
+      }
+
+      .ficha-print-doc-title {
+        font-size: 9.5pt !important;
+        font-weight: 900 !important;
+        color: #06351f !important;
+        text-transform: uppercase !important;
+        font-family: Arial, sans-serif !important;
+      }
+
+      .ficha-print-side-info {
+        text-align: right !important;
+        font-size: 7.5pt !important;
+        color: #555 !important;
+        font-family: Arial, sans-serif !important;
+      }
+
+      .ficha-print-badge {
+        display: inline-block !important;
+        background: #edf6ef !important;
+        color: #0b5a3c !important;
+        border: 1px solid #0b5a3c !important;
+        padding: 1.5px 6px !important;
+        border-radius: 4px !important;
+        font-weight: 800 !important;
+        font-size: 7pt !important;
+        margin-bottom: 2px !important;
+      }
+
+      .ficha-print-date {
+        font-size: 7.5pt !important;
+        color: #666 !important;
+      }
+
+      .ficha-print-efectivo-bar {
+        margin-top: 3.5mm !important;
+        padding: 3.5px 8px !important;
+        background: #fff8e7 !important;
+        border-left: 3.5px solid #d8b23f !important;
+        font-size: 9.5pt !important;
+        font-weight: 800 !important;
+        color: #18372b !important;
+        text-transform: uppercase !important;
+        font-family: Arial, sans-serif !important;
+      }
+
+      #fichaModal .ficha-box {
+        padding: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+
+      #fichaModal .ficha-list {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        column-gap: 8mm !important;
+        row-gap: 1.5mm !important;
+        width: 100% !important;
+      }
+
+      #fichaModal .ficha-list-section {
+        grid-column: 1 / -1 !important;
+        background: #edf6ef !important;
+        border-left: 4px solid #0b5a3c !important;
+        border-bottom: 1px solid #d4ded7 !important;
+        padding: 3.5px 8px !important;
+        margin: 4.5mm 0 1.5mm 0 !important;
+        font-size: 8.5pt !important;
+        font-weight: 800 !important;
+        color: #0b5a3c !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        border-radius: 2px !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        break-after: avoid !important;
+        page-break-after: avoid !important;
+        font-family: Arial, sans-serif !important;
+      }
+
       #fichaModal .ficha-list-row {
-        padding: 3px 0 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: baseline !important;
+        padding: 2px 0 !important;
         min-height: auto !important;
         border-bottom: 1px dotted #ccc !important;
         break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        gap: 8px !important;
+        grid-column: span 1 !important;
       }
-      #fichaModal .ficha-list-label { font-size: 8.5px !important; font-weight: 800 !important; }
-      #fichaModal .ficha-list-value { font-size: 9.5px !important; font-weight: 600 !important; }
+
+      #fichaModal .ficha-list-row.full {
+        grid-column: 1 / -1 !important;
+        display: flex !important;
+        justify-content: flex-start !important;
+        align-items: baseline !important;
+        gap: 10px !important;
+      }
+
+      #fichaModal .ficha-list-label {
+        font-size: 7.8pt !important;
+        font-weight: 800 !important;
+        color: #444 !important;
+        text-transform: uppercase !important;
+        white-space: nowrap !important;
+        min-width: 110px !important;
+        flex-shrink: 0 !important;
+        letter-spacing: 0.2px !important;
+        font-family: Arial, sans-serif !important;
+      }
+
+      #fichaModal .ficha-list-row.full .ficha-list-label {
+        min-width: 140px !important;
+      }
+
+      #fichaModal .ficha-list-value {
+        font-size: 8.2pt !important;
+        font-weight: 600 !important;
+        color: #111 !important;
+        word-break: break-word !important;
+        flex-grow: 1 !important;
+        text-align: right !important;
+        font-family: Arial, sans-serif !important;
+      }
+
+      #fichaModal .ficha-list-row.full .ficha-list-value {
+        text-align: left !important;
+      }
+
+      .ficha-print-footer {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border-top: 1px solid #d4ded7 !important;
+        margin-top: 5mm !important;
+        padding-top: 2.5mm !important;
+        font-size: 7.2pt !important;
+        color: #666 !important;
+        break-inside: avoid !important;
+        font-family: Arial, sans-serif !important;
+      }
     }
   </style>
 </head>
@@ -4397,6 +4575,23 @@
   <!-- Ficha Policial (Visualización de datos e Impresión A4 para todos los módulos) -->
   <div id="fichaModal" class="modal">
     <div class="dialog">
+      <!-- Encabezado oficial exclusivo para impresión A4 -->
+      <div class="ficha-print-header">
+        <div class="ficha-print-brand">
+          <img src="escudo_header_regpol.png" class="ficha-print-logo" alt="Escudo REGPOL" onerror="this.style.display='none'" />
+          <div class="ficha-print-titles">
+            <div class="ficha-print-main-title">POLICÍA NACIONAL DEL PERÚ</div>
+            <div class="ficha-print-sub-title">REGIÓN POLICIAL HUÁNUCO &middot; ÁREA DE RECURSOS HUMANOS / OFAD</div>
+            <div class="ficha-print-doc-title">FICHA DE DATOS DEL EFECTIVO POLICIAL</div>
+          </div>
+          <div class="ficha-print-side-info">
+            <div class="ficha-print-badge">SISTEMA REGPOL 2.0</div>
+            <div id="fichaPrintDate" class="ficha-print-date"></div>
+          </div>
+        </div>
+        <div id="fichaPrintEfectivo" class="ficha-print-efectivo-bar"></div>
+      </div>
+
       <header>
         <div>
           <h1>Ficha del efectivo policial</h1>
@@ -4405,6 +4600,13 @@
         <button class="close-btn" onclick="closeFicha(event)" title="Cerrar">×</button>
       </header>
       <div id="fichaContent" class="ficha-box"></div>
+
+      <!-- Pie de página oficial exclusivo para impresión A4 -->
+      <div class="ficha-print-footer">
+        <div>Documento oficial generado desde el Sistema de Personal - REGPOL Huánuco</div>
+        <div id="fichaPrintFooterCode"></div>
+      </div>
+
       <div class="footer">
         <button class="secondary" onclick="closeFicha(event)">Cerrar</button>
         <div style="display:flex; gap:8px; align-items:center;">
@@ -7465,6 +7667,26 @@
 
       document.getElementById('fichaContent').innerHTML = html;
 
+      // Actualizar datos del encabezado y pie de página de impresión oficial
+      const cipVal = firstValue(r, ['CIP', 'cip']) || '—';
+      const gradoVal = firstValue(r, ['grado', 'GRADO']) || '';
+      const nomVal = firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']) || '';
+      const efecEl = document.getElementById('fichaPrintEfectivo');
+      if (efecEl) {
+        efecEl.textContent = `${gradoVal} ${nomVal}   |   CIP: ${cipVal}`.trim();
+      }
+      const dateEl = document.getElementById('fichaPrintDate');
+      if (dateEl) {
+        const now = new Date();
+        const dStr = String(now.getDate()).padStart(2, '0') + '/' + String(now.getMonth() + 1).padStart(2, '0') + '/' + now.getFullYear();
+        const tStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        dateEl.textContent = `Emisión: ${dStr} ${tStr}`;
+      }
+      const footerCodeEl = document.getElementById('fichaPrintFooterCode');
+      if (footerCodeEl) {
+        footerCodeEl.textContent = `CIP: ${cipVal} · Ref: Ficha Oficial`;
+      }
+
       const btn = document.getElementById('fichaEditBtn');
       if (btn) btn.style.display = canEdit() ? '' : 'none';
       const delBtn = document.getElementById('fichaDeletePermanentBtn');
@@ -7475,7 +7697,14 @@
     }
 
     function closeFicha(e) { if (e) e.preventDefault(); document.getElementById('fichaModal').classList.remove('open'); }
-    function printFicha(e) { if (e) e.preventDefault(); window.print(); }
+    function printFicha(e) {
+      if (e) e.preventDefault();
+      document.body.classList.add('printing-ficha');
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-ficha');
+      }, 1000);
+    }
 
     function editFromFicha(e) {
       if (e) e.preventDefault();
