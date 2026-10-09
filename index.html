@@ -10476,6 +10476,10 @@ MOTIVO: ${motivoText}`;
             return `<div class="field full" style="grid-column: 1 / -1 !important;"><label for="${k}">${meta.label}</label><input id="${k}" type="text" style="width: 100% !important;" /></div>`;
           }
 
+          if (currentTable === 'disponibilidad_retiro' && k === 'motivo') {
+            return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><input id="${k}" type="text" placeholder="Causal o motivo del pase a disponibilidad / retiro" /></div>`;
+          }
+
           if (k === 'incorp_motivo' || k === 'dest_incorp_motivo' || (currentTable === 'reasignados' && k === 'motivo') || (currentTable === 'personal' && k === 'motivo')) {
             const motivoList = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
             return `<div class="field ${meta.cls || ''}">
@@ -14796,6 +14800,8 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
                   }
                 } else if (k === 'observaciones' || k === 'observacion') {
                   val = firstValue(current, ['observaciones', 'observacion', 'OBSERVACIONES', 'OBSERVACION', 'detalle']);
+                } else if (k === 'motivo' || k === 'causal') {
+                  val = firstValue(current, ['motivo', 'MOTIVO', 'causal', 'CAUSAL', 'motivo_pase', 'causa', 'detalle']);
                 } else {
                   val = firstValue(current, [k]);
                 }
