@@ -7326,14 +7326,21 @@
       if (key === 'lista_de_revista' || key === 'lista_revista') return firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']);
       if (key === 'unidad_de_origen' || key === 'unidad_origen') return firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_origen']);
       if (key === 'descripcion_curso' || key === 'descripcion_del_curso') return firstValue(r, ['descripcion_del_curso', 'descripcion_curso', 'nombre_curso', 'curso']);
-      if (key === 'tiempo_incorporacion') return tiempoTranscurrido(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'fecha_incorporacion']));
-      if (key === 'edad_actual') return tiempoTranscurrido(firstValue(r, ['fecha_de_nacimiento', 'FECHA DE NACIMIENTO']));
-      if (key === 'tiempo_servicio') return tiempoTranscurrido(firstValue(r, ['f_egreso_de_la_escuela', 'FECHA EGR. ESCUELA']));
-      if (key === 'tiempo_grado') return tiempoTranscurrido(firstValue(r, ['f_ultimo_ascenso', 'FECHA ULT. ASCENSO']));
+      if (key === 'tiempo_incorporacion') return tiempoTranscurrido(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'FECHA INCORPORACION', 'fecha_incorporacion']));
+      if (key === 'edad_actual') return tiempoTranscurrido(firstValue(r, ['fecha_de_nacimiento', 'FECHA DE NACIMIENTO', 'fecha_nacimiento']));
+      if (key === 'tiempo_servicio') return tiempoTranscurrido(firstValue(r, ['f_egreso_de_la_escuela', 'FECHA EGR. ESCUELA', 'FECHA EGR ESCUELA', 'fecha_egr_escuela', 'fecha_egreso_de_la_escuela']));
+      if (key === 'tiempo_grado') return tiempoTranscurrido(firstValue(r, ['f_ultimo_ascenso', 'FECHA ULT. ASCENSO', 'FECHA ULT ASCENSO', 'fecha_ult_ascenso', 'fecha_ultimo_ascenso']));
       if (key === 'apellidos_y_nombres' || key === 'apellidos_nombres' || key === 'apellidos_nombre') return firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']);
       if (key === 'unidad_de_origen' || key === 'unidad_origen') return firstValue(r, ['unidad_origen', 'unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_anterior']);
       if (key === 'lista_de_revista' || key === 'lista_revista') return firstValue(r, ['lista_revista', 'LISTA DE REVISTA', 'lista_de_revista', 'unidad_de_origen']);
-      if (key === 'fecha_de_incorporacion') return formatDateDisplay(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'fecha_incorporacion']));
+      if (key === 'fecha_de_incorporacion') return formatDateDisplay(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'FECHA INCORPORACION', 'fecha_incorporacion']));
+      if (key === 'fecha_de_nacimiento') return formatDateDisplay(firstValue(r, ['fecha_de_nacimiento', 'FECHA DE NACIMIENTO', 'fecha_nacimiento']));
+      if (key === 'f_ingreso_al_estado') return formatDateDisplay(firstValue(r, ['FECHA ING. ESTADO', 'FECHA ING ESTADO', 'f_ingreso_al_estado', 'fecha_ing_estado', 'f_ingreso_estado', 'fecha_ingreso_al_estado', 'fecha_ingreso_estado', 'FECHA INGRESO ESTADO']));
+      if (key === 'f_ingreso_a_la_escuela') return formatDateDisplay(firstValue(r, ['FECHA ING. ESCUELA', 'FECHA ING ESCUELA', 'f_ingreso_a_la_escuela', 'f_ingreso_escuela', 'fecha_ing_escuela', 'fecha_ingreso_a_la_escuela', 'fecha_ingreso_escuela', 'FECHA INGRESO ESCUELA']));
+      if (key === 'f_egreso_de_la_escuela') return formatDateDisplay(firstValue(r, ['FECHA EGR. ESCUELA', 'FECHA EGR ESCUELA', 'f_egreso_de_la_escuela', 'f_egreso_escuela', 'fecha_egr_escuela', 'fecha_egreso_de_la_escuela', 'fecha_egreso_escuela', 'FECHA EGRESO ESCUELA']));
+      if (key === 'f_ultimo_ascenso') return formatDateDisplay(firstValue(r, ['FECHA ULT. ASCENSO', 'FECHA ULT ASCENSO', 'f_ultimo_ascenso', 'fecha_ult_ascenso', 'fecha_ultimo_ascenso', 'FECHA ULTIMO ASCENSO']));
+      if (key === 'f_inicio') return formatDateDisplay(firstValue(r, ['F. INICIO', 'F.INICIO', 'f_inicio', 'fecha_inicio']));
+      if (key === 'f_termino') return formatDateDisplay(firstValue(r, ['F. TERMINO', 'F.TERMINO', 'f_termino', 'fecha_termino']));
       if (key === 'situacion_actual') return firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion', 'estado']);
       if (key === 'condicion') return firstValue(r, ['condicion', 'CONDICIÓN']);
       if (key === 'fecha_situacion') return formatDateDisplay(firstValue(r, ['fecha_situacion', 'FECHA SITUACION', 'fecha']));
@@ -7380,6 +7387,12 @@
       if (key === 'a_merito') return firstValue(r, ['a_merito']);
       if (key === 'exclusion_inclusion') return firstValue(r, ['exclusion_inclusion', 'exclusion', 'inclusion']);
 
+      if (typeof personalDbColumnMap !== 'undefined' && personalDbColumnMap[key]) {
+        const dbVal = firstValue(r, [personalDbColumnMap[key], key]);
+        if (typeof allFieldMeta !== 'undefined' && allFieldMeta[key]?.type === 'date') return formatDateDisplay(dbVal);
+        if (dbVal !== undefined && dbVal !== null && String(dbVal).trim() !== '') return dbVal;
+      }
+
       return firstValue(r, [key]);
     }
 
@@ -7393,7 +7406,8 @@
     }
 
     function openFicha(id) {
-      const r = findRecordById(id);
+      const idStr = String(id || '').trim();
+      const r = (current && ((current.id !== undefined && current.id !== null && String(current.id).trim() === idStr) || String(firstValue(current, ['CIP', 'cip', 'dni', 'DNI'])).trim() === idStr)) ? current : findRecordById(id);
       if (!r) return;
 
       currentFichaId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
@@ -8692,9 +8706,21 @@ MOTIVO: ${motivoText}`;
 
     function tiempoTranscurrido(fecha) {
       if (!fecha) return '';
-      const fClean = String(fecha).split('T')[0].replace(/\//g, '-');
-      const ini = new Date(fClean + 'T00:00:00'), hoy = new Date();
-      if (isNaN(ini.getTime()) || ini > hoy) return '';
+      const fStr = String(fecha).trim().split('T')[0];
+      let ini = null;
+      const mYMD = fStr.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+      if (mYMD) {
+        ini = new Date(parseInt(mYMD[1], 10), parseInt(mYMD[2], 10) - 1, parseInt(mYMD[3], 10));
+      } else {
+        const mDMY = fStr.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+        if (mDMY) {
+          ini = new Date(parseInt(mDMY[3], 10), parseInt(mDMY[2], 10) - 1, parseInt(mDMY[1], 10));
+        } else {
+          ini = new Date(fStr.replace(/\//g, '-') + 'T00:00:00');
+        }
+      }
+      const hoy = new Date();
+      if (!ini || isNaN(ini.getTime()) || ini > hoy) return '';
       let a = hoy.getFullYear() - ini.getFullYear(), m = hoy.getMonth() - ini.getMonth(), d = hoy.getDate() - ini.getDate();
       if (d < 0) { m--; d += new Date(hoy.getFullYear(), hoy.getMonth(), 0).getDate(); }
       if (m < 0) { a--; m += 12; }
@@ -14657,6 +14683,23 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
 
     function openFichaFromForm(e) {
       if (e) e.preventDefault();
+      if (current) {
+        let sec = moduloFormFields[currentTable] || moduloFormFields.personal;
+        sec.forEach(s => {
+          s.fields.forEach(k => {
+            const el = document.getElementById(k);
+            if (el && el.value !== undefined) {
+              const val = el.value.trim();
+              current[k] = val;
+              if (currentTable === 'personal' && personalDbColumnMap[k]) {
+                current[personalDbColumnMap[k]] = val;
+              } else if (currentTable === 'referidos' && referidosDbColumnMap[k]) {
+                current[referidosDbColumnMap[k]] = val;
+              }
+            }
+          });
+        });
+      }
       const id = current ? ((current.id !== undefined && current.id !== null && current.id !== '') ? current.id : firstValue(current, ['CIP', 'cip'])) : null;
       closeForm();
       if (id) openFicha(id);
