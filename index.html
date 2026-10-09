@@ -3348,6 +3348,84 @@
         font-family: Arial, sans-serif !important;
       }
     }
+
+    /* Estilos para Asistente IA de Visión */
+    .ai-vision-box {
+      margin: 10px 20px 0 20px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 60%, #eff6ff 100%);
+      border: 1.5px dashed #0284c7;
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);
+      transition: all 0.25s ease;
+    }
+    .ai-btn-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+      line-height: 1.4;
+    }
+    .ai-btn-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    }
+    .ai-btn-demo {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+    }
+    .ai-btn-paste {
+      background: #ffffff;
+      color: #0369a1;
+      border-color: #bae6fd;
+    }
+    .ai-btn-upload {
+      background: #ffffff;
+      color: #0f766e;
+      border-color: #99f6e4;
+    }
+    .ai-btn-screen {
+      background: #ffffff;
+      color: #7c3aed;
+      border-color: #ddd6fe;
+    }
+    .ai-btn-key {
+      background: #f8fafc;
+      color: #475569;
+      border-color: #cbd5e1;
+      font-size: 11px;
+    }
+    @keyframes aiFieldPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); border-color: #10b981; }
+      40% { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.3); border-color: #059669; }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .ai-highlighted {
+      animation: aiFieldPulse 2.5s ease-out;
+      border-color: #10b981 !important;
+      background-color: #f0fdf4 !important;
+    }
+    @keyframes spinAi {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .ai-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #0284c7;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spinAi 0.8s linear infinite;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -3590,6 +3668,57 @@
         </div>
         <button class="close-btn" onclick="closeForm(event)" title="Cerrar">×</button>
       </header>
+
+      <!-- Banner Asistente IA de Visión (Prueba / Autollenado) -->
+      <div id="aiVisionBanner" class="ai-vision-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:16px;">✨</span>
+            <span style="font-weight:800; font-size:13px; color:#0369a1;">Asistente IA de Visión</span>
+            <span id="aiVisionModeBadge" style="background:#0284c7; color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:12px; letter-spacing:0.3px;">MODO PRUEBA</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button type="button" class="ai-btn-pill ai-btn-key" onclick="openAiKeyConfigModal()" title="Configurar API Key de Gemini">
+              ⚙️ <span id="aiKeyStatusText">Conectar API Key</span>
+            </button>
+            <button type="button" class="ai-btn-pill" style="background:transparent; color:#64748b; padding:4px 6px;" onclick="toggleAiVisionBox()" title="Minimizar / Mostrar">
+              <span id="aiToggleIcon">▲</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="aiVisionContent" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+          <div style="font-size:11.5px; color:#334155; line-height:1.4;">
+            Captura con <b>Win + Shift + S</b> y presiona <b>Ctrl + V</b> aquí, o utiliza las opciones rápidas:
+          </div>
+
+          <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <button type="button" class="ai-btn-pill ai-btn-demo" onclick="runAiDemoTest()" title="Simular lectura de una resolución PNP">
+              🧪 Probar Resolución de Muestra (Demo)
+            </button>
+            <button type="button" class="ai-btn-pill ai-btn-paste" onclick="triggerPastePrompt()" title="Pegar desde el portapapeles">
+              📋 Pegar Captura (Ctrl + V)
+            </button>
+            <button type="button" class="ai-btn-pill ai-btn-upload" onclick="document.getElementById('aiVisionFileInput').click()" title="Subir imagen JPG o PNG">
+              📁 Subir Imagen
+            </button>
+            <button type="button" class="ai-btn-pill ai-btn-screen" onclick="captureScreenForAi()" title="Capturar ventana o pantalla en vivo">
+              📸 Capturar Pantalla
+            </button>
+            <input type="file" id="aiVisionFileInput" accept="image/*" style="display:none;" onchange="handleAiImageUpload(event)" />
+          </div>
+
+          <!-- Barra de Estado / Vista Previa -->
+          <div id="aiVisionStatusBox" style="display:none; align-items:center; gap:12px; background:#ffffff; border:1px solid #bae6fd; border-radius:8px; padding:8px 12px; margin-top:4px;">
+            <img id="aiVisionThumb" src="" alt="Captura" style="width:48px; height:48px; object-fit:cover; border-radius:6px; border:1px solid #cbd5e1; display:none;" />
+            <div style="flex-grow:1; font-size:12px;" id="aiVisionStatusText">
+              <span class="ai-spinner"></span> Analizando documento policial con IA...
+            </div>
+            <button type="button" id="aiVisionClearBtn" style="background:transparent; border:0; color:#94a3b8; font-size:16px; cursor:pointer; padding:2px;" onclick="clearAiVisionStatus()" title="Limpiar">×</button>
+          </div>
+        </div>
+      </div>
+
       <form id="form" class="form"></form>
       <div class="footer">
         <button class="secondary" onclick="closeForm(event)">Cancelar sin guardar</button>
@@ -3601,6 +3730,40 @@
           <button id="btnSaveAndGenOrden" type="button" class="primary" onclick="saveRecordAndGenerateOrden(event)" style="background: linear-gradient(135deg, #0b5a3c 0%, #0a6370 100%); display:none;">📑 Guardar y Generar Orden</button>
           <button id="saveRecordBtn" class="primary" onclick="saveRecord(event)">Guardar cambios</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Configuración API Key Gemini -->
+  <div id="aiKeyConfigModal" class="modal" style="z-index: 180;">
+    <div class="dialog" style="max-width: 480px; border-top: 4px solid #0284c7;">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e0f2fe 100%);">
+        <div>
+          <h1 style="color: #0369a1; font-size: 16px; display:flex; align-items:center; gap:8px;">
+            <span>⚙️</span> API Key de Google Gemini
+          </h1>
+          <div class="sub">Para lectura real con IA de Visión (Gemini Flash)</div>
+        </div>
+        <button class="close-btn" onclick="closeAiKeyConfigModal()" title="Cerrar">×</button>
+      </header>
+      <div style="padding: 18px 20px; display:flex; flex-direction:column; gap:12px;">
+        <div style="font-size:12px; color:#475569; line-height:1.45;">
+          La API Key es <b>100% gratuita</b> para uso y desarrollo. Se almacena localmente en tu navegador (nunca se sube a GitHub ni a servidores externos).
+        </div>
+        <div class="field wide">
+          <label for="geminiApiKeyInput">Clave API (AI Studio):</label>
+          <input id="geminiApiKeyInput" type="password" placeholder="AIzaSy..." style="font-family:monospace;" />
+        </div>
+        <div style="font-size:11.5px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; color:#166534;">
+          💡 <b>¿Cómo obtenerla gratis en 30 segundos?</b><br />
+          1. Ingresa a <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#0284c7; text-decoration:underline; font-weight:700;">Google AI Studio (Clic aquí)</a> con tu cuenta de Gmail.<br />
+          2. Haz clic en <i>"Create API key"</i>.<br />
+          3. Cópiala y pégala aquí.
+        </div>
+      </div>
+      <div class="footer">
+        <button class="secondary" onclick="closeAiKeyConfigModal()">Cancelar</button>
+        <button class="primary" style="background:linear-gradient(135deg, #0284c7, #0369a1);" onclick="saveGeminiApiKey()">💾 Guardar Clave</button>
       </div>
     </div>
   </div>
@@ -14733,10 +14896,376 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
       }
     }
 
+    // ==========================================
+    // ASISTENTE DE IA DE VISIÓN (AUTOPRUEBA Y LECTURA)
+    // ==========================================
+
+    function initAiVisionBanner() {
+      const apiKey = localStorage.getItem('GEMINI_API_KEY');
+      const badge = document.getElementById('aiVisionModeBadge');
+      const keyText = document.getElementById('aiKeyStatusText');
+      if (badge) {
+        badge.textContent = apiKey ? 'GEMINI FLASH (ACTIVO)' : 'MODO PRUEBA';
+        badge.style.background = apiKey ? '#059669' : '#0284c7';
+      }
+      if (keyText) {
+        keyText.textContent = apiKey ? 'Clave conectada ✓' : 'Conectar API Key';
+      }
+      clearAiVisionStatus();
+    }
+
+    function toggleAiVisionBox() {
+      const content = document.getElementById('aiVisionContent');
+      const icon = document.getElementById('aiToggleIcon');
+      if (!content) return;
+      if (content.style.display === 'none') {
+        content.style.display = 'flex';
+        if (icon) icon.textContent = '▲';
+      } else {
+        content.style.display = 'none';
+        if (icon) icon.textContent = '▼';
+      }
+    }
+
+    function openAiKeyConfigModal() {
+      const input = document.getElementById('geminiApiKeyInput');
+      if (input) input.value = localStorage.getItem('GEMINI_API_KEY') || '';
+      document.getElementById('aiKeyConfigModal').classList.add('open');
+    }
+
+    function closeAiKeyConfigModal() {
+      document.getElementById('aiKeyConfigModal').classList.remove('open');
+    }
+
+    function saveGeminiApiKey() {
+      const input = document.getElementById('geminiApiKeyInput');
+      const key = (input?.value || '').trim();
+      if (key) {
+        localStorage.setItem('GEMINI_API_KEY', key);
+        toast('¡Clave de Google Gemini guardada con éxito en tu navegador!', 'success');
+      } else {
+        localStorage.removeItem('GEMINI_API_KEY');
+        toast('Modo prueba restaurado (sin clave guardada).', 'info');
+      }
+      initAiVisionBanner();
+      closeAiKeyConfigModal();
+    }
+
+    function clearAiVisionStatus() {
+      const box = document.getElementById('aiVisionStatusBox');
+      const thumb = document.getElementById('aiVisionThumb');
+      const text = document.getElementById('aiVisionStatusText');
+      if (box) box.style.display = 'none';
+      if (thumb) { thumb.src = ''; thumb.style.display = 'none'; }
+      if (text) text.innerHTML = '';
+    }
+
+    function setAiVisionLoading(thumbSrc = '') {
+      const box = document.getElementById('aiVisionStatusBox');
+      const thumb = document.getElementById('aiVisionThumb');
+      const text = document.getElementById('aiVisionStatusText');
+      if (box) box.style.display = 'flex';
+      if (thumb) {
+        if (thumbSrc) { thumb.src = thumbSrc; thumb.style.display = 'block'; }
+        else { thumb.style.display = 'none'; }
+      }
+      if (text) {
+        text.innerHTML = '<span class="ai-spinner"></span> <b>Analizando documento policial con IA de Visión...</b> Extrayendo CIP, Grado, Nombres, Documento, Motivo...';
+      }
+    }
+
+    function triggerPastePrompt() {
+      toast('Presiona Ctrl + V en tu teclado para pegar la captura copiada con Win+Shift+S', 'info');
+    }
+
+    function handleAiImageUpload(e) {
+      const file = e.target?.files?.[0];
+      if (file) {
+        processAiImageBlob(file);
+      }
+      e.target.value = '';
+    }
+
+    async function captureScreenForAi() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        toast('Tu navegador no soporta captura de pantalla directa. Usa Win + Shift + S y presiona Ctrl + V.', 'warning');
+        return;
+      }
+      try {
+        toast('Selecciona la ventana o pantalla que deseas capturar...', 'info');
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: 'screen' } });
+        const track = stream.getVideoTracks()[0];
+        let blob = null;
+
+        if (window.ImageCapture) {
+          try {
+            const ic = new ImageCapture(track);
+            blob = await ic.takePhoto();
+          } catch (_) {}
+        }
+        if (!blob) {
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          await new Promise(r => video.onloadedmetadata = r);
+          await video.play();
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0);
+          blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+        }
+
+        track.stop();
+        if (blob) processAiImageBlob(blob);
+      } catch (err) {
+        if (err.name !== 'NotAllowedError') {
+          toast('Error en captura de pantalla: ' + err.message, 'warning');
+        }
+      }
+    }
+
+    // Listener global de Pegado (Ctrl + V) para capturas de pantalla
+    window.addEventListener('paste', (e) => {
+      const modal = document.getElementById('modal');
+      if (!modal || !modal.classList.contains('open')) return;
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type && items[i].type.startsWith('image/')) {
+          e.preventDefault();
+          const file = items[i].getAsFile();
+          if (file) {
+            processAiImageBlob(file);
+            return;
+          }
+        }
+      }
+    });
+
+    async function processAiImageBlob(blob) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        setAiVisionLoading(dataUrl);
+
+        const apiKey = localStorage.getItem('GEMINI_API_KEY');
+        if (apiKey) {
+          // LLAMADA REAL A LA API DE GEMINI FLASH
+          try {
+            const result = await callGeminiVisionApi(dataUrl, blob.type, apiKey);
+            const count = fillFormWithAiData(result);
+            const text = document.getElementById('aiVisionStatusText');
+            if (text) {
+              text.innerHTML = `<span style="color:#059669; font-weight:800;">✓ ¡Éxito!</span> Se extrajeron y completaron <b>${count} campos</b> desde la imagen con Gemini Flash.`;
+            }
+            toast(`¡IA completó ${count} campos del formulario!`, 'success');
+          } catch (err) {
+            console.error('Error Gemini Vision:', err);
+            const text = document.getElementById('aiVisionStatusText');
+            if (text) {
+              text.innerHTML = `<span style="color:#dc2626; font-weight:700;">Error de API:</span> ${esc(err.message)} <button class="ai-btn-pill ai-btn-key" style="margin-left:8px;" onclick="openAiKeyConfigModal()">Revisar clave</button>`;
+            }
+            toast('Error conectando a Gemini Vision: ' + err.message, 'error');
+          }
+        } else {
+          // MODO PRUEBA / DEMOSTRACIÓN VISUAL CON LA IMAGEN REAL PEGADA
+          setTimeout(() => {
+            const demoData = getRealisticPoliceSampleData();
+            const count = fillFormWithAiData(demoData);
+            const text = document.getElementById('aiVisionStatusText');
+            if (text) {
+              text.innerHTML = `<span style="color:#0284c7; font-weight:800;">✓ Modo Prueba:</span> Imagen recibida. Se autollenaron <b>${count} campos</b> de demostración. <a href="javascript:void(0)" onclick="openAiKeyConfigModal()" style="color:#0284c7; text-decoration:underline; font-weight:700; margin-left:4px;">Conecta tu API Key gratuita</a> para leer el texto exacto.`;
+            }
+            toast(`✨ Modo Prueba: ¡${count} campos autocompletados en el formulario!`, 'success');
+          }, 1100);
+        }
+      };
+      reader.readAsDataURL(blob);
+    }
+
+    async function runAiDemoTest() {
+      setAiVisionLoading('escudo_header_regpol.png');
+      setTimeout(() => {
+        const demoData = getRealisticPoliceSampleData();
+        const count = fillFormWithAiData(demoData);
+        const text = document.getElementById('aiVisionStatusText');
+        if (text) {
+          text.innerHTML = `<span style="color:#059669; font-weight:800;">✓ Demostración exitosa:</span> Se extrajeron y autollenaron <b>${count} campos</b> simulando una Resolución Directoral PNP.`;
+        }
+        toast(`✨ ¡Demostración completada! Se autollenaron ${count} campos en el formulario.`, 'success');
+      }, 1000);
+    }
+
+    function getRealisticPoliceSampleData() {
+      if (currentTable === 'disponibilidad_retiro') {
+        return {
+          cip: '30559879',
+          grado: 'SS PNP',
+          apellidos_nombres: 'VILLANUEVA BERROCAL CARLOS ESTEBAN',
+          unidad_origen: 'COMOPPOL DIRNOS REGPOL HUANUCO DIVOPUS DUE USE',
+          lista_revista: 'COMOPPOL DIRNOS REGPOL HUANUCO DIVOPUS DUE USE',
+          condicion: 'NATO',
+          situacion_actual: 'RETIRO',
+          fecha_situacion: '2025-08-03',
+          documento_referencia: 'RD N° 4043-2025 DIRREHUM',
+          fecha_documento: '2025-04-23',
+          motivo: 'LIMITE DE EDAD EN EL GRADO',
+          observacion: 'Pase a la situación de retiro por haber alcanzado el límite de edad en el grado conforme a ley.'
+        };
+      }
+      if (currentTable === 'reasignados') {
+        return {
+          cip: '31204567',
+          grado: 'ST1 PNP',
+          apellidos_nombres: 'MENDOZA PAREDES JORGE LUIS',
+          unidad_origen: 'COMISARIA PNP TINGO MARIA',
+          lista_revista: 'DIRNOS REGPOL HUANUCO DIVPOL LEONCIO PRADO',
+          resolucion_memorandum: 'RM N° 0524-2025 IN',
+          motivo: 'NECESIDAD DEL SERVICIO',
+          fecha_salida: '2025-07-15',
+          unidad_destino: 'DIVPOL LEONCIO PRADO',
+          documento_referencia: 'OFICIO N° 1245-2025-REGPOL-HCO',
+          observacion: 'Reasignado por necesidad del servicio.'
+        };
+      }
+      return {
+        cip: '31056789',
+        grado: 'S1 PNP',
+        apellidos_nombres: 'QUISPE HUAMAN WALTER',
+        unidad_origen: 'COMISARIA PNP HUANUCO',
+        lista_revista: 'DIRNOS REGPOL HUANUCO DIVOPUS',
+        situacion_actual: 'PRESENTE',
+        condicion: 'NATO',
+        fecha_incorporacion: '2025-01-10',
+        documento_referencia: 'RD N° 1200-2025 DIRREHUM',
+        fecha_documento: '2025-01-05',
+        motivo: 'NECESIDAD DEL SERVICIO',
+        observacion: 'Personal policial incorporado en alta.'
+      };
+    }
+
+    async function callGeminiVisionApi(dataUrl, mimeType, apiKey) {
+      const cleanBase64 = dataUrl.replace(/^data:[a-zA-Z0-9\/]+;base64,/, '');
+
+      const promptText = `
+Eres un asistente experto de la Policía Nacional del Perú (PNP) encargado de transcribir documentos oficiales (Resoluciones Directorales/Ministeriales, Oficios, Memorándums, Actas, Partes).
+Extrae los datos del efectivo y del documento en el siguiente formato JSON estricto:
+{
+  "cip": "número de CIP del efectivo (6 a 8 dígitos)",
+  "grado": "grado policial (ej: SS PNP, SB PNP, ST1 PNP, ST2 PNP, ST3 PNP, S1 PNP, S2 PNP, S3 PNP, COR., COM., MAY., CAP., TNTE., ALF.)",
+  "apellidos_nombres": "apellidos y nombres en mayúsculas",
+  "unidad_origen": "unidad de procedencia u origen",
+  "lista_revista": "unidad actual o lista de revista",
+  "condicion": "condición (ej: NATO, DESTACADO, etc.)",
+  "situacion_actual": "situación policial si aplica (ej: RETIRO, DISPONIBILIDAD, REASIGNADO, PRESENTE)",
+  "fecha_situacion": "fecha en formato YYYY-MM-DD cuando rige la situación",
+  "documento_referencia": "nombre y número del documento (ej: RD N° 1646-2025 DIRREHUM, MEMORANDUM N° ...)",
+  "fecha_documento": "fecha del documento en formato YYYY-MM-DD",
+  "motivo": "motivo o causal (ej: LIMITE DE EDAD EN EL GRADO, A SU SOLICITUD, NECESIDAD DEL SERVICIO, etc.)",
+  "observacion": "observaciones relevantes adicionales"
+}
+Si algún dato no aparece en la imagen, déjalo vacío (""). Devuelve ÚNICAMENTE el objeto JSON sin texto antes ni después.
+`;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const payload = {
+        contents: [{
+          parts: [
+            { text: promptText },
+            {
+              inline_data: {
+                mime_type: mimeType || 'image/jpeg',
+                data: cleanBase64
+              }
+            }
+          ]
+        }],
+        generationConfig: {
+          response_mime_type: "application/json"
+        }
+      };
+
+      let resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!resp.ok) {
+        const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+        resp = await fetch(fallbackUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (!resp.ok) {
+        const errJson = await resp.json().catch(() => ({}));
+        throw new Error(errJson?.error?.message || `HTTP ${resp.status}`);
+      }
+
+      const resData = await resp.json();
+      const rawText = resData?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) throw new Error('No se recibió texto desde la IA.');
+      return JSON.parse(rawText);
+    }
+
+    function fillFormWithAiData(data) {
+      if (!data) return 0;
+      let count = 0;
+
+      const mapping = {
+        'cip': data.cip,
+        'CIP': data.cip,
+        'grado': data.grado,
+        'GRADO': data.grado,
+        'apellidos_nombres': data.apellidos_nombres,
+        'apellidos_y_nombres': data.apellidos_nombres,
+        'APELLIDOS Y NOMBRES': data.apellidos_nombres,
+        'unidad_origen': data.unidad_origen,
+        'unidad_de_origen': data.unidad_origen,
+        'UNIDAD DE ORIGEN': data.unidad_origen,
+        'lista_revista': data.lista_revista || data.unidad_origen,
+        'lista_de_revista': data.lista_revista || data.unidad_origen,
+        'LISTA DE REVISTA': data.lista_revista || data.unidad_origen,
+        'condicion': data.condicion,
+        'situacion_actual': data.situacion_actual,
+        'fecha_situacion': data.fecha_situacion,
+        'documento_referencia': data.documento_referencia,
+        'resolucion_memorandum': data.documento_referencia,
+        'documento_que_sustenta': data.documento_referencia,
+        'fecha_documento': data.fecha_documento,
+        'fecha_salida': data.fecha_situacion || data.fecha_documento,
+        'fecha_de_incorporacion': data.fecha_situacion || data.fecha_documento,
+        'motivo': data.motivo,
+        'observacion': data.observacion,
+        'observaciones': data.observacion
+      };
+
+      Object.entries(mapping).forEach(([fieldId, val]) => {
+        if (!val) return;
+        const el = document.getElementById(fieldId);
+        if (el) {
+          el.value = val;
+          el.classList.remove('ai-highlighted');
+          void el.offsetWidth;
+          el.classList.add('ai-highlighted');
+          count++;
+        }
+      });
+
+      return count;
+    }
+
     function openForm(id = null) {
       if (!canEdit()) { toast('No tiene permisos para editar', 'warning'); return; }
       current = id ? findRecordById(id) : null;
       buildForm(Boolean(current));
+      initAiVisionBanner();
       document.getElementById('modalTitle').textContent = current ? `Editar registro (${tableConfig().title})` : `Nuevo registro (${tableConfig().title})`;
       document.getElementById('modalSub').textContent = current ? `CIP: ${firstValue(current, ['cip', 'CIP']) || '—'} · ${firstValue(current, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres'])}` : `Formulario de ${tableConfig().title}`;
       const delPermBtn = document.getElementById('deletePermanentBtn');
@@ -14914,7 +15443,7 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
       document.getElementById('modal').classList.add('open');
     }
 
-    function closeForm(e) { if (e) e.preventDefault(); document.getElementById('modal').classList.remove('open'); }
+    function closeForm(e) { if (e) e.preventDefault(); clearAiVisionStatus(); document.getElementById('modal').classList.remove('open'); }
 
     function openFichaFromForm(e) {
       if (e) e.preventDefault();
