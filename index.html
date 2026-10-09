@@ -6891,7 +6891,10 @@
 
         catalogos['tipo_dni'] = tiposDni.length ? tiposDni : ['ELECTRONICO', 'CLASICO', 'AZUL', 'AMARILLO'];
         catalogos['grado'] = grados;
-        catalogos['jerarquia'] = jerarquias;
+        catalogos['jerarquia'] = jerarquias.length ? jerarquias : ['OFICIAL DE ARMAS', 'SUBOFICIAL DE ARMAS', 'OFICIAL DE SERVICIOS', 'SUBOFICIAL DE SERVICIOS'];
+        ['OFICIAL DE ARMAS', 'SUBOFICIAL DE ARMAS', 'OFICIAL DE SERVICIOS', 'SUBOFICIAL DE SERVICIOS'].forEach(j => {
+          if (!catalogos['jerarquia'].includes(j)) catalogos['jerarquia'].push(j);
+        });
         catalogos['especialidad'] = especialidades;
         catalogos['condicion'] = condiciones;
         catalogos['situacion_actual'] = situaciones;
@@ -15104,7 +15107,11 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
       if (currentTable === 'disponibilidad_retiro') {
         return {
           cip: '30559879',
+          dni: '22894512',
+          tipo_dni: 'ELECTRONICO',
+          codofin: '10329048',
           grado: 'SS PNP',
+          jerarquia: 'SUBOFICIAL DE ARMAS',
           apellidos_nombres: 'VILLANUEVA BERROCAL CARLOS ESTEBAN',
           unidad_origen: 'COMOPPOL DIRNOS REGPOL HUANUCO DIVOPUS DUE USE',
           lista_revista: 'COMOPPOL DIRNOS REGPOL HUANUCO DIVOPUS DUE USE',
@@ -15118,9 +15125,15 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
         };
       }
       if (currentTable === 'reasignados') {
+        const g = 'ST1 PNP';
         return {
           cip: '31204567',
-          grado: 'ST1 PNP',
+          dni: '43981245',
+          tipo_dni: 'ELECTRONICO',
+          codofin: '10124589',
+          grado: g,
+          jerarquia: determinarJerarquiaPorGrado(g),
+          especialidad: 'DE ARMAS',
           apellidos_nombres: 'MENDOZA PAREDES JORGE LUIS',
           unidad_origen: 'COMISARIA PNP TINGO MARIA',
           lista_revista: 'DIRNOS REGPOL HUANUCO DIVPOL LEONCIO PRADO',
@@ -15132,9 +15145,15 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
           observacion: 'Reasignado por necesidad del servicio.'
         };
       }
+      const g = 'S1 PNP';
       return {
         cip: '31056789',
-        grado: 'S1 PNP',
+        dni: '45892134',
+        tipo_dni: 'ELECTRONICO',
+        codofin: '10245678',
+        grado: g,
+        jerarquia: determinarJerarquiaPorGrado(g),
+        especialidad: 'DE ARMAS',
         apellidos_nombres: 'QUISPE HUAMAN WALTER',
         unidad_origen: 'COMISARIA PNP HUANUCO',
         lista_revista: 'DIRNOS REGPOL HUANUCO DIVOPUS',
@@ -15148,19 +15167,52 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
       };
     }
 
+    function determinarJerarquiaPorGrado(grado) {
+      if (!grado) return '';
+      const g = String(grado).trim().toUpperCase().replace(/\./g, '').replace(/\s+/g, ' ');
+
+      // Determinar si es de SERVICIOS (contiene SPNP o "S PNP" o "SERVICIOS" o "SERV")
+      const esServicios = g.includes('SPNP') || g.includes('S PNP') || g.includes('SERVICIOS') || g.includes('SERV');
+
+      // Grados de Suboficiales: S3, S2, S1, ST3, ST2, ST1, SB, SS
+      const esSuboficial = /\b(S3|S2|S1|ST3|ST2|ST1|SB|SS)\b/.test(g) ||
+        g.startsWith('S3') || g.startsWith('S2') || g.startsWith('S1') ||
+        g.startsWith('ST3') || g.startsWith('ST2') || g.startsWith('ST1') ||
+        g.startsWith('SB') || g.startsWith('SS');
+
+      // Grados de Oficiales: ALFZ, TNTE, CAP, MAY, CMDTE, COM, COR, CRNL, CNL, GRAL, TTE
+      const esOficial = /\b(ALFZ|ALF|TNTE|TTE|CAP|MAY|CMDTE|COM|COR|CRNL|CNL|GRAL)\b/.test(g) ||
+        g.startsWith('ALFZ') || g.startsWith('TNTE') || g.startsWith('CAP') ||
+        g.startsWith('MAY') || g.startsWith('CMDTE') || g.startsWith('CRNL') ||
+        g.startsWith('COR') || g.startsWith('GRAL');
+
+      if (esServicios) {
+        if (esSuboficial) return 'SUBOFICIAL DE SERVICIOS';
+        if (esOficial) return 'OFICIAL DE SERVICIOS';
+        return 'SUBOFICIAL DE SERVICIOS';
+      } else {
+        if (esSuboficial) return 'SUBOFICIAL DE ARMAS';
+        if (esOficial) return 'OFICIAL DE ARMAS';
+        return 'SUBOFICIAL DE ARMAS';
+      }
+    }
+
     async function callGeminiVisionApi(dataUrl, mimeType, apiKey) {
       const cleanBase64 = dataUrl.replace(/^data:[a-zA-Z0-9\/]+;base64,/, '');
 
       const promptText = `
-Eres un asistente experto de la Policía Nacional del Perú (PNP) encargado de transcribir documentos oficiales (Resoluciones Directorales/Ministeriales, Oficios, Memorándums, Actas, Partes).
+Eres un asistente experto de la Policía Nacional del Perú (PNP) encargado de transcribir documentos oficiales (Resoluciones Directorales/Ministeriales, Oficios, Memorándums, Carnets, Fichas de Personal, Actas, Partes).
 Extrae los datos del efectivo y del documento en el siguiente formato JSON estricto:
 {
   "cip": "número de CIP del efectivo (6 a 8 dígitos)",
-  "grado": "grado policial (ej: SS PNP, SB PNP, ST1 PNP, ST2 PNP, ST3 PNP, S1 PNP, S2 PNP, S3 PNP, COR., COM., MAY., CAP., TNTE., ALF.)",
-  "apellidos_nombres": "apellidos y nombres en mayúsculas",
+  "dni": "número de DNI (8 dígitos)",
+  "tipo_dni": "tipo de DNI si figura (ej: ELECTRONICO, AZUL, CLASICO) o ELECTRONICO",
+  "codofin": "código CODOFIN si aparece en el documento",
+  "grado": "grado policial exacto (ej: SS PNP, SB PNP, ST1 PNP, ST2 PNP, ST3 PNP, S1 PNP, S2 PNP, S3 PNP, ALFZ PNP, TNTE PNP, CAP PNP, MAY PNP, CMDTE PNP, CRNL PNP, GRAL PNP, o con SPNP para servicios)",
+  "apellidos_nombres": "apellidos y nombres completos en mayúsculas",
   "unidad_origen": "unidad de procedencia u origen",
   "lista_revista": "unidad actual o lista de revista",
-  "condicion": "condición (ej: NATO, DESTACADO, etc.)",
+  "condicion": "condición policial (ej: NATO, DESTACADO, etc.)",
   "situacion_actual": "situación policial si aplica (ej: RETIRO, DISPONIBILIDAD, REASIGNADO, PRESENTE)",
   "fecha_situacion": "fecha en formato YYYY-MM-DD cuando rige la situación",
   "documento_referencia": "nombre y número del documento (ej: RD N° 1646-2025 DIRREHUM, MEMORANDUM N° ...)",
@@ -15168,7 +15220,7 @@ Extrae los datos del efectivo y del documento en el siguiente formato JSON estri
   "motivo": "motivo o causal (ej: LIMITE DE EDAD EN EL GRADO, A SU SOLICITUD, NECESIDAD DEL SERVICIO, etc.)",
   "observacion": "observaciones relevantes adicionales"
 }
-Si algún dato no aparece en la imagen, déjalo vacío (""). Devuelve ÚNICAMENTE el objeto JSON sin texto antes ni después.
+Si algún dato no aparece explícitamente en la imagen, déjalo vacío (""). Devuelve ÚNICAMENTE el objeto JSON sin texto antes ni después.
 `;
 
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -15219,11 +15271,25 @@ Si algún dato no aparece en la imagen, déjalo vacío (""). Devuelve ÚNICAMENT
       if (!data) return 0;
       let count = 0;
 
+      // Calcular jerarquía automáticamente según el grado
+      const gradoVal = data.grado || document.getElementById('grado')?.value || '';
+      const jerarquiaAuto = determinarJerarquiaPorGrado(gradoVal) || data.jerarquia || '';
+
       const mapping = {
         'cip': data.cip,
         'CIP': data.cip,
+        'dni': data.dni,
+        'DNI': data.dni,
+        'tipo_dni': data.tipo_dni || (data.dni ? 'ELECTRONICO' : ''),
+        'TIPO DNI': data.tipo_dni || (data.dni ? 'ELECTRONICO' : ''),
+        'codofin': data.codofin,
+        'CODOFIN': data.codofin,
         'grado': data.grado,
         'GRADO': data.grado,
+        'jerarquia': jerarquiaAuto,
+        'JERARQUÍA': jerarquiaAuto,
+        'especialidad': jerarquiaAuto.includes('SERVICIOS') ? 'SERVICIOS' : (jerarquiaAuto ? 'DE ARMAS' : ''),
+        'ESPECIALIDAD': jerarquiaAuto.includes('SERVICIOS') ? 'SERVICIOS' : (jerarquiaAuto ? 'DE ARMAS' : ''),
         'apellidos_nombres': data.apellidos_nombres,
         'apellidos_y_nombres': data.apellidos_nombres,
         'APELLIDOS Y NOMBRES': data.apellidos_nombres,
@@ -15267,6 +15333,24 @@ Si algún dato no aparece en la imagen, déjalo vacío (""). Devuelve ÚNICAMENT
       current = id ? findRecordById(id) : null;
       buildForm(Boolean(current));
       initAiVisionBanner();
+
+      // Listener para actualizar jerarquía automáticamente cuando el usuario cambie el grado
+      const gradoEl = document.getElementById('grado');
+      if (gradoEl) {
+        gradoEl.addEventListener('change', () => {
+          const jerEl = document.getElementById('jerarquia');
+          if (jerEl) {
+            const autoJer = determinarJerarquiaPorGrado(gradoEl.value);
+            if (autoJer) {
+              jerEl.value = autoJer;
+              jerEl.classList.remove('ai-highlighted');
+              void jerEl.offsetWidth;
+              jerEl.classList.add('ai-highlighted');
+            }
+          }
+        });
+      }
+
       document.getElementById('modalTitle').textContent = current ? `Editar registro (${tableConfig().title})` : `Nuevo registro (${tableConfig().title})`;
       document.getElementById('modalSub').textContent = current ? `CIP: ${firstValue(current, ['cip', 'CIP']) || '—'} · ${firstValue(current, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres'])}` : `Formulario de ${tableConfig().title}`;
       const delPermBtn = document.getElementById('deletePermanentBtn');
