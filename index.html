@@ -4814,10 +4814,11 @@
           </button>
         </div>
 
-        <!-- Formulario Opcional para Registrar Movimiento Manual -->
+        <!-- Formulario Opcional para Registrar / Editar Movimiento Manual -->
         <div id="nuevoMovimientoFormContainer" style="display:none; background:#ffffff; border:1.5px dashed #0284c7; padding:16px; border-radius:10px; margin-bottom:18px;">
+          <input type="hidden" id="man_mov_id" value="" />
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <b style="color:#0369a1; font-size:13px;">➕ Registrar Nuevo Movimiento de Revista / Situación</b>
+            <b id="nuevoMovimientoFormTitle" style="color:#0369a1; font-size:13px;">➕ Registrar Nuevo Movimiento de Revista / Situación</b>
             <button type="button" class="secondary" onclick="toggleNuevoMovimientoForm(false)" style="font-size:11px; padding:4px 8px; min-height:26px;">✕ Cancelar</button>
           </div>
           <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
@@ -4833,6 +4834,7 @@
                 <option value="SOMETIDO A LEY">SOMETIDO A LEY</option>
                 <option value="DISPONIBILIDAD">DISPONIBILIDAD</option>
                 <option value="RETIRO">RETIRO</option>
+                <option value="DETENIDO">DETENIDO</option>
                 <option value="OTRO">OTRO MOVIMIENTO</option>
               </select>
             </div>
@@ -4858,7 +4860,7 @@
             </div>
           </div>
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-            <button type="button" class="primary" onclick="guardarMovimientoManual()" style="background:#0284c7; padding:7px 14px; font-size:12px; min-height:36px;">💾 Guardar Registro de Movimiento</button>
+            <button id="man_mov_submit_btn" type="button" class="primary" onclick="guardarMovimientoManual()" style="background:#0284c7; padding:7px 14px; font-size:12px; min-height:36px;">💾 Guardar Registro de Movimiento</button>
           </div>
         </div>
 
@@ -4873,7 +4875,7 @@
                 <th style="padding: 10px 12px;">Lista de Revista</th>
                 <th style="padding: 10px 12px;">Doc. Referencia</th>
                 <th style="padding: 10px 12px;">Motivo / Obs.</th>
-                <th style="padding: 10px 12px; text-align:center; width:60px;">Acción</th>
+                <th style="padding: 10px 12px; text-align:center; width:85px;">Acción</th>
               </tr>
             </thead>
             <tbody id="movimientosTableBody">
@@ -8206,17 +8208,77 @@
       if (r) openMovimientosModal(r);
     }
 
-    function toggleNuevoMovimientoForm(show) {
+    function toggleNuevoMovimientoForm(show, isEdit = false) {
       const box = document.getElementById('nuevoMovimientoFormContainer');
       if (!box) return;
       box.style.display = show ? 'block' : 'none';
+      const titleEl = document.getElementById('nuevoMovimientoFormTitle');
+      const submitBtn = document.getElementById('man_mov_submit_btn');
+
       if (show) {
-        document.getElementById('man_mov_fecha').value = getTodayPeruYMD();
-        document.getElementById('man_mov_doc_ref').value = '';
-        document.getElementById('man_mov_revista').value = '';
-        document.getElementById('man_mov_motivo').value = 'NECESIDAD DEL SERVICIO';
-        document.getElementById('man_mov_obs').value = '';
+        if (!isEdit) {
+          document.getElementById('man_mov_id').value = '';
+          if (titleEl) titleEl.textContent = '➕ Registrar Nuevo Movimiento de Revista / Situación';
+          if (submitBtn) submitBtn.textContent = '💾 Guardar Registro de Movimiento';
+          document.getElementById('man_mov_tipo').value = 'CAMBIO DE REVISTA';
+          document.getElementById('man_mov_fecha').value = getTodayPeruYMD();
+          document.getElementById('man_mov_doc_ref').value = '';
+          document.getElementById('man_mov_revista').value = '';
+          document.getElementById('man_mov_motivo').value = 'NECESIDAD DEL SERVICIO';
+          document.getElementById('man_mov_obs').value = '';
+        }
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        document.getElementById('man_mov_id').value = '';
       }
+    }
+
+    function editarMovimientoManual(movId) {
+      const cip = firstValue(currentMovimientosEfectivo, ['CIP', 'cip']);
+      const list = getMovimientosPorCip(cip);
+      const m = list.find(item => String(item.id) === String(movId)) || getMovimientosStorage().find(item => String(item.id) === String(movId));
+      if (!m) {
+        toast('No se encontró el registro para editar', 'warning');
+        return;
+      }
+
+      toggleNuevoMovimientoForm(true, true);
+
+      document.getElementById('man_mov_id').value = m.id;
+      const titleEl = document.getElementById('nuevoMovimientoFormTitle');
+      if (titleEl) titleEl.textContent = '✏️ Editar Registro de Movimiento';
+
+      const submitBtn = document.getElementById('man_mov_submit_btn');
+      if (submitBtn) submitBtn.textContent = '💾 Actualizar Movimiento';
+
+      const selectTipo = document.getElementById('man_mov_tipo');
+      if (selectTipo) {
+        const valTipo = String(m.tipo_movimiento || 'OTRO').toUpperCase().trim();
+        let matched = false;
+        for (let i = 0; i < selectTipo.options.length; i++) {
+          if (selectTipo.options[i].value.toUpperCase() === valTipo) {
+            selectTipo.selectedIndex = i;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          for (let i = 0; i < selectTipo.options.length; i++) {
+            if (valTipo.includes(selectTipo.options[i].value.toUpperCase())) {
+              selectTipo.selectedIndex = i;
+              matched = true;
+              break;
+            }
+          }
+        }
+        if (!matched) selectTipo.value = 'OTRO';
+      }
+
+      document.getElementById('man_mov_fecha').value = formatDateForInput(m.fecha) || m.fecha || getTodayPeruYMD();
+      document.getElementById('man_mov_doc_ref').value = m.documento_referencia || '';
+      document.getElementById('man_mov_revista').value = m.lista_de_revista || '';
+      document.getElementById('man_mov_motivo').value = m.motivo || '';
+      document.getElementById('man_mov_obs').value = m.observacion || '';
     }
 
     async function guardarMovimientoManual() {
@@ -8225,6 +8287,7 @@
       const grado = firstValue(currentMovimientosEfectivo, ['grado', 'GRADO']);
       const nombres = firstValue(currentMovimientosEfectivo, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']);
 
+      const editingId = document.getElementById('man_mov_id')?.value;
       const tipo = document.getElementById('man_mov_tipo').value;
       const fecha = document.getElementById('man_mov_fecha').value;
       const docRef = document.getElementById('man_mov_doc_ref').value.trim();
@@ -8237,20 +8300,55 @@
         return;
       }
 
-      await registrarMovimientoEfectivo({
-        cip,
-        grado,
-        apellidos_nombres: nombres,
-        tipo_movimiento: tipo,
-        fecha: fecha || getTodayPeruYMD(),
-        lista_de_revista: revista,
-        documento_referencia: docRef,
-        motivo,
-        observacion: obs,
-        modulo_origen: 'manual'
-      });
+      if (editingId) {
+        // Modo Edición / Actualización
+        let list = getMovimientosStorage();
+        const idx = list.findIndex(m => String(m.id) === String(editingId));
+        const updatedPayload = {
+          tipo_movimiento: tipo,
+          fecha: fecha || getTodayPeruYMD(),
+          lista_de_revista: revista,
+          documento_referencia: docRef,
+          motivo: motivo,
+          observacion: obs
+        };
 
-      toast('¡Movimiento registrado con éxito!', 'success');
+        if (idx !== -1) {
+          list[idx] = { ...list[idx], ...updatedPayload };
+          saveMovimientosStorage(list);
+        }
+
+        // Si es numérico (ID de Supabase), actualizar en Supabase
+        if (!isNaN(editingId)) {
+          try {
+            await req(API_HISTORIAL_MOVIMIENTOS + '?id=eq.' + encodeURIComponent(editingId), {
+              method: 'PATCH',
+              body: JSON.stringify(updatedPayload)
+            });
+          } catch (errSup) {
+            console.warn('Actualización local guardada. Supabase:', errSup.message);
+          }
+        }
+
+        toast('¡Registro de movimiento actualizado con éxito!', 'success');
+      } else {
+        // Modo Registro Nuevo
+        await registrarMovimientoEfectivo({
+          cip,
+          grado,
+          apellidos_nombres: nombres,
+          tipo_movimiento: tipo,
+          fecha: fecha || getTodayPeruYMD(),
+          lista_de_revista: revista,
+          documento_referencia: docRef,
+          motivo,
+          observacion: obs,
+          modulo_origen: 'manual'
+        });
+
+        toast('¡Movimiento registrado con éxito!', 'success');
+      }
+
       toggleNuevoMovimientoForm(false);
       await renderMovimientosTable(cip);
     }
@@ -8306,8 +8404,9 @@
               <td style="padding: 9px 12px; font-weight:700; color:#064e3b;">${esc(m.lista_de_revista || '—')}</td>
               <td style="padding: 9px 12px; color:#334155;">${esc(m.documento_referencia || '—')}</td>
               <td style="padding: 9px 12px; color:#475569; font-size:11px;">${esc(m.motivo ? (m.motivo + (m.observacion ? ' · ' + m.observacion : '')) : (m.observacion || '—'))}</td>
-              <td style="padding: 9px 12px; text-align:center;">
-                <button type="button" onclick="eliminarMovimientoManual('${m.id}')" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:3px 6px; border-radius:6px; cursor:pointer; font-size:11px;" title="Eliminar registro">🗑️</button>
+              <td style="padding: 9px 12px; text-align:center; white-space:nowrap;">
+                <button type="button" onclick="editarMovimientoManual('${m.id}')" style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:3px 7px; border-radius:6px; cursor:pointer; font-size:11px; margin-right:4px;" title="Editar registro de movimiento">✏️</button>
+                <button type="button" onclick="eliminarMovimientoManual('${m.id}')" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:3px 7px; border-radius:6px; cursor:pointer; font-size:11px;" title="Eliminar registro">🗑️</button>
               </td>
             </tr>
           `;
