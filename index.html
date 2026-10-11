@@ -10547,6 +10547,52 @@ MOTIVO: ${motivoText}`;
       }
     }
 
+    function toggleCargoCustomInput(e) {
+      if (e) e.preventDefault();
+      const sel = document.getElementById('cargo');
+      const inp = document.getElementById('cargo_otro');
+      if (!sel || !inp) return;
+      if (inp.style.display === 'none' || !inp.style.display) {
+        sel.value = '__OTRO__';
+        inp.style.display = 'block';
+        inp.focus();
+      } else {
+        inp.style.display = 'none';
+        inp.value = '';
+        if (sel.value === '__OTRO__') sel.value = 'OPERATIVO';
+      }
+    }
+
+    function handleCargoSelectChange(sel) {
+      const inp = document.getElementById('cargo_otro');
+      if (!inp) return;
+      if (sel.value === '__OTRO__') {
+        inp.style.display = 'block';
+        inp.focus();
+      } else {
+        inp.style.display = 'none';
+        inp.value = '';
+      }
+    }
+
+    function syncCargoOtro(inputEl) {
+      const val = inputEl.value.trim().toUpperCase();
+      const sel = document.getElementById('cargo');
+      if (!sel) return;
+      if (val) {
+        let opt = Array.from(sel.options).find(o => o.value.toUpperCase() === val);
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = val;
+          const otroOpt = Array.from(sel.options).find(o => o.value === '__OTRO__');
+          if (otroOpt) sel.insertBefore(opt, otroOpt);
+          else sel.appendChild(opt);
+        }
+        sel.value = opt.value;
+      }
+    }
+
     // Constructor Dinámico de Formulario adaptado a cualquier módulo
     function buildForm(isEdit = false) {
       const form = document.getElementById('form');
@@ -10693,13 +10739,23 @@ MOTIVO: ${motivoText}`;
           if (k === 'cargo') {
             const cargoOpts = (catalogos['cargo'] || []).length ? catalogos['cargo'] : ['OPERATIVO', 'ADMINISTRATIVO', 'JEFE', 'COMISARIO', 'SECRETARIO', 'OFAD'];
             const defaultVal = (!isEdit && currentTable === 'personal') ? 'OPERATIVO' : '';
+            const optionsHtml = cargoOpts.map(o => {
+              const selected = (!isEdit && defaultVal && o.toUpperCase() === defaultVal.toUpperCase()) ? ' selected' : '';
+              return `<option value="${esc(o)}"${selected}>${esc(o)}</option>`;
+            }).join('');
+            const firstOpt = (!isEdit && defaultVal && cargoOpts.some(o => o.toUpperCase() === defaultVal.toUpperCase())) ? '' : '<option value="">Seleccione...</option>';
             return `
               <div class="field ${meta.cls || ''}">
-                <label for="${k}">${meta.label}</label>
-                <input id="${k}" type="text" list="cargo_datalist" autocomplete="off" placeholder="Seleccione o escriba un cargo..." value="${esc(defaultVal)}" />
-                <datalist id="cargo_datalist">
-                  ${cargoOpts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}
-                </datalist>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <label for="${k}" style="margin-bottom:0;">${meta.label}</label>
+                  <a href="javascript:void(0)" onclick="toggleCargoCustomInput(event)" style="font-size:11px; color:#0284c7; text-decoration:underline; font-weight:700;">✏️ Escribir otro cargo</a>
+                </div>
+                <select id="${k}" onchange="handleCargoSelectChange(this)">
+                  ${firstOpt}
+                  ${optionsHtml}
+                  <option value="__OTRO__">✏️ OTRO (Escribir cargo nuevo)...</option>
+                </select>
+                <input id="cargo_otro" type="text" placeholder="Escriba aquí el nuevo cargo si no está en la lista..." style="display:none; margin-top:6px; font-weight:600; border-color:#0284c7; background:#f0f9ff;" oninput="syncCargoOtro(this)" />
               </div>`;
           }
 
@@ -15456,6 +15512,28 @@ REGLAS CRÍTICAS:
           return true;
         }
 
+        // Búsqueda especial para Cargo (si no existe en la lista, agregarlo y seleccionarlo)
+        if (el.id === 'cargo' || el.id === 'CARGO') {
+          for (let i = 0; i < el.options.length; i++) {
+            const optVal = norm(el.options[i].value);
+            const optText = norm(el.options[i].text);
+            if (optVal === targetNorm || optText === targetNorm || optVal.includes(targetNorm) || targetNorm.includes(optVal)) {
+              el.selectedIndex = i;
+              el.dispatchEvent(new Event('change', { bubbles: true }));
+              return true;
+            }
+          }
+          const newOpt = document.createElement('option');
+          newOpt.value = strVal.toUpperCase();
+          newOpt.textContent = strVal.toUpperCase();
+          const otroOpt = Array.from(el.options).find(o => o.value === '__OTRO__');
+          if (otroOpt) el.insertBefore(newOpt, otroOpt);
+          else el.appendChild(newOpt);
+          el.value = newOpt.value;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          return true;
+        }
+
         // Búsqueda especial para Hijos (número '0', '1', '2'...)
         if (el.id === 'hijos' || el.id === 'HIJOS') {
           const numMatch = targetNorm.match(/\d+/);
@@ -15718,7 +15796,25 @@ REGLAS CRÍTICAS:
               if (meta.type === 'date') {
                 el.value = formatDateForInput(val);
               } else {
-                el.value = val ?? '';
+                if (k === 'cargo') {
+                  const cVal = String(val ?? '').trim();
+                  const otroInp = document.getElementById('cargo_otro');
+                  if (cVal) {
+                    let opt = Array.from(el.options).find(o => o.value.toUpperCase() === cVal.toUpperCase());
+                    if (!opt && cVal !== '__OTRO__') {
+                      opt = document.createElement('option');
+                      opt.value = cVal.toUpperCase();
+                      opt.textContent = cVal.toUpperCase();
+                      const otroOpt = Array.from(el.options).find(o => o.value === '__OTRO__');
+                      if (otroOpt) el.insertBefore(opt, otroOpt);
+                      else el.appendChild(opt);
+                    }
+                    if (opt) el.value = opt.value;
+                  }
+                  if (otroInp) { otroInp.style.display = 'none'; otroInp.value = ''; }
+                } else {
+                  el.value = val ?? '';
+                }
               }
             }
           });
@@ -15939,6 +16035,14 @@ REGLAS CRÍTICAS:
             const el = document.getElementById(k);
             if (!el) return;
             let v = el.value.trim();
+            if (k === 'cargo') {
+              const otroInp = document.getElementById('cargo_otro');
+              if (v === '__OTRO__' && otroInp && otroInp.value.trim()) {
+                v = otroInp.value.trim().toUpperCase();
+              } else if (otroInp && otroInp.style.display !== 'none' && otroInp.value.trim()) {
+                v = otroInp.value.trim().toUpperCase();
+              }
+            }
             const meta = allFieldMeta[k] || {};
             if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
             const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
