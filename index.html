@@ -4797,7 +4797,7 @@
           <h1 style="color: #0369a1; font-size: 18px; display:flex; align-items:center; gap:8px;">
             <span>🔄</span> Registro de Movimientos del Efectivo
           </h1>
-          <div id="movimientosSub" class="sub" style="color:#0369a1; font-weight:600;">Historial individual de destinos, listas de revista y situaciones</div>
+          <div id="movimientosSub" class="sub" style="color:#0369a1; font-weight:600;">Historial individual ordenado cronológicamente (del más actual al más antiguo)</div>
         </div>
         <button class="close-btn" onclick="closeMovimientosModal(event)" title="Cerrar">&times;</button>
       </header>
@@ -4868,7 +4868,7 @@
             <thead style="background: #e0f2fe; color: #0369a1; border-bottom: 2px solid #bae6fd;">
               <tr>
                 <th style="padding: 10px 12px;">#</th>
-                <th style="padding: 10px 12px;">Fecha Incorp.</th>
+                <th style="padding: 10px 12px;">Fecha</th>
                 <th style="padding: 10px 12px;">Tipo Movimiento</th>
                 <th style="padding: 10px 12px;">Lista de Revista</th>
                 <th style="padding: 10px 12px;">Doc. Referencia</th>
@@ -6575,7 +6575,8 @@
       const cipClean = onlyDigits(cip);
       if (!cipClean) return;
 
-      const fMov = fecha || getTodayPeruYMD();
+      const rawFecha = fecha || getTodayPeruYMD();
+      const fMov = (typeof formatDateForInput === 'function' ? formatDateForInput(rawFecha) : '') || rawFecha;
       const list = getMovimientosStorage();
 
       const nuevoMov = {
@@ -6611,12 +6612,40 @@
       return nuevoMov;
     }
 
+    function parseDateToTime(val) {
+      if (!val) return 0;
+      const str = String(val).trim();
+      const mISO = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if (mISO) {
+        return new Date(parseInt(mISO[1], 10), parseInt(mISO[2], 10) - 1, parseInt(mISO[3], 10)).getTime();
+      }
+      const mDMY = str.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+      if (mDMY) {
+        return new Date(parseInt(mDMY[3], 10), parseInt(mDMY[2], 10) - 1, parseInt(mDMY[1], 10)).getTime();
+      }
+      const t = Date.parse(str);
+      return isNaN(t) ? 0 : t;
+    }
+
     function getMovimientosPorCip(cip) {
       const cipClean = onlyDigits(cip);
       if (!cipClean) return [];
       const list = getMovimientosStorage();
       return list.filter(m => String(m.cip) === String(cipClean))
-                 .sort((a, b) => new Date(b.fecha || b.timestamp) - new Date(a.fecha || a.timestamp));
+                 .sort((a, b) => {
+                   const timeB = parseDateToTime(b.fecha);
+                   const timeA = parseDateToTime(a.fecha);
+                   if (timeB !== timeA) {
+                     return timeB - timeA; // Del más actual al más antiguo (fecha descendente)
+                   }
+                   // Mismo día: ordenar del más reciente al más antiguo según el registro exacto
+                   const tsB = b.timestamp ? new Date(b.timestamp).getTime() : (b.id ? parseInt((String(b.id).match(/\d+/) || [0])[0], 10) : 0);
+                   const tsA = a.timestamp ? new Date(a.timestamp).getTime() : (a.id ? parseInt((String(a.id).match(/\d+/) || [0])[0], 10) : 0);
+                   if (tsB !== tsA) {
+                     return tsB - tsA; // El registrado más recientemente primero
+                   }
+                   return (b.id || '').localeCompare(a.id || '');
+                 });
     }
 
     // Funciones de Zona Horaria Oficial Perú (America/Lima UTC-5)
@@ -8180,15 +8209,24 @@
       }
 
       tbody.innerHTML = movs.map((m, idx) => {
-        const badgeColor = m.tipo_movimiento.includes('INCORP') ? '#166534; background:#dcfce7;' :
-                           m.tipo_movimiento.includes('DESTAC') ? '#854d0e; background:#fef9c3;' :
-                           m.tipo_movimiento.includes('CURSO') ? '#1e40af; background:#dbeafe;' :
-                           m.tipo_movimiento.includes('REFER') ? '#991b1b; background:#fee2e2;' :
-                           '#0369a1; background:#e0f2fe;';
+        const isLatest = (idx === 0);
+        const tm = String(m.tipo_movimiento || '').toUpperCase();
+        const badgeColor = tm.includes('INCORP') ? '#166534; background:#dcfce7; border:1px solid #bbf7d0;' :
+                           tm.includes('DESTAC') ? '#854d0e; background:#fef9c3; border:1px solid #fef08a;' :
+                           tm.includes('CURSO') ? '#1e40af; background:#dbeafe; border:1px solid #bfdbfe;' :
+                           tm.includes('REFER') ? '#991b1b; background:#fee2e2; border:1px solid #fecaca;' :
+                           tm.includes('REASIG') ? '#5b21b6; background:#ede9fe; border:1px solid #ddd6fe;' :
+                           tm.includes('LEY') ? '#831843; background:#fce7f3; border:1px solid #fbcfe8;' :
+                           (tm.includes('DISP') || tm.includes('RETIR')) ? '#9a3412; background:#ffedd5; border:1px solid #fed7aa;' :
+                           tm.includes('DETEN') ? '#7f1d1d; background:#fee2e2; border:1px solid #fca5a5;' :
+                           '#0369a1; background:#e0f2fe; border:1px solid #bae6fd;';
         return `
-          <tr style="border-bottom: 1px solid #e2e8f0;">
-            <td style="padding: 9px 12px; font-weight:700; color:#64748b;">${idx + 1}</td>
-            <td style="padding: 9px 12px; font-weight:600;">${esc(formatDateDisplay(m.fecha) || '—')}</td>
+          <tr style="border-bottom: 1px solid #e2e8f0; ${isLatest ? 'background:#f0fdf4;' : ''}">
+            <td style="padding: 9px 12px; font-weight:700; color:#64748b; white-space:nowrap;">
+              ${idx + 1}
+              ${isLatest ? '<span style="display:inline-block; margin-left:5px; padding:1px 6px; border-radius:4px; font-size:9px; background:#16a34a; color:#fff; font-weight:800; vertical-align:middle;" title="Movimiento más reciente (actual)">ACTUAL</span>' : ''}
+            </td>
+            <td style="padding: 9px 12px; font-weight:600; white-space:nowrap;">${esc(formatDateDisplay(m.fecha) || '—')}</td>
             <td style="padding: 9px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; color:${badgeColor}">${esc(m.tipo_movimiento)}</span></td>
             <td style="padding: 9px 12px; font-weight:700; color:#064e3b;">${esc(m.lista_de_revista || '—')}</td>
             <td style="padding: 9px 12px; color:#334155;">${esc(m.documento_referencia || '—')}</td>
