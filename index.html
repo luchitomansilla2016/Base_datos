@@ -10690,6 +10690,19 @@ MOTIVO: ${motivoText}`;
             return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><input id="${k}" type="${meta.type}" value="${todayYMD}" /></div>`;
           }
 
+          if (k === 'cargo') {
+            const cargoOpts = (catalogos['cargo'] || []).length ? catalogos['cargo'] : ['OPERATIVO', 'ADMINISTRATIVO', 'JEFE', 'COMISARIO', 'SECRETARIO', 'OFAD'];
+            const defaultVal = (!isEdit && currentTable === 'personal') ? 'OPERATIVO' : '';
+            return `
+              <div class="field ${meta.cls || ''}">
+                <label for="${k}">${meta.label}</label>
+                <input id="${k}" type="text" list="cargo_datalist" autocomplete="off" placeholder="Seleccione o escriba un cargo..." value="${esc(defaultVal)}" />
+                <datalist id="cargo_datalist">
+                  ${cargoOpts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}
+                </datalist>
+              </div>`;
+          }
+
           if (opts && opts.length) {
             let defaultVal = '';
             if (currentTable === 'personal' && !isEdit) {
@@ -15761,7 +15774,7 @@ REGLAS CRÍTICAS:
 
           const cargoEl = document.getElementById('cargo');
           if (cargoEl) {
-            if (!Array.from(cargoEl.options).some(o => o.value.toUpperCase() === 'OPERATIVO')) {
+            if (cargoEl.options && !Array.from(cargoEl.options).some(o => o.value.toUpperCase() === 'OPERATIVO')) {
               const opt = document.createElement('option');
               opt.value = 'OPERATIVO';
               opt.textContent = 'OPERATIVO';
