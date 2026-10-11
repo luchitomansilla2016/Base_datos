@@ -3726,6 +3726,7 @@
         <button class="secondary" onclick="closeForm(event)">Cancelar sin guardar</button>
         <div style="display:flex; gap:8px; align-items:center;">
           <button id="deletePermanentBtn" class="danger admin-only" onclick="deletePermanentCurrent(event)" style="display:none;">🗑️ Eliminar permanente</button>
+          <button id="formMovimientosBtn" type="button" class="secondary" onclick="openMovimientosFromCurrent(event)" style="background:#f0f9ff; color:#0284c7; border: 1.5px solid #0284c7; font-weight:700; display:none;">🔄 Movimientos</button>
           <button id="formFichaBtn" type="button" class="secondary" onclick="openFichaFromForm(event)" style="display:none;">📄 Ver Ficha</button>
           <button id="btnVerOrdenFromForm" type="button" class="secondary" onclick="verOrdenFromForm(event)" style="background:#e8f2ec; color:#0b5a3c; border: 1.5px solid #0b5a3c; font-weight:700; display:none;">👁️ Ver Orden</button>
           <button id="btnGenerarDocPersonal" type="button" class="primary" onclick="openGenerarDocNuevoPersonalModal(event)" style="background: linear-gradient(135deg, #0b5a3c 0%, #0a6370 100%); display:none;">📄 Generar Documento</button>
@@ -4779,6 +4780,7 @@
         <button class="secondary" onclick="closeFicha(event)">Cerrar</button>
         <div style="display:flex; gap:8px; align-items:center;">
           <button id="fichaDeletePermanentBtn" class="danger admin-only" onclick="deletePermanentFromFicha(event)" style="display:none;">🗑️ Eliminar permanente</button>
+          <button id="fichaMovimientosBtn" type="button" class="secondary" style="background:#f0f9ff; color:#0284c7; border:1.5px solid #0284c7; font-weight:700;" onclick="openMovimientosFromFicha(event)">🔄 Ver Movimientos</button>
           <button id="fichaOrdenBtn" class="primary" style="background: linear-gradient(135deg, #0b5a3c 0%, #0a6370 100%); display:none;" onclick="generateOrdenFromFicha(event)">📑 Generar Orden</button>
           <button class="print-a4-btn" onclick="printFicha(event)">Imprimir / Guardar PDF</button>
           <button id="fichaEditBtn" class="primary role-editor" onclick="editFromFicha(event)">✏ Editar formulario</button>
@@ -4787,10 +4789,108 @@
     </div>
   </div>
 
+  <!-- Modal de Registro e Historial de Movimientos del Efectivo -->
+  <div id="movimientosModal" class="modal" style="z-index: 190;">
+    <div class="dialog" style="max-width: 900px; border-top: 5px solid #0284c7;">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e0f2fe 100%);">
+        <div>
+          <h1 style="color: #0369a1; font-size: 18px; display:flex; align-items:center; gap:8px;">
+            <span>🔄</span> Registro de Movimientos del Efectivo
+          </h1>
+          <div id="movimientosSub" class="sub" style="color:#0369a1; font-weight:600;">Historial individual de destinos, listas de revista y situaciones</div>
+        </div>
+        <button class="close-btn" onclick="closeMovimientosModal(event)" title="Cerrar">&times;</button>
+      </header>
+
+      <div style="padding: 18px 20px; overflow-y: auto; max-height: calc(88vh - 120px);">
+        <!-- Resumen del Efectivo -->
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#f0f9ff; border:1.5px solid #bae6fd; padding:12px 16px; border-radius:10px; margin-bottom:16px;">
+          <div>
+            <div id="movEfectivoTitulo" style="font-size:15px; font-weight:800; color:#0369a1;">---</div>
+            <div id="movEfectivoCip" style="font-size:12px; color:#555; margin-top:2px;">CIP: ---</div>
+          </div>
+          <button type="button" class="primary" onclick="toggleNuevoMovimientoForm(true)" style="background:linear-gradient(135deg, #0284c7, #0369a1); font-size:12px; padding:6px 12px; min-height:34px; border-radius:8px; display:flex; align-items:center; gap:6px;">
+            ➕ Registrar Movimiento Manual
+          </button>
+        </div>
+
+        <!-- Formulario Opcional para Registrar Movimiento Manual -->
+        <div id="nuevoMovimientoFormContainer" style="display:none; background:#ffffff; border:1.5px dashed #0284c7; padding:16px; border-radius:10px; margin-bottom:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <b style="color:#0369a1; font-size:13px;">➕ Registrar Nuevo Movimiento de Revista / Situación</b>
+            <button type="button" class="secondary" onclick="toggleNuevoMovimientoForm(false)" style="font-size:11px; padding:4px 8px; min-height:26px;">✕ Cancelar</button>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;">
+            <div class="field">
+              <label for="man_mov_tipo">Tipo de Movimiento</label>
+              <select id="man_mov_tipo">
+                <option value="CAMBIO DE REVISTA">CAMBIO DE LISTA DE REVISTA</option>
+                <option value="INCORPORACIÓN">INCORPORACIÓN</option>
+                <option value="DESTAQUE">DESTAQUE</option>
+                <option value="CURSO">CURSO</option>
+                <option value="REFERIDO">REFERIDO</option>
+                <option value="REASIGNADO">REASIGNADO</option>
+                <option value="SOMETIDO A LEY">SOMETIDO A LEY</option>
+                <option value="DISPONIBILIDAD">DISPONIBILIDAD</option>
+                <option value="RETIRO">RETIRO</option>
+                <option value="OTRO">OTRO MOVIMIENTO</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="man_mov_fecha">Fecha de Movimiento / Incorp.</label>
+              <input id="man_mov_fecha" type="date" />
+            </div>
+            <div class="field">
+              <label for="man_mov_doc_ref">Documento de Referencia</label>
+              <input id="man_mov_doc_ref" type="text" placeholder="Ej. OFICIO N° 123-2024..." />
+            </div>
+            <div class="field" style="grid-column: span 2;">
+              <label for="man_mov_revista">Lista de Revista (Destino)</label>
+              <input id="man_mov_revista" type="text" placeholder="Nueva Unidad o Lista de Revista..." />
+            </div>
+            <div class="field">
+              <label for="man_mov_motivo">Motivo</label>
+              <input id="man_mov_motivo" type="text" placeholder="Ej. NECESIDAD DEL SERVICIO" />
+            </div>
+            <div class="field" style="grid-column: span 3;">
+              <label for="man_mov_obs">Observaciones / Detalle adicional</label>
+              <input id="man_mov_obs" type="text" placeholder="Detalle o información relevante del movimiento..." />
+            </div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+            <button type="button" class="primary" onclick="guardarMovimientoManual()" style="background:#0284c7; padding:7px 14px; font-size:12px; min-height:36px;">💾 Guardar Registro de Movimiento</button>
+          </div>
+        </div>
+
+        <!-- Tabla Histórica de Movimientos -->
+        <div style="border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+            <thead style="background: #e0f2fe; color: #0369a1; border-bottom: 2px solid #bae6fd;">
+              <tr>
+                <th style="padding: 10px 12px;">#</th>
+                <th style="padding: 10px 12px;">Fecha Incorp.</th>
+                <th style="padding: 10px 12px;">Tipo Movimiento</th>
+                <th style="padding: 10px 12px;">Lista de Revista</th>
+                <th style="padding: 10px 12px;">Doc. Referencia</th>
+                <th style="padding: 10px 12px;">Motivo / Obs.</th>
+                <th style="padding: 10px 12px; text-align:center; width:60px;">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="movimientosTableBody">
+              <!-- Renderizado dinámico -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="footer" style="background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:11px; color:#64748b;">* Los movimientos se registran automáticamente ante cambios de revista o situación.</span>
+        <button class="secondary" onclick="closeMovimientosModal(event)">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Vista Previa e Impresión: Orden de Incorporación (A5 Horizontal x 2 en A4) -->
-  <!-- Modal de Vista Previa e ImpresiÃ³n: Orden de IncorporaciÃ³n (A5 Horizontal x 2 en A4) -->
-  <!-- Modal de Vista Previa e Impresion: Orden de Incorporacion (A5 Horizontal x 2 en A4) -->
-  <!-- Modal de Vista Previa e Impresion: Orden de Incorporacion (A5 Horizontal x 2 en A4) -->
   <div id="ordenPreviewModal" class="modal" style="z-index: 200;">
     <div class="dialog" style="max-width: 960px; border-top: 5px solid #0b5a3c;">
       <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f2ec 100%);">
@@ -6435,6 +6535,90 @@
 
     function onlyDigits(value) { return String(value || '').replace(/\D/g, ''); }
 
+    // ========================================================
+    // REGISTRO DE MOVIMIENTOS INDIVIDUALES POR EFECTIVO (PRUEBA)
+    // ========================================================
+    const MOVIMIENTOS_STORAGE_KEY = 'regpol_historial_movimientos_v1';
+
+    function getMovimientosStorage() {
+      try {
+        const raw = localStorage.getItem(MOVIMIENTOS_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        console.warn('Error al leer historial de movimientos:', e);
+        return [];
+      }
+    }
+
+    function saveMovimientosStorage(list) {
+      try {
+        localStorage.setItem(MOVIMIENTOS_STORAGE_KEY, JSON.stringify(list || []));
+      } catch (e) {
+        console.warn('Error al guardar historial de movimientos:', e);
+      }
+    }
+
+    function registrarMovimientoEfectivo({
+      cip,
+      grado = '',
+      apellidos_nombres = '',
+      tipo_movimiento = 'MOVIMIENTO', // INCORPORACIÓN, CAMBIO REVISTA, DESTAQUE, CURSO, REFERIDO, SOMETIDO A LEY, etc.
+      fecha = '',
+      lista_de_revista = '',
+      unidad_de_origen = '',
+      unidad_anterior = '',
+      documento_referencia = '',
+      motivo = '',
+      observacion = '',
+      modulo_origen = 'personal'
+    }) {
+      const cipClean = onlyDigits(cip);
+      if (!cipClean) return;
+
+      const fMov = fecha || getTodayPeruYMD();
+      const list = getMovimientosStorage();
+
+      const nuevoMov = {
+        id: 'mov_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        cip: cipClean,
+        grado: String(grado || '').trim(),
+        apellidos_nombres: String(apellidos_nombres || '').trim(),
+        tipo_movimiento: String(tipo_movimiento || 'CAMBIO REVISTA').trim().toUpperCase(),
+        fecha: fMov,
+        lista_de_revista: String(lista_de_revista || '').trim(),
+        unidad_de_origen: String(unidad_de_origen || '').trim(),
+        unidad_anterior: String(unidad_anterior || '').trim(),
+        documento_referencia: String(documento_referencia || '').trim(),
+        motivo: String(motivo || '').trim(),
+        observacion: String(observacion || '').trim(),
+        modulo_origen: modulo_origen,
+        timestamp: new Date().toISOString()
+      };
+
+      // Evitar duplicados idénticos en el mismo segundo
+      const isDuplicate = list.some(m =>
+        m.cip === cipClean &&
+        m.tipo_movimiento === nuevoMov.tipo_movimiento &&
+        m.lista_de_revista === nuevoMov.lista_de_revista &&
+        m.fecha === nuevoMov.fecha &&
+        m.documento_referencia === nuevoMov.documento_referencia
+      );
+
+      if (!isDuplicate) {
+        list.unshift(nuevoMov);
+        saveMovimientosStorage(list);
+      }
+      return nuevoMov;
+    }
+
+    function getMovimientosPorCip(cip) {
+      const cipClean = onlyDigits(cip);
+      if (!cipClean) return [];
+      const list = getMovimientosStorage();
+      return list.filter(m => String(m.cip) === String(cipClean))
+                 .sort((a, b) => new Date(b.fecha || b.timestamp) - new Date(a.fecha || a.timestamp));
+    }
+
     // Funciones de Zona Horaria Oficial Perú (America/Lima UTC-5)
     function getNowPeru() {
       try {
@@ -7881,6 +8065,140 @@
       if (e) e.preventDefault();
       closeFicha();
       openForm(currentFichaId);
+    }
+
+    // ==========================================
+    // UI Y CONTROL DEL MODAL DE MOVIMIENTOS
+    // ==========================================
+    let currentMovimientosEfectivo = null;
+
+    function openMovimientosModal(r) {
+      if (!r) return;
+      currentMovimientosEfectivo = r;
+
+      const cip = firstValue(r, ['CIP', 'cip']) || '';
+      const grado = firstValue(r, ['grado', 'GRADO']) || '';
+      const nombres = firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']) || '';
+
+      const titEl = document.getElementById('movEfectivoTitulo');
+      if (titEl) titEl.textContent = `${grado} ${nombres}`.trim();
+
+      const cipEl = document.getElementById('movEfectivoCip');
+      if (cipEl) cipEl.textContent = `CIP: ${cip || '---'}`;
+
+      // Reset form manual
+      toggleNuevoMovimientoForm(false);
+      renderMovimientosTable(cip);
+
+      document.getElementById('movimientosModal').classList.add('open');
+    }
+
+    function closeMovimientosModal(e) {
+      if (e) e.preventDefault();
+      document.getElementById('movimientosModal').classList.remove('open');
+    }
+
+    function openMovimientosFromCurrent(e) {
+      if (e) e.preventDefault();
+      if (!current) return;
+      openMovimientosModal(current);
+    }
+
+    function openMovimientosFromFicha(e) {
+      if (e) e.preventDefault();
+      const r = currentFichaId ? findRecordById(currentFichaId) : current;
+      if (r) openMovimientosModal(r);
+    }
+
+    function toggleNuevoMovimientoForm(show) {
+      const box = document.getElementById('nuevoMovimientoFormContainer');
+      if (!box) return;
+      box.style.display = show ? 'block' : 'none';
+      if (show) {
+        document.getElementById('man_mov_fecha').value = getTodayPeruYMD();
+        document.getElementById('man_mov_doc_ref').value = '';
+        document.getElementById('man_mov_revista').value = '';
+        document.getElementById('man_mov_motivo').value = 'NECESIDAD DEL SERVICIO';
+        document.getElementById('man_mov_obs').value = '';
+      }
+    }
+
+    function guardarMovimientoManual() {
+      if (!currentMovimientosEfectivo) return;
+      const cip = firstValue(currentMovimientosEfectivo, ['CIP', 'cip']);
+      const grado = firstValue(currentMovimientosEfectivo, ['grado', 'GRADO']);
+      const nombres = firstValue(currentMovimientosEfectivo, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']);
+
+      const tipo = document.getElementById('man_mov_tipo').value;
+      const fecha = document.getElementById('man_mov_fecha').value;
+      const docRef = document.getElementById('man_mov_doc_ref').value.trim();
+      const revista = document.getElementById('man_mov_revista').value.trim();
+      const motivo = document.getElementById('man_mov_motivo').value.trim();
+      const obs = document.getElementById('man_mov_obs').value.trim();
+
+      if (!revista) {
+        toast('Ingrese la lista de revista o destino del movimiento', 'warning');
+        return;
+      }
+
+      registrarMovimientoEfectivo({
+        cip,
+        grado,
+        apellidos_nombres: nombres,
+        tipo_movimiento: tipo,
+        fecha: fecha || getTodayPeruYMD(),
+        lista_de_revista: revista,
+        documento_referencia: docRef,
+        motivo,
+        observacion: obs,
+        modulo_origen: 'manual'
+      });
+
+      toast('¡Movimiento registrado con éxito!', 'success');
+      toggleNuevoMovimientoForm(false);
+      renderMovimientosTable(cip);
+    }
+
+    function eliminarMovimientoManual(movId) {
+      if (!confirm('¿Desea eliminar este registro de movimiento?')) return;
+      let list = getMovimientosStorage();
+      list = list.filter(m => m.id !== movId);
+      saveMovimientosStorage(list);
+      toast('Registro de movimiento eliminado', 'info');
+      const cip = firstValue(currentMovimientosEfectivo, ['CIP', 'cip']);
+      renderMovimientosTable(cip);
+    }
+
+    function renderMovimientosTable(cip) {
+      const tbody = document.getElementById('movimientosTableBody');
+      if (!tbody) return;
+
+      const movs = getMovimientosPorCip(cip);
+      if (!movs || movs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic;">No hay movimientos registrados para este efectivo policial todavía.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = movs.map((m, idx) => {
+        const badgeColor = m.tipo_movimiento.includes('INCORP') ? '#166534; background:#dcfce7;' :
+                           m.tipo_movimiento.includes('DESTAC') ? '#854d0e; background:#fef9c3;' :
+                           m.tipo_movimiento.includes('CURSO') ? '#1e40af; background:#dbeafe;' :
+                           m.tipo_movimiento.includes('REFER') ? '#991b1b; background:#fee2e2;' :
+                           '#0369a1; background:#e0f2fe;';
+        return `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 9px 12px; font-weight:700; color:#64748b;">${idx + 1}</td>
+            <td style="padding: 9px 12px; font-weight:600;">${esc(formatDateDisplay(m.fecha) || '—')}</td>
+            <td style="padding: 9px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; color:${badgeColor}">${esc(m.tipo_movimiento)}</span></td>
+            <td style="padding: 9px 12px; font-weight:700; color:#064e3b;">${esc(m.lista_de_revista || '—')}</td>
+            <td style="padding: 9px 12px; color:#334155;">${esc(m.documento_referencia || '—')}</td>
+            <td style="padding: 9px 12px; color:#475569; font-size:11px;">${esc(m.motivo ? (m.motivo + (m.observacion ? ' · ' + m.observacion : '')) : (m.observacion || '—'))}</td>
+            <td style="padding: 9px 12px; text-align:center;">
+              <button type="button" onclick="eliminarMovimientoManual('${m.id}')" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:3px 6px; border-radius:6px; cursor:pointer; font-size:11px;" title="Eliminar registro">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     // ==========================================
@@ -11183,6 +11501,23 @@ MOTIVO: ${motivoText}`;
           });
         }
 
+        // Registrar movimiento del efectivo a REFERIDO
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: 'REFERIDO',
+            fecha: fechaDoc || getTodayPeruYMD(),
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: docPoneDisp || docRef,
+            motivo: diag ? `DIAGNÓSTICO: ${diag}` : 'PASE A REFERIDO',
+            observacion: obs,
+            modulo_origen: 'referidos'
+          });
+        } catch (_) {}
+
         toast('¡Registro guardado en Referidos y situación actualizada en Personal!', 'success');
         document.getElementById('referidoFloatingModal').classList.remove('open');
         closeForm();
@@ -11406,6 +11741,23 @@ MOTIVO: ${motivoText}`;
         } catch (eOficio) {
           console.warn('Registro de oficio en documentos:', eOficio);
         }
+
+        // Registrar movimiento del efectivo a CURSO
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: 'CURSO',
+            fecha: fechaOficio || getTodayPeruYMD(),
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: formattedOficioDoc || docRef,
+            motivo: descCurso ? `CURSO: ${descCurso} (${lugar || 'SEDE'})` : 'PASE A CURSO',
+            observacion: obs,
+            modulo_origen: 'en_curso'
+          });
+        } catch (_) {}
 
         toast('¡Efectivo registrado en Curso, situación actualizada y Oficio generado con éxito!', 'success');
         closeGenerarDocPaseCursoModal();
@@ -14568,6 +14920,23 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
           });
         }
 
+        // Registrar movimiento del efectivo a DESTAQUE
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: 'DESTAQUE',
+            fecha: fechaIncorpSalida || fechaOficio || getTodayPeruYMD(),
+            lista_de_revista: destino || listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: ofPoneDisp || docRef,
+            motivo: motivo || 'NECESIDAD DEL SERVICIO',
+            observacion: obs,
+            modulo_origen: 'destacados'
+          });
+        } catch (_) {}
+
         toast('¡Registro guardado en Destacados y situación actualizada en Personal!', 'success');
         document.getElementById('destacadoFloatingModal').classList.remove('open');
         closeForm();
@@ -14664,6 +15033,23 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
             body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'SOMETIDO A LEY' })
           });
         }
+
+        // Registrar movimiento del efectivo a SOMETIDO A LEY
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: 'SOMETIDO A LEY',
+            fecha: fechaExclusion || fechaIncorp || getTodayPeruYMD(),
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: docRef || exclusion,
+            motivo: 'PASE A SITUACIÓN SOMETIDO A LEY',
+            observacion: obs,
+            modulo_origen: 'sometido_ley'
+          });
+        } catch (_) {}
 
         toast('¡Registro guardado en Sometido a Ley y situación actualizada en Personal!', 'success');
         document.getElementById('sometidoLeyFloatingModal').classList.remove('open');
@@ -14778,6 +15164,23 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
           await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipRaw), { method: 'DELETE' });
         }
 
+        // Registrar movimiento del efectivo a DISPONIBILIDAD o RETIRO
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: targetSituacionDispo || 'DISPONIBILIDAD',
+            fecha: fechaSituacion || fechaDoc || getTodayPeruYMD(),
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: docRef,
+            motivo: motivo || `PASE A ${targetSituacionDispo || 'DISPONIBILIDAD'}`,
+            observacion: obs,
+            modulo_origen: 'disponibilidad_retiro'
+          });
+        } catch (_) {}
+
         toast(`¡Registro transferido a ${targetSituacionDispo} y retirado de Personal con éxito!`, 'success');
         document.getElementById('disponibilidadFloatingModal').classList.remove('open');
         closeForm();
@@ -14881,6 +15284,23 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
           await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipRaw), { method: 'DELETE' });
         }
 
+        // Registrar movimiento del efectivo a REASIGNADO
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: 'REASIGNADO',
+            fecha: fechaSalida || fechaIncorp || getTodayPeruYMD(),
+            lista_de_revista: unidadDestino || listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: resMemo || docRef,
+            motivo: motivo || 'REASIGNACIÓN',
+            observacion: obs,
+            modulo_origen: 'reasignados'
+          });
+        } catch (_) {}
+
         toast('¡Registro transferido a Reasignados y retirado de Personal con éxito!', 'success');
         document.getElementById('reasignadoFloatingModal').classList.remove('open');
         closeForm();
@@ -14972,6 +15392,23 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
         } else {
           await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipRaw), { method: 'DELETE' });
         }
+
+        // Registrar movimiento del efectivo a DETENIDO
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: 'DETENIDO',
+            fecha: fechaDoc || fechaIncorp || getTodayPeruYMD(),
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: docRef,
+            motivo: 'DETENIDO SIN SENTENCIA',
+            observacion: obs,
+            modulo_origen: 'detenidos'
+          });
+        } catch (_) {}
 
         toast('¡Registro transferido a Detenidos y eliminado de la tabla Personal Policial con éxito!', 'success');
         document.getElementById('detenidoFloatingModal').classList.remove('open');
@@ -15742,6 +16179,9 @@ REGLAS CRÍTICAS:
       const fichaBtn = document.getElementById('formFichaBtn');
       if (fichaBtn) fichaBtn.style.display = current ? 'inline-block' : 'none';
 
+      const movBtn = document.getElementById('formMovimientosBtn');
+      if (movBtn) movBtn.style.display = current ? 'inline-block' : 'none';
+
       const btnVerOrden = document.getElementById('btnVerOrdenFromForm');
       if (btnVerOrden) btnVerOrden.style.display = 'none';
 
@@ -16272,6 +16712,40 @@ REGLAS CRÍTICAS:
             console.warn('Advertencia al sincronizar situación en personal_policial:', errSync);
           }
         }
+        // Registrar movimiento individual del efectivo
+        try {
+          const cipClean = onlyDigits(cipVal);
+          const gradoMov = getFieldValue('grado') || obj['GRADO'] || (current ? firstValue(current, ['grado', 'GRADO']) : '');
+          const nomMov = getFieldValue('apellidos_y_nombres') || obj['APELLIDOS Y NOMBRES'] || (current ? firstValue(current, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_y_nombres']) : '');
+          const fecMov = getFieldValue('fecha_de_incorporacion') || (current ? firstValue(current, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN']) : '') || getTodayPeruYMD();
+          const revMov = getFieldValue('lista_de_revista') || getFieldValue('lista_revista') || obj['LISTA DE REVISTA'] || (current ? firstValue(current, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) : '');
+          const unOrigMov = getFieldValue('unidad_de_origen') || obj['UNIDAD DE ORIGEN'] || (current ? firstValue(current, ['unidad_de_origen', 'UNIDAD DE ORIGEN']) : '');
+          const unAntMov = getFieldValue('unidad_anterior') || obj['UNIDAD ANTERIOR'] || (current ? firstValue(current, ['unidad_anterior', 'UNIDAD ANTERIOR']) : '');
+          const docRefMov = getFieldValue('documento_que_sustenta') || getFieldValue('documento_referencia') || obj['DOCUMENTO QUE SUSTENTA'] || (current ? firstValue(current, ['documento_que_sustenta', 'documento_referencia']) : '');
+          const sitMov = String(getFieldValue('situacion_actual') || obj['SITUACIÓN ACTUAL'] || (current ? firstValue(current, ['situacion_actual', 'SITUACIÓN ACTUAL']) : 'PRESENTE')).trim().toUpperCase();
+
+          if (current) {
+            const revAnterior = String(firstValue(current, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '').trim();
+            const sitAnterior = String(firstValue(current, ['situacion_actual', 'SITUACIÓN ACTUAL']) || '').trim().toUpperCase();
+            if (revMov && (revMov !== revAnterior || sitMov !== sitAnterior)) {
+              registrarMovimientoEfectivo({
+                cip: cipClean,
+                grado: gradoMov,
+                apellidos_nombres: nomMov,
+                tipo_movimiento: (sitMov !== sitAnterior && sitMov !== 'PRESENTE') ? sitMov : 'CAMBIO DE REVISTA',
+                fecha: fecMov,
+                lista_de_revista: revMov,
+                unidad_de_origen: unOrigMov,
+                unidad_anterior: revAnterior || unAntMov,
+                documento_referencia: docRefMov,
+                motivo: 'ACTUALIZACIÓN EN SISTEMA',
+                modulo_origen: currentTable
+              });
+            }
+          }
+        } catch (errMov) {
+          console.warn('Advertencia al registrar movimiento automático:', errMov);
+        }
 
         toast('Registro guardado exitosamente', 'success');
         closeForm();
@@ -16520,6 +16994,26 @@ REGLAS CRÍTICAS:
           documento_referencia: docRefVal || '',
           usuario_registra: usuarioReg
         };
+
+        // Registrar movimiento inicial de incorporación para el efectivo
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipVal,
+            grado: valGrado,
+            apellidos_nombres: valNombres,
+            tipo_movimiento: (valCondicion === 'DESTACADO') ? 'DESTAQUE (INCORPORACIÓN)' : 'INCORPORACIÓN',
+            fecha: valFechaIncorp || todayYMD,
+            lista_de_revista: valListaRevista,
+            unidad_de_origen: valUnidadOrigen,
+            unidad_anterior: valUnidadAnterior || valUnidadOrigen,
+            documento_referencia: rawDocSustVal || nextCorr.formattedDocNum,
+            motivo: motivoVal,
+            observacion: `Orden de Incorporación N° ${nextCorr.numPadded}`,
+            modulo_origen: 'personal'
+          });
+        } catch (eMov) {
+          console.warn('Error registrando movimiento inicial:', eMov);
+        }
 
         // Mostrar vista previa y cerrar formulario
         closeForm();
