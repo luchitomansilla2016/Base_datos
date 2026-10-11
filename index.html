@@ -6402,6 +6402,7 @@
     const API_INCORPORADOS_REASIGNADOS = SUPABASE_URL + '/rest/v1/incorporados_reasignados';
     const API_INCORPORADOS_DESTACADOS = SUPABASE_URL + '/rest/v1/incorporados_destacados';
     const API_JEFES = SUPABASE_URL + '/rest/v1/jefes';
+    const API_HISTORIAL_MOVIMIENTOS = SUPABASE_URL + '/rest/v1/historial_movimientos';
 
     // Base de datos de Registro de Documentos (Orden de Incorporación)
     const DOCS_SUPABASE_URL = 'https://ngsujkfmkgofngqwuqnf.supabase.co';
@@ -6558,7 +6559,7 @@
       }
     }
 
-    function registrarMovimientoEfectivo({
+    async function registrarMovimientoEfectivo({
       cip,
       grado = '',
       apellidos_nombres = '',
@@ -6573,7 +6574,7 @@
       modulo_origen = 'personal'
     }) {
       const cipClean = onlyDigits(cip);
-      if (!cipClean) return;
+      if (!cipClean) return null;
 
       const rawFecha = fecha || getTodayPeruYMD();
       const fMov = (typeof formatDateForInput === 'function' ? formatDateForInput(rawFecha) : '') || rawFecha;
@@ -6608,8 +6609,68 @@
       if (!isDuplicate) {
         list.unshift(nuevoMov);
         saveMovimientosStorage(list);
+
+        // Guardar también en la base de datos Supabase si la tabla está creada
+        try {
+          const res = await req(API_HISTORIAL_MOVIMIENTOS, {
+            method: 'POST',
+            body: JSON.stringify({
+              cip: cipClean,
+              grado: nuevoMov.grado,
+              apellidos_nombres: nuevoMov.apellidos_nombres,
+              tipo_movimiento: nuevoMov.tipo_movimiento,
+              fecha: nuevoMov.fecha,
+              lista_de_revista: nuevoMov.lista_de_revista,
+              unidad_de_origen: nuevoMov.unidad_de_origen,
+              unidad_anterior: nuevoMov.unidad_anterior,
+              documento_referencia: nuevoMov.documento_referencia,
+              motivo: nuevoMov.motivo,
+              observacion: nuevoMov.observacion,
+              modulo_origen: nuevoMov.modulo_origen
+            })
+          });
+          if (Array.isArray(res) && res[0]?.id) {
+            nuevoMov.id = res[0].id;
+            saveMovimientosStorage(list);
+          }
+        } catch (errSup) {
+          console.warn('Movimiento guardado localmente (Supabase en espera):', errSup.message);
+        }
       }
       return nuevoMov;
+    }
+
+    async function fetchMovimientosSupabase(cip) {
+      const cipClean = onlyDigits(cip);
+      if (!cipClean) return [];
+      try {
+        const res = await req(API_HISTORIAL_MOVIMIENTOS + '?cip=eq.' + encodeURIComponent(cipClean) + '&order=fecha.desc,id.desc');
+        if (Array.isArray(res) && res.length > 0) {
+          const localList = getMovimientosStorage();
+          const otherCips = localList.filter(m => String(m.cip) !== String(cipClean));
+          const formatted = res.map(r => ({
+            id: r.id,
+            cip: r.cip,
+            grado: r.grado || '',
+            apellidos_nombres: r.apellidos_nombres || '',
+            tipo_movimiento: r.tipo_movimiento || 'MOVIMIENTO',
+            fecha: r.fecha || '',
+            lista_de_revista: r.lista_de_revista || '',
+            unidad_de_origen: r.unidad_de_origen || '',
+            unidad_anterior: r.unidad_anterior || '',
+            documento_referencia: r.documento_referencia || '',
+            motivo: r.motivo || '',
+            observacion: r.observacion || '',
+            modulo_origen: r.modulo_origen || 'personal',
+            timestamp: r.created_at || new Date().toISOString()
+          }));
+          saveMovimientosStorage([...formatted, ...otherCips]);
+          return formatted;
+        }
+      } catch (err) {
+        // En caso de tabla aún no creada en Supabase, usa almacenamiento local sin interrumpir
+      }
+      return getMovimientosPorCip(cipClean);
     }
 
     function parseDateToTime(val) {
@@ -7821,6 +7882,7 @@
             </div>
             <div class="actions">
               <button class="secondary" onclick="openFicha('${id}')">Ver ficha</button>
+              <button class="secondary" onclick="openMovimientosById('${id}')" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;" title="Ver historial de movimientos">🔄 Movimientos</button>
               ${canEdit() ? `<button class="primary" onclick="openForm('${id}')">✏ Editar</button>` : ''}
             </div>
           </article>`;
@@ -8101,6 +8163,11 @@
     // ==========================================
     let currentMovimientosEfectivo = null;
 
+    function openMovimientosById(id) {
+      const r = findRecordById(id);
+      if (r) openMovimientosModal(r);
+    }
+
     function openMovimientosModal(r) {
       if (!r) return;
       currentMovimientosEfectivo = r;
@@ -8152,7 +8219,7 @@
       }
     }
 
-    function guardarMovimientoManual() {
+    async function guardarMovimientoManual() {
       if (!currentMovimientosEfectivo) return;
       const cip = firstValue(currentMovimientosEfectivo, ['CIP', 'cip']);
       const grado = firstValue(currentMovimientosEfectivo, ['grado', 'GRADO']);
@@ -8170,7 +8237,7 @@
         return;
       }
 
-      registrarMovimientoEfectivo({
+      await registrarMovimientoEfectivo({
         cip,
         grado,
         apellidos_nombres: nombres,
@@ -8185,58 +8252,76 @@
 
       toast('¡Movimiento registrado con éxito!', 'success');
       toggleNuevoMovimientoForm(false);
-      renderMovimientosTable(cip);
+      await renderMovimientosTable(cip);
     }
 
-    function eliminarMovimientoManual(movId) {
+    async function eliminarMovimientoManual(movId) {
       if (!confirm('¿Desea eliminar este registro de movimiento?')) return;
       let list = getMovimientosStorage();
-      list = list.filter(m => m.id !== movId);
+      list = list.filter(m => String(m.id) !== String(movId));
       saveMovimientosStorage(list);
+
+      // Si es numérico (ID de Supabase), eliminar también en Supabase
+      if (!isNaN(movId)) {
+        try {
+          await req(API_HISTORIAL_MOVIMIENTOS + '?id=eq.' + encodeURIComponent(movId), { method: 'DELETE' });
+        } catch (_) {}
+      }
+
       toast('Registro de movimiento eliminado', 'info');
       const cip = firstValue(currentMovimientosEfectivo, ['CIP', 'cip']);
-      renderMovimientosTable(cip);
+      await renderMovimientosTable(cip);
     }
 
-    function renderMovimientosTable(cip) {
+    async function renderMovimientosTable(cip) {
       const tbody = document.getElementById('movimientosTableBody');
       if (!tbody) return;
 
-      const movs = getMovimientosPorCip(cip);
-      if (!movs || movs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic;">No hay movimientos registrados para este efectivo policial todavía.</td></tr>`;
-        return;
-      }
+      const drawRows = (movs) => {
+        if (!movs || movs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic;">No hay movimientos registrados para este efectivo policial todavía.</td></tr>`;
+          return;
+        }
 
-      tbody.innerHTML = movs.map((m, idx) => {
-        const isLatest = (idx === 0);
-        const tm = String(m.tipo_movimiento || '').toUpperCase();
-        const badgeColor = tm.includes('INCORP') ? '#166534; background:#dcfce7; border:1px solid #bbf7d0;' :
-                           tm.includes('DESTAC') ? '#854d0e; background:#fef9c3; border:1px solid #fef08a;' :
-                           tm.includes('CURSO') ? '#1e40af; background:#dbeafe; border:1px solid #bfdbfe;' :
-                           tm.includes('REFER') ? '#991b1b; background:#fee2e2; border:1px solid #fecaca;' :
-                           tm.includes('REASIG') ? '#5b21b6; background:#ede9fe; border:1px solid #ddd6fe;' :
-                           tm.includes('LEY') ? '#831843; background:#fce7f3; border:1px solid #fbcfe8;' :
-                           (tm.includes('DISP') || tm.includes('RETIR')) ? '#9a3412; background:#ffedd5; border:1px solid #fed7aa;' :
-                           tm.includes('DETEN') ? '#7f1d1d; background:#fee2e2; border:1px solid #fca5a5;' :
-                           '#0369a1; background:#e0f2fe; border:1px solid #bae6fd;';
-        return `
-          <tr style="border-bottom: 1px solid #e2e8f0; ${isLatest ? 'background:#f0fdf4;' : ''}">
-            <td style="padding: 9px 12px; font-weight:700; color:#64748b; white-space:nowrap;">
-              ${idx + 1}
-              ${isLatest ? '<span style="display:inline-block; margin-left:5px; padding:1px 6px; border-radius:4px; font-size:9px; background:#16a34a; color:#fff; font-weight:800; vertical-align:middle;" title="Movimiento más reciente (actual)">ACTUAL</span>' : ''}
-            </td>
-            <td style="padding: 9px 12px; font-weight:600; white-space:nowrap;">${esc(formatDateDisplay(m.fecha) || '—')}</td>
-            <td style="padding: 9px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; color:${badgeColor}">${esc(m.tipo_movimiento)}</span></td>
-            <td style="padding: 9px 12px; font-weight:700; color:#064e3b;">${esc(m.lista_de_revista || '—')}</td>
-            <td style="padding: 9px 12px; color:#334155;">${esc(m.documento_referencia || '—')}</td>
-            <td style="padding: 9px 12px; color:#475569; font-size:11px;">${esc(m.motivo ? (m.motivo + (m.observacion ? ' · ' + m.observacion : '')) : (m.observacion || '—'))}</td>
-            <td style="padding: 9px 12px; text-align:center;">
-              <button type="button" onclick="eliminarMovimientoManual('${m.id}')" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:3px 6px; border-radius:6px; cursor:pointer; font-size:11px;" title="Eliminar registro">🗑️</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
+        tbody.innerHTML = movs.map((m, idx) => {
+          const isLatest = (idx === 0);
+          const tm = String(m.tipo_movimiento || '').toUpperCase();
+          const badgeColor = tm.includes('INCORP') ? '#166534; background:#dcfce7; border:1px solid #bbf7d0;' :
+                             tm.includes('DESTAC') ? '#854d0e; background:#fef9c3; border:1px solid #fef08a;' :
+                             tm.includes('CURSO') ? '#1e40af; background:#dbeafe; border:1px solid #bfdbfe;' :
+                             tm.includes('REFER') ? '#991b1b; background:#fee2e2; border:1px solid #fecaca;' :
+                             tm.includes('REASIG') ? '#5b21b6; background:#ede9fe; border:1px solid #ddd6fe;' :
+                             tm.includes('LEY') ? '#831843; background:#fce7f3; border:1px solid #fbcfe8;' :
+                             (tm.includes('DISP') || tm.includes('RETIR')) ? '#9a3412; background:#ffedd5; border:1px solid #fed7aa;' :
+                             tm.includes('DETEN') ? '#7f1d1d; background:#fee2e2; border:1px solid #fca5a5;' :
+                             '#0369a1; background:#e0f2fe; border:1px solid #bae6fd;';
+          return `
+            <tr style="border-bottom: 1px solid #e2e8f0; ${isLatest ? 'background:#f0fdf4;' : ''}">
+              <td style="padding: 9px 12px; font-weight:700; color:#64748b; white-space:nowrap;">
+                ${idx + 1}
+                ${isLatest ? '<span style="display:inline-block; margin-left:5px; padding:1px 6px; border-radius:4px; font-size:9px; background:#16a34a; color:#fff; font-weight:800; vertical-align:middle;" title="Movimiento más reciente (actual)">ACTUAL</span>' : ''}
+              </td>
+              <td style="padding: 9px 12px; font-weight:600; white-space:nowrap;">${esc(formatDateDisplay(m.fecha) || '—')}</td>
+              <td style="padding: 9px 12px;"><span style="display:inline-block; padding:2px 8px; border-radius:999px; font-size:10px; font-weight:800; color:${badgeColor}">${esc(m.tipo_movimiento)}</span></td>
+              <td style="padding: 9px 12px; font-weight:700; color:#064e3b;">${esc(m.lista_de_revista || '—')}</td>
+              <td style="padding: 9px 12px; color:#334155;">${esc(m.documento_referencia || '—')}</td>
+              <td style="padding: 9px 12px; color:#475569; font-size:11px;">${esc(m.motivo ? (m.motivo + (m.observacion ? ' · ' + m.observacion : '')) : (m.observacion || '—'))}</td>
+              <td style="padding: 9px 12px; text-align:center;">
+                <button type="button" onclick="eliminarMovimientoManual('${m.id}')" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; padding:3px 6px; border-radius:6px; cursor:pointer; font-size:11px;" title="Eliminar registro">🗑️</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      };
+
+      // 1. Mostrar de inmediato desde local
+      drawRows(getMovimientosPorCip(cip));
+
+      // 2. Sincronizar en segundo plano con Supabase si está disponible
+      try {
+        await fetchMovimientosSupabase(cip);
+        drawRows(getMovimientosPorCip(cip));
+      } catch (_) {}
     }
 
     // ==========================================
