@@ -15246,10 +15246,10 @@ Analiza minuciosamente la imagen proporcionada y extrae con máxima fidelidad lo
   "tipo_dni": "Tipo de DNI (ej: ELECTRONICO, AZUL)",
   "codofin": "Código CODOFIN si figura",
   "grado": "Grado policial abreviado sin puntos (ej: CMDTE PNP, MAY PNP, CAP PNP, TNTE PNP, ALFZ PNP, SS PNP, SB PNP, ST1 PNP, ST2 PNP, ST3 PNP, S1 PNP, S2 PNP, S3 PNP, o con SPNP)",
-  "especialidad": "Especialidad policial (ej: DE ARMAS, SERVICIOS)",
+  "especialidad": "Especialidad exacta que figura en la imagen donde dice 'ESPECIALIDAD :' (ej: POLICIA, ORDEN PUBL.SEG., INV.CRIMI., ABOGADO, etc.)",
   "apellidos_nombres": "Apellidos y nombres completos en mayúsculas (si vienen con coma 'APELLIDOS, NOMBRES', transfórmalo a 'APELLIDOS NOMBRES' sin coma)",
-  "unidad_origen": "Unidad de procedencia u origen (ej: COMOPPOL DIRNOS REGPOL HUANUCO SEC)",
-  "lista_revista": "Lista de revista o unidad actual (ej: COMOPPOL DIRNOS REGPOL HUANUCO SEC)",
+  "unidad_origen": "Unidad de procedencia u origen. REGLA: Nunca uses guiones bajos '_', reemplaza cualquier '_' por espacio simple (ej: 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD')",
+  "lista_revista": "Lista de revista o unidad actual. REGLA: Nunca uses guiones bajos '_', reemplaza cualquier '_' por espacio simple (ej: 'COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD')",
   "cargo": "Cargo asignado si figura (ej: JEFE DE SECRETARIA)",
   "condicion": "Condición policial (ej: NATO, EFECTIVO, DESTACADO)",
   "situacion_actual": "Situación policial (ej: ACTIVIDAD, RETIRO, DISPONIBILIDAD, PRESENTE)",
@@ -15422,22 +15422,25 @@ REGLAS CRÍTICAS:
           }
         }
 
-        // Búsqueda especial para Especialidad (ARMAS / DE ARMAS / SERVICIOS)
+        // Búsqueda especial para Especialidad
         if (el.id === 'especialidad' || el.id === 'ESPECIALIDAD') {
-          const isServ = targetNorm.includes('SERV');
           for (let i = 0; i < el.options.length; i++) {
             const optVal = norm(el.options[i].value);
-            if (isServ && optVal.includes('SERV')) {
-              el.selectedIndex = i;
-              el.dispatchEvent(new Event('change', { bubbles: true }));
-              return true;
-            }
-            if (!isServ && (optVal.includes('ARMA') || optVal === 'DE ARMAS')) {
+            const optText = norm(el.options[i].text);
+            if (optVal === targetNorm || optText === targetNorm || optVal.includes(targetNorm) || targetNorm.includes(optVal)) {
               el.selectedIndex = i;
               el.dispatchEvent(new Event('change', { bubbles: true }));
               return true;
             }
           }
+          // Si la especialidad leída de la imagen no está en la lista previa, agregarla y seleccionarla
+          const newOpt = document.createElement('option');
+          newOpt.value = strVal;
+          newOpt.text = strVal;
+          el.appendChild(newOpt);
+          el.value = strVal;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          return true;
         }
 
         // Búsqueda especial para Hijos (número '0', '1', '2'...)
@@ -15502,9 +15505,14 @@ REGLAS CRÍTICAS:
       // Calcular jerarquía automáticamente según el grado
       const jerarquiaAuto = determinarJerarquiaPorGrado(gradoLimpio || rawGrado) || data.jerarquia || '';
 
-      // Especialidad
-      const espAuto = jerarquiaAuto.includes('SERVICIOS') ? 'SERVICIOS' : 'DE ARMAS';
-      const espVal = data.especialidad ? (String(data.especialidad).toUpperCase().includes('SERV') ? 'SERVICIOS' : 'DE ARMAS') : espAuto;
+      // Especialidad leída fielmente de la imagen
+      const rawEsp = (data.especialidad || '').trim();
+      const espVal = rawEsp || (jerarquiaAuto.includes('SERVICIOS') ? 'SERVICIOS' : 'POLICIA');
+
+      // Limpiar unidades: quitar guiones bajos '_' y reemplazarlos por espacios simples
+      const cleanUnidad = (str) => String(str || '').replace(/_+/g, ' ').replace(/\s+/g, ' ').trim();
+      const unidadOrigenClean = cleanUnidad(data.unidad_origen);
+      const listaRevistaClean = cleanUnidad(data.lista_revista || data.unidad_origen);
 
       // Sexo: estrictamente M o F
       let sexoVal = '';
@@ -15544,12 +15552,12 @@ REGLAS CRÍTICAS:
         'apellidos_nombres': rawNombres,
         'apellidos_y_nombres': rawNombres,
         'APELLIDOS Y NOMBRES': rawNombres,
-        'unidad_origen': data.unidad_origen,
-        'unidad_de_origen': data.unidad_origen,
-        'UNIDAD DE ORIGEN': data.unidad_origen,
-        'lista_revista': data.lista_revista || data.unidad_origen,
-        'lista_de_revista': data.lista_revista || data.unidad_origen,
-        'LISTA DE REVISTA': data.lista_revista || data.unidad_origen,
+        'unidad_origen': unidadOrigenClean,
+        'unidad_de_origen': unidadOrigenClean,
+        'UNIDAD DE ORIGEN': unidadOrigenClean,
+        'lista_revista': listaRevistaClean,
+        'lista_de_revista': listaRevistaClean,
+        'LISTA DE REVISTA': listaRevistaClean,
         'cargo': data.cargo,
         'CARGO': data.cargo,
         'condicion': data.condicion,
