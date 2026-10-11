@@ -13901,6 +13901,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
       listaRevista = '',
       fechaIncorp = '',
       docSustenta = '',
+      situacionActual = '',
       nroDocumentoGenerado = '',
       fechaDocumentoGenerado = ''
     }) {
@@ -13920,6 +13921,13 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
         'NECESIDAD DEL SERVICIO'
       ).trim().toUpperCase();
 
+      const valSituacion = String(
+        situacionActual ||
+        document.getElementById('situacion_actual')?.value ||
+        getFieldValue('situacion_actual') ||
+        'PRESENTE'
+      ).trim().toUpperCase();
+
       const numInclusion = getFieldValue('dest_incorp_numero_inclusion') || null;
       const fechaInclusion = document.getElementById('dest_incorp_fecha_inclusion')?.value || null;
       const docPoneDisp = getFieldValue('dest_incorp_documento_pone_disposicion') || nroDocumentoGenerado || null;
@@ -13933,6 +13941,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
       // - motivo = motivo
       // - fecha_incorp_salida = fecha de incorporación
       // - destino = lo de la lista de revista
+      // - situacion_actual = copiado del campo situacion actual según lo seleccionado
       const destacadoObj = {
         "cip": cipClean,
         "grado": grado || null,
@@ -13940,7 +13949,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
         "unidad_origen": unidadOrigen || null,
         "lista_revista": unidadAnterior || null, // Del cuadro unidad anterior
         "condicion": 'DESTACADO',
-        "situacion_actual": 'DESTACADO',
+        "situacion_actual": valSituacion, // Según lo seleccionado en el campo situacion actual
         "documento_referencia": valAMerito || docSustenta || null, // A mérito = documento_referencia
         "motivo": valMotivo || 'NECESIDAD DEL SERVICIO',
         "fecha_incorp_salida": fechaIncorp || getTodayPeruYMD(), // Fecha de incorporación
@@ -13966,7 +13975,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
         "unidad_origen_actual": unidadOrigen || null,
         "lista_revista_anterior": unidadAnterior || null,
         "condicion": 'DESTACADO',
-        "situacion_actual": 'PRESENTE',
+        "situacion_actual": valSituacion, // Según lo seleccionado en el campo situacion actual
         "fecha_incorporacion": fechaIncorp || getTodayPeruYMD(),
         "motivo": valMotivo || 'NECESIDAD DEL SERVICIO',
         "documento_referencia": valAMerito || docSustenta || null,
@@ -14205,6 +14214,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             console.warn('Error sincronizando incorporados_reasignados:', eIncorp);
           }
         } else if (condicion === 'DESTACADO') {
+          const sitActualVal = (document.getElementById('situacion_actual')?.value || getFieldValue('situacion_actual') || obj['SITUACIÓN ACTUAL'] || '').trim().toUpperCase();
           await sincronizarDestaqueNuevoPersonal({
             cip: cipRaw,
             grado: grado,
@@ -14214,6 +14224,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             listaRevista: listaRevista,
             fechaIncorp: fechaIncorp,
             docSustenta: docSustenta,
+            situacionActual: sitActualVal,
             nroDocumentoGenerado: nroOrden,
             fechaDocumentoGenerado: fechaOrden
           });
@@ -14396,6 +14407,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             console.warn('Error sincronizando incorporados_reasignados:', eIncorp);
           }
         } else if (condicion === 'DESTACADO') {
+          const sitActualVal = (document.getElementById('situacion_actual')?.value || getFieldValue('situacion_actual') || obj['SITUACIÓN ACTUAL'] || '').trim().toUpperCase();
           await sincronizarDestaqueNuevoPersonal({
             cip: cipRaw,
             grado: grado,
@@ -14405,6 +14417,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             listaRevista: listaRevista,
             fechaIncorp: fechaIncorp,
             docSustenta: docSustenta,
+            situacionActual: sitActualVal,
             nroDocumentoGenerado: nroOficio,
             fechaDocumentoGenerado: fechaOficio
           });
@@ -14602,6 +14615,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             console.warn('Error sincronizando incorporados_reasignados:', eIncorp);
           }
         } else if (condicion === 'DESTACADO') {
+          const sitActualVal = (document.getElementById('situacion_actual')?.value || getFieldValue('situacion_actual') || obj['SITUACIÓN ACTUAL'] || '').trim().toUpperCase();
           await sincronizarDestaqueNuevoPersonal({
             cip: cipRaw,
             grado: grado,
@@ -14611,6 +14625,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             listaRevista: listaRevista,
             fechaIncorp: fechaIncorp,
             docSustenta: docSustenta,
+            situacionActual: sitActualVal,
             nroDocumentoGenerado: null,
             fechaDocumentoGenerado: null
           });
@@ -17056,6 +17071,7 @@ REGLAS CRÍTICAS:
                 console.warn('Advertencia al registrar en incorporados_reasignados:', errIncorp);
               }
             } else if (condVal === 'DESTACADO') {
+              const sitActualVal = (document.getElementById('situacion_actual')?.value || getFieldValue('situacion_actual') || obj['SITUACIÓN ACTUAL'] || '').trim().toUpperCase();
               await sincronizarDestaqueNuevoPersonal({
                 cip: cipClean,
                 grado: document.getElementById('grado')?.value || obj['GRADO'] || '',
@@ -17065,6 +17081,7 @@ REGLAS CRÍTICAS:
                 listaRevista: getFieldValue('lista_de_revista') || obj['LISTA DE REVISTA'] || '',
                 fechaIncorp: document.getElementById('fecha_de_incorporacion')?.value || '',
                 docSustenta: getFieldValue('documento_que_sustenta') || obj['DOCUMENTO QUE SUSTENTA'] || '',
+                situacionActual: sitActualVal,
                 nroDocumentoGenerado: null,
                 fechaDocumentoGenerado: null
               });
