@@ -13834,12 +13834,171 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
       cargo: 'REGPOL HUÁNUCO'
     };
 
-    function openGenerarDocNuevoPersonalModal(e) {
+    // =========================================================================
+    // VALIDACIÓN DE DUPLICADOS Y SINCRONIZACIÓN DE DESTAQUE PARA NUEVO PERSONAL
+    // =========================================================================
+    async function validarDuplicadosPersonal(cip = '', dni = '', excludeId = null) {
+      const cipClean = onlyDigits(cip);
+      const dniClean = onlyDigits(dni);
+
+      if (cip !== '' && (!cipClean || cipClean.length < 6)) {
+        return { valid: false, message: 'Ingrese un CIP válido (mínimo 6 dígitos).' };
+      }
+
+      // 1. Validar contra registros cargados en memoria
+      if (Array.isArray(rows) && currentTable === 'personal') {
+        if (cipClean && cipClean.length >= 6) {
+          const dupCip = rows.find(r => (!excludeId || String(r.id) !== String(excludeId)) && onlyDigits(firstValue(r, ['CIP', 'cip'])) === cipClean);
+          if (dupCip) {
+            const nom = firstValue(dupCip, ['APELLIDOS Y NOMBRES', 'apellidos_nombres']) || 'registrado';
+            return { valid: false, message: `El CIP ${cipClean} ya se encuentra registrado a nombre de: ${nom}. No se permite duplicar el CIP.` };
+          }
+        }
+
+        if (dniClean && dniClean.length === 8) {
+          const dupDni = rows.find(r => (!excludeId || String(r.id) !== String(excludeId)) && onlyDigits(firstValue(r, ['DNI', 'dni'])) === dniClean);
+          if (dupDni) {
+            const nom = firstValue(dupDni, ['APELLIDOS Y NOMBRES', 'apellidos_nombres']) || 'registrado';
+            return { valid: false, message: `El DNI ${dniClean} ya se encuentra registrado a nombre de: ${nom}. No se permite duplicar el DNI.` };
+          }
+        }
+      }
+
+      // 2. Consulta de seguridad directa a Supabase
+      try {
+        if (cipClean && cipClean.length >= 6) {
+          let cipUrl = API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipClean) + '&select=id,CIP,DNI,APELLIDOS%20Y%20NOMBRES&limit=1';
+          if (excludeId) cipUrl += '&id=neq.' + encodeURIComponent(excludeId);
+          const resCip = await req(cipUrl);
+          if (Array.isArray(resCip) && resCip.length > 0) {
+            const nom = firstValue(resCip[0], ['APELLIDOS Y NOMBRES', 'apellidos_nombres']) || 'registrado';
+            return { valid: false, message: `El CIP ${cipClean} ya existe en la base de datos a nombre de: ${nom}.` };
+          }
+        }
+
+        if (dniClean && dniClean.length === 8) {
+          let dniUrl = API_PERSONAL + '?DNI=eq.' + encodeURIComponent(dniClean) + '&select=id,CIP,DNI,APELLIDOS%20Y%20NOMBRES&limit=1';
+          if (excludeId) dniUrl += '&id=neq.' + encodeURIComponent(excludeId);
+          const resDni = await req(dniUrl);
+          if (Array.isArray(resDni) && resDni.length > 0) {
+            const nom = firstValue(resDni[0], ['APELLIDOS Y NOMBRES', 'apellidos_nombres']) || 'registrado';
+            return { valid: false, message: `El DNI ${dniClean} ya existe en la base de datos a nombre de: ${nom}.` };
+          }
+        }
+      } catch (e) {
+        console.warn('Error verificando duplicados en Supabase:', e);
+      }
+
+      return { valid: true };
+    }
+
+    async function sincronizarDestaqueNuevoPersonal({
+      cip,
+      grado = '',
+      nombres = '',
+      unidadOrigen = '',
+      unidadAnterior = '',
+      listaRevista = '',
+      fechaIncorp = '',
+      docSustenta = '',
+      nroDocumentoGenerado = '',
+      fechaDocumentoGenerado = ''
+    }) {
+      const cipClean = onlyDigits(cip);
+      if (!cipClean) return;
+
+      const valAMerito = String(
+        document.getElementById('dest_incorp_a_merito')?.value ||
+        getFieldValue('dest_incorp_a_merito') ||
+        getFieldValue('dest_incorp_documento_referencia') ||
+        docSustenta || ''
+      ).trim();
+
+      const valMotivo = String(
+        document.getElementById('dest_incorp_motivo')?.value ||
+        getFieldValue('dest_incorp_motivo') ||
+        'NECESIDAD DEL SERVICIO'
+      ).trim().toUpperCase();
+
+      const numInclusion = getFieldValue('dest_incorp_numero_inclusion') || null;
+      const fechaInclusion = document.getElementById('dest_incorp_fecha_inclusion')?.value || null;
+      const docPoneDisp = getFieldValue('dest_incorp_documento_pone_disposicion') || nroDocumentoGenerado || null;
+      const fechaDoc = document.getElementById('dest_incorp_fecha_documento')?.value || fechaDocumentoGenerado || fechaIncorp || getTodayPeruYMD();
+      const obs = getFieldValue('dest_incorp_observacion') || null;
+
+      // 1. Guardar en la tabla 'destacados' del sistema de personal:
+      // - cip, grado, apellidos_nombres, unidad_origen
+      // - lista_revista se copia del cuadro unidad anterior cuando en condición es DESTACADO
+      // - documento_referencia = a mérito
+      // - motivo = motivo
+      // - fecha_incorp_salida = fecha de incorporación
+      // - destino = lo de la lista de revista
+      const destacadoObj = {
+        "cip": cipClean,
+        "grado": grado || null,
+        "apellidos_nombres": nombres || null,
+        "unidad_origen": unidadOrigen || null,
+        "lista_revista": unidadAnterior || null, // Del cuadro unidad anterior
+        "condicion": 'DESTACADO',
+        "situacion_actual": 'DESTACADO',
+        "documento_referencia": valAMerito || docSustenta || null, // A mérito = documento_referencia
+        "motivo": valMotivo || 'NECESIDAD DEL SERVICIO',
+        "fecha_incorp_salida": fechaIncorp || getTodayPeruYMD(), // Fecha de incorporación
+        "destino": listaRevista || null, // Destino irá lo de la lista de revista
+        "oficio_pone_disposicion": docPoneDisp,
+        "fecha_oficio": fechaDoc,
+        "inclusion": numInclusion,
+        "fecha_inclusion": fechaInclusion,
+        "observacion": obs
+      };
+
+      try {
+        await req(API_DESTACADOS, { method: 'POST', body: JSON.stringify(destacadoObj) });
+      } catch (errDest) {
+        console.warn('Error al guardar en tabla destacados:', errDest);
+      }
+
+      // 2. Guardar también en la tabla 'incorporados_destacados' para consistencia
+      const incorpDestObj = {
+        "cip": cipClean,
+        "grado": grado || null,
+        "apellidos_nombres": nombres || null,
+        "unidad_origen_actual": unidadOrigen || null,
+        "lista_revista_anterior": unidadAnterior || null,
+        "condicion": 'DESTACADO',
+        "situacion_actual": 'PRESENTE',
+        "fecha_incorporacion": fechaIncorp || getTodayPeruYMD(),
+        "motivo": valMotivo || 'NECESIDAD DEL SERVICIO',
+        "documento_referencia": valAMerito || docSustenta || null,
+        "destino": listaRevista || unidadOrigen || null,
+        "numero_inclusion": numInclusion,
+        "fecha_inclusion": fechaInclusion,
+        "documento_pone_disposicion": docPoneDisp,
+        "fecha_documento": fechaDoc,
+        "observacion": obs
+      };
+
+      try {
+        await req(API_INCORPORADOS_DESTACADOS, { method: 'POST', body: JSON.stringify(incorpDestObj) });
+      } catch (errIncorpDest) {
+        console.warn('Error al guardar en incorporados_destacados:', errIncorpDest);
+      }
+    }
+
+    async function openGenerarDocNuevoPersonalModal(e) {
       if (e) e.preventDefault();
 
       const cip = onlyDigits(document.getElementById('cip')?.value || (current ? firstValue(current, ['CIP', 'cip']) : ''));
       if (!cip || cip.length < 6) {
         toast('Por favor ingrese un CIP válido de al menos 6 dígitos antes de generar documento.', 'warning');
+        return;
+      }
+      const dni = onlyDigits(document.getElementById('dni')?.value || (current ? firstValue(current, ['DNI', 'dni']) : ''));
+
+      // Validar duplicados de CIP y DNI antes de abrir modal de documentos
+      const dupCheck = await validarDuplicadosPersonal(cip, dni, current ? current.id : null);
+      if (!dupCheck.valid) {
+        toast(dupCheck.message, 'error');
         return;
       }
 
@@ -13923,6 +14082,13 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
       const nombres = document.getElementById('apellidos_y_nombres')?.value?.trim() || '';
       const dni = onlyDigits(document.getElementById('dni')?.value || '');
       const condicion = String(document.getElementById('condicion')?.value || 'NATO').trim().toUpperCase();
+
+      // Validar duplicados de CIP y DNI antes de registrar
+      const dupCheck = await validarDuplicadosPersonal(cipRaw, dni, current ? current.id : null);
+      if (!dupCheck.valid) {
+        toast(dupCheck.message, 'error');
+        return;
+      }
       const unidadOrigen = document.getElementById('unidad_de_origen')?.value?.trim() || 'REGPOL HUANUCO';
       const listaRevista = document.getElementById('lista_de_revista')?.value?.trim() || 'OFAD REGPOL HUANUCO';
       const unidadAnterior = document.getElementById('unidad_anterior')?.value?.trim() || 'DIRREHUM PNP';
@@ -14039,29 +14205,18 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             console.warn('Error sincronizando incorporados_reasignados:', eIncorp);
           }
         } else if (condicion === 'DESTACADO') {
-          const destIncorpObj = {
-            "cip": cipRaw,
-            "grado": grado || null,
-            "apellidos_nombres": nombres || null,
-            "unidad_origen_actual": unidadOrigen || null,
-            "lista_revista_anterior": unidadAnterior || null,
-            "condicion": 'DESTACADO',
-            "situacion_actual": 'PRESENTE',
-            "fecha_incorporacion": fechaIncorp || todayYMD,
-            "motivo": motIncorpVal,
-            "documento_referencia": docRefComb,
-            "destino": listaRevista || unidadOrigen || null,
-            "numero_inclusion": getFieldValue('dest_incorp_numero_inclusion') || null,
-            "fecha_inclusion": document.getElementById('dest_incorp_fecha_inclusion')?.value || null,
-            "documento_pone_disposicion": nroOrden,
-            "fecha_documento": fechaOrden || todayYMD,
-            "observacion": getFieldValue('dest_incorp_observacion') || null
-          };
-          try {
-            await req(API_INCORPORADOS_DESTACADOS, { method: 'POST', body: JSON.stringify(destIncorpObj) });
-          } catch (eDest) {
-            console.warn('Error sincronizando incorporados_destacados:', eDest);
-          }
+          await sincronizarDestaqueNuevoPersonal({
+            cip: cipRaw,
+            grado: grado,
+            nombres: nombres,
+            unidadOrigen: unidadOrigen,
+            unidadAnterior: unidadAnterior,
+            listaRevista: listaRevista,
+            fechaIncorp: fechaIncorp,
+            docSustenta: docSustenta,
+            nroDocumentoGenerado: nroOrden,
+            fechaDocumentoGenerado: fechaOrden
+          });
         }
 
         // 4. Registrar en Sistema de Documentos (tabla 'orden_incorporacion')
@@ -14140,6 +14295,13 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
       const nombres = document.getElementById('apellidos_y_nombres')?.value?.trim() || '';
       const dni = onlyDigits(document.getElementById('dni')?.value || '');
       const condicion = String(document.getElementById('condicion')?.value || 'NATO').trim().toUpperCase();
+
+      // Validar duplicados de CIP y DNI antes de registrar
+      const dupCheck = await validarDuplicadosPersonal(cipRaw, dni, current ? current.id : null);
+      if (!dupCheck.valid) {
+        toast(dupCheck.message, 'error');
+        return;
+      }
       const unidadOrigen = document.getElementById('unidad_de_origen')?.value?.trim() || 'REGPOL HUANUCO';
       const listaRevista = document.getElementById('lista_de_revista')?.value?.trim() || 'OFAD REGPOL HUANUCO';
       const unidadAnterior = document.getElementById('unidad_anterior')?.value?.trim() || 'DIRREHUM PNP';
@@ -14234,39 +14396,18 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             console.warn('Error sincronizando incorporados_reasignados:', eIncorp);
           }
         } else if (condicion === 'DESTACADO') {
-          const valDestMotivo = getFieldValue('dest_incorp_motivo') || 'NECESIDAD DEL SERVICIO';
-          const valDestAMerito = getFieldValue('dest_incorp_a_merito') || getFieldValue('dest_incorp_documento_referencia') || '';
-          let docRefDestComb = '';
-          if (docSustenta && valDestAMerito) {
-            const cleanDoc = docSustenta.replace(/\s*-\s*$/, '');
-            docRefDestComb = cleanDoc.toLowerCase().includes(valDestAMerito.toLowerCase()) ? cleanDoc : `${cleanDoc} - ${valDestAMerito}`;
-          } else {
-            docRefDestComb = docSustenta || valDestAMerito || null;
-          }
-
-          const destIncorpObj = {
-            "cip": cipRaw,
-            "grado": grado || null,
-            "apellidos_nombres": nombres || null,
-            "unidad_origen_actual": unidadOrigen || null,
-            "lista_revista_anterior": unidadAnterior || null,
-            "condicion": 'DESTACADO',
-            "situacion_actual": 'PRESENTE',
-            "fecha_incorporacion": fechaIncorp || todayYMD,
-            "motivo": valDestMotivo,
-            "documento_referencia": docRefDestComb,
-            "destino": listaRevista || unidadOrigen || null,
-            "numero_inclusion": getFieldValue('dest_incorp_numero_inclusion') || null,
-            "fecha_inclusion": document.getElementById('dest_incorp_fecha_inclusion')?.value || null,
-            "documento_pone_disposicion": nroOficio,
-            "fecha_documento": fechaOficio || todayYMD,
-            "observacion": getFieldValue('dest_incorp_observacion') || null
-          };
-          try {
-            await req(API_INCORPORADOS_DESTACADOS, { method: 'POST', body: JSON.stringify(destIncorpObj) });
-          } catch (eDest) {
-            console.warn('Error sincronizando incorporados_destacados:', eDest);
-          }
+          await sincronizarDestaqueNuevoPersonal({
+            cip: cipRaw,
+            grado: grado,
+            nombres: nombres,
+            unidadOrigen: unidadOrigen,
+            unidadAnterior: unidadAnterior,
+            listaRevista: listaRevista,
+            fechaIncorp: fechaIncorp,
+            docSustenta: docSustenta,
+            nroDocumentoGenerado: nroOficio,
+            fechaDocumentoGenerado: fechaOficio
+          });
         }
 
         // Determinar Tipo de Incorporación y Motivo según condición
@@ -14383,7 +14524,15 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
 
       const grado = document.getElementById('grado')?.value?.trim() || '';
       const nombres = document.getElementById('apellidos_y_nombres')?.value?.trim() || '';
+      const dni = onlyDigits(document.getElementById('dni')?.value || '');
       const condicion = String(document.getElementById('condicion')?.value || 'NATO').trim().toUpperCase();
+
+      // Validar duplicados de CIP y DNI antes de registrar
+      const dupCheck = await validarDuplicadosPersonal(cipRaw, dni, current ? current.id : null);
+      if (!dupCheck.valid) {
+        toast(dupCheck.message, 'error');
+        return;
+      }
       const unidadOrigen = document.getElementById('unidad_de_origen')?.value?.trim() || 'REGPOL HUANUCO';
       const listaRevista = document.getElementById('lista_de_revista')?.value?.trim() || 'OFAD REGPOL HUANUCO';
       const unidadAnterior = document.getElementById('unidad_anterior')?.value?.trim() || 'DIRREHUM PNP';
@@ -14453,39 +14602,18 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             console.warn('Error sincronizando incorporados_reasignados:', eIncorp);
           }
         } else if (condicion === 'DESTACADO') {
-          const valDestMotivo = getFieldValue('dest_incorp_motivo') || 'NECESIDAD DEL SERVICIO';
-          const valDestAMerito = getFieldValue('dest_incorp_a_merito') || getFieldValue('dest_incorp_documento_referencia') || '';
-          let docRefDestComb = '';
-          if (docSustenta && valDestAMerito) {
-            const cleanDoc = docSustenta.replace(/\s*-\s*$/, '');
-            docRefDestComb = cleanDoc.toLowerCase().includes(valDestAMerito.toLowerCase()) ? cleanDoc : `${cleanDoc} - ${valDestAMerito}`;
-          } else {
-            docRefDestComb = docSustenta || valDestAMerito || null;
-          }
-
-          const destIncorpObj = {
-            "cip": cipRaw,
-            "grado": grado || null,
-            "apellidos_nombres": nombres || null,
-            "unidad_origen_actual": unidadOrigen || null,
-            "lista_revista_anterior": unidadAnterior || null,
-            "condicion": 'DESTACADO',
-            "situacion_actual": 'PRESENTE',
-            "fecha_incorporacion": fechaIncorp || todayYMD,
-            "motivo": valDestMotivo,
-            "documento_referencia": docRefDestComb,
-            "destino": listaRevista || unidadOrigen || null,
-            "numero_inclusion": getFieldValue('dest_incorp_numero_inclusion') || null,
-            "fecha_inclusion": document.getElementById('dest_incorp_fecha_inclusion')?.value || null,
-            "documento_pone_disposicion": null,
-            "fecha_documento": null,
-            "observacion": getFieldValue('dest_incorp_observacion') || null
-          };
-          try {
-            await req(API_INCORPORADOS_DESTACADOS, { method: 'POST', body: JSON.stringify(destIncorpObj) });
-          } catch (eDest) {
-            console.warn('Error sincronizando incorporados_destacados:', eDest);
-          }
+          await sincronizarDestaqueNuevoPersonal({
+            cip: cipRaw,
+            grado: grado,
+            nombres: nombres,
+            unidadOrigen: unidadOrigen,
+            unidadAnterior: unidadAnterior,
+            listaRevista: listaRevista,
+            fechaIncorp: fechaIncorp,
+            docSustenta: docSustenta,
+            nroDocumentoGenerado: null,
+            fechaDocumentoGenerado: null
+          });
         }
 
         closeGenerarDocNuevoPersonalModal();
@@ -16588,6 +16716,42 @@ REGLAS CRÍTICAS:
       } else if (currentTable === 'en_curso') {
         checkSituacionRetornoCursoVisibility(false);
       }
+
+      if (currentTable === 'personal') {
+        const cipEl = document.getElementById('cip');
+        const dniEl = document.getElementById('dni');
+        if (cipEl) {
+          cipEl.style.borderColor = '';
+          cipEl.onblur = async () => {
+            const valCip = onlyDigits(cipEl.value);
+            if (valCip && valCip.length >= 6) {
+              const res = await validarDuplicadosPersonal(valCip, '', current ? current.id : null);
+              if (!res.valid) {
+                toast(res.message, 'error');
+                cipEl.style.borderColor = '#ef4444';
+              } else {
+                cipEl.style.borderColor = '';
+              }
+            }
+          };
+        }
+        if (dniEl) {
+          dniEl.style.borderColor = '';
+          dniEl.onblur = async () => {
+            const valDni = onlyDigits(dniEl.value);
+            if (valDni && valDni.length === 8) {
+              const res = await validarDuplicadosPersonal('', valDni, current ? current.id : null);
+              if (!res.valid) {
+                toast(res.message, 'error');
+                dniEl.style.borderColor = '#ef4444';
+              } else {
+                dniEl.style.borderColor = '';
+              }
+            }
+          };
+        }
+      }
+
       document.getElementById('modal').classList.add('open');
     }
 
@@ -16679,6 +16843,17 @@ REGLAS CRÍTICAS:
     async function saveRecord(e) {
       if (e) e.preventDefault();
       if (!canEdit()) return;
+
+      // Validación de duplicados al crear o editar en PERSONAL
+      if (currentTable === 'personal') {
+        const cipInp = onlyDigits(document.getElementById('cip')?.value || '');
+        const dniInp = onlyDigits(document.getElementById('dni')?.value || '');
+        const dupCheck = await validarDuplicadosPersonal(cipInp, dniInp, current ? current.id : null);
+        if (!dupCheck.valid) {
+          toast(dupCheck.message, 'error');
+          return;
+        }
+      }
 
       // Si es un nuevo registro en PERSONAL, abrir modal para seleccionar tipo de documento a generar
       if (!current && currentTable === 'personal') {
@@ -16881,41 +17056,18 @@ REGLAS CRÍTICAS:
                 console.warn('Advertencia al registrar en incorporados_reasignados:', errIncorp);
               }
             } else if (condVal === 'DESTACADO') {
-              const motivoDestVal = getFieldValue('dest_incorp_motivo') || 'NECESIDAD DEL SERVICIO';
-              const rawDocSustDest = String(getFieldValue('documento_que_sustenta') || obj['DOCUMENTO QUE SUSTENTA'] || '').trim();
-              const rawAMeritoDest = String(getFieldValue('dest_incorp_a_merito') || getFieldValue('dest_incorp_documento_referencia') || getFieldValue('incorp_a_merito') || getFieldValue('a_merito') || '').trim();
-
-              let docRefDestComb = '';
-              if (rawDocSustDest && rawAMeritoDest) {
-                docRefDestComb = `${rawDocSustDest} / A MÉRITO: ${rawAMeritoDest}`;
-              } else {
-                docRefDestComb = rawDocSustDest || rawAMeritoDest;
-              }
-
-              const destIncorpObj = {
-                "cip": cipClean,
-                "grado": document.getElementById('grado')?.value || obj['GRADO'] || null,
-                "apellidos_nombres": document.getElementById('apellidos_y_nombres')?.value || obj['APELLIDOS Y NOMBRES'] || null,
-                "unidad_origen_actual": getFieldValue('unidad_de_origen') || obj['UNIDAD DE ORIGEN'] || null,
-                "lista_revista_anterior": getFieldValue('unidad_anterior') || obj['UNIDAD ANTERIOR'] || null,
-                "condicion": 'DESTACADO',
-                "situacion_actual": 'PRESENTE',
-                "fecha_incorporacion": document.getElementById('fecha_de_incorporacion')?.value || null,
-                "motivo": motivoDestVal,
-                "documento_referencia": docRefDestComb,
-                "destino": getFieldValue('lista_de_revista') || getFieldValue('subunidad_donde_se_encuentra_por_curso_o_apoyo') || obj['LISTA DE REVISTA'] || null,
-                "numero_inclusion": getFieldValue('dest_incorp_numero_inclusion') || null,
-                "fecha_inclusion": document.getElementById('dest_incorp_fecha_inclusion')?.value || null,
-                "documento_pone_disposicion": getFieldValue('dest_incorp_documento_pone_disposicion') || null,
-                "fecha_documento": document.getElementById('dest_incorp_fecha_documento')?.value || null,
-                "observacion": getFieldValue('dest_incorp_observacion') || null
-              };
-
-              try {
-                await req(API_INCORPORADOS_DESTACADOS, { method: 'POST', body: JSON.stringify(destIncorpObj) });
-              } catch (errDest) {
-                console.warn('Advertencia al registrar en incorporados_destacados:', errDest);
-              }
+              await sincronizarDestaqueNuevoPersonal({
+                cip: cipClean,
+                grado: document.getElementById('grado')?.value || obj['GRADO'] || '',
+                nombres: document.getElementById('apellidos_y_nombres')?.value || obj['APELLIDOS Y NOMBRES'] || '',
+                unidadOrigen: getFieldValue('unidad_de_origen') || obj['UNIDAD DE ORIGEN'] || '',
+                unidadAnterior: getFieldValue('unidad_anterior') || obj['UNIDAD ANTERIOR'] || '',
+                listaRevista: getFieldValue('lista_de_revista') || obj['LISTA DE REVISTA'] || '',
+                fechaIncorp: document.getElementById('fecha_de_incorporacion')?.value || '',
+                docSustenta: getFieldValue('documento_que_sustenta') || obj['DOCUMENTO QUE SUSTENTA'] || '',
+                nroDocumentoGenerado: null,
+                fechaDocumentoGenerado: null
+              });
             }
           }
         }
