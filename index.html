@@ -15213,8 +15213,27 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
       }
     }
 
+    let cachedGeminiModel = null;
+
+    async function getAvailableGeminiModels(apiKey) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`);
+        if (res.ok) {
+          const data = await res.json();
+          const list = (data.models || [])
+            .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
+            .map(m => m.name.replace(/^models\//, ''));
+          if (list.length > 0) return list;
+        }
+      } catch (e) {
+        console.warn('Error en ListModels:', e);
+      }
+      return [];
+    }
+
     async function callGeminiVisionApi(dataUrl, mimeType, apiKey) {
-      const cleanBase64 = dataUrl.replace(/^data:[a-zA-Z0-9\/]+;base64,/, '');
+      const cleanBase64 = dataUrl.includes(';base64,') ? dataUrl.split(';base64,')[1] : dataUrl;
+      const effectiveMimeType = (mimeType && mimeType.startsWith('image/')) ? mimeType : 'image/jpeg';
 
       const promptText = `
 Eres un asistente de inteligencia artificial de alta precisión para la Policía Nacional del Perú (PNP), especializado en digitalizar y estructurar datos de documentos policiales oficiales (pantallas de MAESTRO PERSONAL DIRREHUM / Águila 6, Resoluciones Directorales, Resoluciones Ministeriales, Oficios, Memorándums, Carnets de Identidad CIP, Fichas de Personal).
@@ -15253,14 +15272,48 @@ REGLAS CRÍTICAS:
 3. Devuelve ÚNICAMENTE el objeto JSON válido sin texto antes ni después.
 `;
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+      // Armar lista priorizada de modelos para la clave del usuario
+      let candidateModels = [];
+      if (cachedGeminiModel) {
+        candidateModels.push(cachedGeminiModel);
+      }
+
+      const availableFromApi = await getAvailableGeminiModels(apiKey);
+      if (availableFromApi.length > 0) {
+        // Ordenar con preferencia a los modelos Flash más modernos
+        const sorted = availableFromApi.sort((a, b) => {
+          const score = (name) => {
+            if (name.includes('2.5-flash')) return 100;
+            if (name.includes('2.0-flash')) return 90;
+            if (name.includes('flash')) return 80;
+            if (name.includes('2.5-pro')) return 70;
+            if (name.includes('2.0-pro')) return 60;
+            if (name.includes('pro')) return 50;
+            return 10;
+          };
+          return score(b) - score(a);
+        });
+        candidateModels = [...new Set([...candidateModels, ...sorted])];
+      }
+
+      // Modelos estándar de respaldo si ListModels estuviera vacío
+      const standardFallbacks = [
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-exp',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-flash',
+        'gemini-2.5-pro'
+      ];
+      candidateModels = [...new Set([...candidateModels, ...standardFallbacks])];
+
       const payload = {
         contents: [{
           parts: [
             { text: promptText },
             {
               inline_data: {
-                mime_type: mimeType || 'image/jpeg',
+                mime_type: effectiveMimeType,
                 data: cleanBase64
               }
             }
@@ -15271,34 +15324,46 @@ REGLAS CRÍTICAS:
         }
       };
 
-      let resp = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      let lastError = null;
 
-      if (!resp.ok) {
-        const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-        resp = await fetch(fallbackUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+      for (const model of candidateModels) {
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+          const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (resp.ok) {
+            cachedGeminiModel = model;
+            const resData = await resp.json();
+            const rawText = resData?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!rawText) throw new Error('No se recibió texto desde la IA.');
+            let cleanedText = rawText.trim();
+            if (cleanedText.startsWith('```')) {
+              cleanedText = cleanedText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+            }
+            return JSON.parse(cleanedText);
+          } else {
+            const errJson = await resp.json().catch(() => ({}));
+            const errMsg = errJson?.error?.message || `HTTP ${resp.status}`;
+            lastError = new Error(errMsg);
+            // Si la clave es inválida, no seguir intentando
+            if (errMsg.includes('API_KEY_INVALID') || errMsg.includes('API key not valid')) {
+              throw lastError;
+            }
+            console.warn(`Modelo ${model} no disponible (${errMsg}), probando siguiente modelo...`);
+          }
+        } catch (err) {
+          if (err.message && (err.message.includes('API_KEY_INVALID') || err.message.includes('API key not valid'))) {
+            throw err;
+          }
+          lastError = err;
+        }
       }
 
-      if (!resp.ok) {
-        const errJson = await resp.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || `HTTP ${resp.status}`);
-      }
-
-      const resData = await resp.json();
-      const rawText = resData?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!rawText) throw new Error('No se recibió texto desde la IA.');
-      let cleanedText = rawText.trim();
-      if (cleanedText.startsWith('```')) {
-        cleanedText = cleanedText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-      }
-      return JSON.parse(cleanedText);
+      throw lastError || new Error('No se pudo procesar la imagen con los modelos de Gemini disponibles en tu cuenta.');
     }
 
     function fillFormWithAiData(data) {
