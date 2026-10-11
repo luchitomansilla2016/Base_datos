@@ -3753,7 +3753,10 @@
         </div>
         <div class="field wide">
           <label for="geminiApiKeyInput">Clave API (AI Studio):</label>
-          <input id="geminiApiKeyInput" type="password" placeholder="AIzaSy..." style="font-family:monospace;" />
+          <div style="display:flex; gap:6px;">
+            <input id="geminiApiKeyInput" type="password" placeholder="AIzaSy..." style="font-family:monospace; flex:1;" />
+            <button type="button" class="secondary" style="padding:6px 10px; font-size:12px; cursor:pointer;" onclick="toggleApiKeyVisibility()" title="Ver u ocultar clave">👁️</button>
+          </div>
         </div>
         <div style="font-size:11.5px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px; color:#166534;">
           💡 <b>¿Cómo obtenerla gratis en 30 segundos?</b><br />
@@ -14955,6 +14958,13 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
       closeAiKeyConfigModal();
     }
 
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('geminiApiKeyInput');
+      if (input) {
+        input.type = input.type === 'password' ? 'text' : 'password';
+      }
+    }
+
     function clearAiVisionStatus() {
       const box = document.getElementById('aiVisionStatusBox');
       const thumb = document.getElementById('aiVisionThumb');
@@ -15063,14 +15073,14 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
             const count = fillFormWithAiData(result);
             const text = document.getElementById('aiVisionStatusText');
             if (text) {
-              text.innerHTML = `<span style="color:#059669; font-weight:800;">✓ ¡Éxito!</span> Se extrajeron y completaron <b>${count} campos</b> desde la imagen con Gemini Flash.`;
+              text.innerHTML = `<span style="color:#059669; font-weight:800;">✓ ¡Éxito!</span> Se extrajeron y completaron <b>${count} campos reales</b> desde la imagen con Gemini Flash.`;
             }
-            toast(`¡IA completó ${count} campos del formulario!`, 'success');
+            toast(`¡IA completó ${count} campos reales del documento!`, 'success');
           } catch (err) {
             console.error('Error Gemini Vision:', err);
             const text = document.getElementById('aiVisionStatusText');
             if (text) {
-              text.innerHTML = `<span style="color:#dc2626; font-weight:700;">Error de API:</span> ${esc(err.message)} <button class="ai-btn-pill ai-btn-key" style="margin-left:8px;" onclick="openAiKeyConfigModal()">Revisar clave</button>`;
+              text.innerHTML = `<span style="color:#dc2626; font-weight:700;">Error de API:</span> ${esc(err.message)} <button type="button" class="ai-btn-pill ai-btn-key" style="margin-left:8px;" onclick="openAiKeyConfigModal()">Revisar clave</button>`;
             }
             toast('Error conectando a Gemini Vision: ' + err.message, 'error');
           }
@@ -15081,10 +15091,16 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
             const count = fillFormWithAiData(demoData);
             const text = document.getElementById('aiVisionStatusText');
             if (text) {
-              text.innerHTML = `<span style="color:#0284c7; font-weight:800;">✓ Modo Prueba:</span> Imagen recibida. Se autollenaron <b>${count} campos</b> de demostración. <a href="javascript:void(0)" onclick="openAiKeyConfigModal()" style="color:#0284c7; text-decoration:underline; font-weight:700; margin-left:4px;">Conecta tu API Key gratuita</a> para leer el texto exacto.`;
+              text.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                  <div><span style="color:#d97706; font-weight:800;">⚠️ MODO PRUEBA ACTIVO (Sin IA conectada):</span> Se cargaron <b>${count} datos simulados de ejemplo (Quispe Huamán)</b>.</div>
+                  <div style="font-size:11.5px; color:#475569;">Para que la IA lea el <b>texto exacto</b> de tu captura (Cmdte. Cisneros, CIP, DNI, etc.), conecta tu API Key gratuita de Google:</div>
+                  <div><button type="button" class="ai-btn-pill ai-btn-key" style="font-weight:700; background:linear-gradient(135deg, #0284c7, #0369a1); color:#fff; border:none; padding:4px 12px; cursor:pointer;" onclick="openAiKeyConfigModal()">🔑 Conectar API Key Gratuita de Gemini Ahora</button></div>
+                </div>
+              `;
             }
-            toast(`✨ Modo Prueba: ¡${count} campos autocompletados en el formulario!`, 'success');
-          }, 1100);
+            toast(`⚠️ Modo Prueba: Se cargaron datos simulados. Conecta tu API Key gratuita para leer los datos reales de la imagen.`, 'warning');
+          }, 800);
         }
       };
       reader.readAsDataURL(blob);
@@ -15201,26 +15217,40 @@ MOTIVO: ${d.motivo || 'CAMBIO DE COLOCACIÓN'}`;
       const cleanBase64 = dataUrl.replace(/^data:[a-zA-Z0-9\/]+;base64,/, '');
 
       const promptText = `
-Eres un asistente experto de la Policía Nacional del Perú (PNP) encargado de transcribir documentos oficiales (Resoluciones Directorales/Ministeriales, Oficios, Memorándums, Carnets, Fichas de Personal, Actas, Partes).
-Extrae los datos del efectivo y del documento en el siguiente formato JSON estricto:
+Eres un asistente de inteligencia artificial de alta precisión para la Policía Nacional del Perú (PNP), especializado en digitalizar y estructurar datos de documentos policiales oficiales (pantallas de MAESTRO PERSONAL DIRREHUM / Águila 6, Resoluciones Directorales, Resoluciones Ministeriales, Oficios, Memorándums, Carnets de Identidad CIP, Fichas de Personal).
+
+Analiza minuciosamente la imagen proporcionada y extrae con máxima fidelidad los siguientes campos en un único objeto JSON estricto:
+
 {
-  "cip": "número de CIP del efectivo (6 a 8 dígitos)",
-  "dni": "número de DNI (8 dígitos)",
-  "tipo_dni": "tipo de DNI si figura (ej: ELECTRONICO, AZUL, CLASICO) o ELECTRONICO",
-  "codofin": "código CODOFIN si aparece en el documento",
-  "grado": "grado policial exacto (ej: SS PNP, SB PNP, ST1 PNP, ST2 PNP, ST3 PNP, S1 PNP, S2 PNP, S3 PNP, ALFZ PNP, TNTE PNP, CAP PNP, MAY PNP, CMDTE PNP, CRNL PNP, GRAL PNP, o con SPNP para servicios)",
-  "apellidos_nombres": "apellidos y nombres completos en mayúsculas",
-  "unidad_origen": "unidad de procedencia u origen",
-  "lista_revista": "unidad actual o lista de revista",
-  "condicion": "condición policial (ej: NATO, DESTACADO, etc.)",
-  "situacion_actual": "situación policial si aplica (ej: RETIRO, DISPONIBILIDAD, REASIGNADO, PRESENTE)",
-  "fecha_situacion": "fecha en formato YYYY-MM-DD cuando rige la situación",
-  "documento_referencia": "nombre y número del documento (ej: RD N° 1646-2025 DIRREHUM, MEMORANDUM N° ...)",
-  "fecha_documento": "fecha del documento en formato YYYY-MM-DD",
-  "motivo": "motivo o causal (ej: LIMITE DE EDAD EN EL GRADO, A SU SOLICITUD, NECESIDAD DEL SERVICIO, etc.)",
-  "observacion": "observaciones relevantes adicionales"
+  "cip": "N° Carné de Identidad / CIP exacto (preserva ceros a la izquierda si los tiene, ej: 00340850)",
+  "dni": "Número de DNI (8 dígitos)",
+  "tipo_dni": "Tipo de DNI (ej: ELECTRONICO, AZUL)",
+  "codofin": "Código CODOFIN si figura",
+  "grado": "Grado policial abreviado estándar (ej: CMDTE. PNP, MAY. PNP, CAP. PNP, TNTE. PNP, ALFZ. PNP, SS PNP, SB PNP, ST1 PNP, ST2 PNP, ST3 PNP, S1 PNP, S2 PNP, S3 PNP, o con SPNP)",
+  "apellidos_nombres": "Apellidos y nombres completos en mayúsculas (si vienen con coma 'APELLIDOS, NOMBRES', transfórmalo a 'APELLIDOS NOMBRES' sin coma)",
+  "unidad_origen": "Unidad de procedencia u origen (ej: COMOPPOL DIRNOS REGPOL HUANUCO SEC)",
+  "lista_revista": "Lista de revista o unidad actual (ej: COMOPPOL DIRNOS REGPOL HUANUCO SEC)",
+  "cargo": "Cargo asignado si figura (ej: JEFE DE SECRETARIA)",
+  "condicion": "Condición policial (ej: NATO, EFECTIVO, DESTACADO)",
+  "situacion_actual": "Situación policial (ej: ACTIVIDAD, RETIRO, DISPONIBILIDAD, PRESENTE)",
+  "aptitud_psicosomatico": "Aptitud psicosomática si figura (ej: APTO, NO APTO)",
+  "fecha_de_nacimiento": "Fecha de nacimiento en formato YYYY-MM-DD",
+  "f_ingreso_al_estado": "Fecha de ingreso al Estado en formato YYYY-MM-DD",
+  "f_ingreso_a_la_escuela": "Fecha de ingreso a la Escuela en formato YYYY-MM-DD",
+  "f_egreso_de_la_escuela": "Fecha de egreso o alta de la Escuela en formato YYYY-MM-DD",
+  "f_ultimo_ascenso": "Fecha de último ascenso en formato YYYY-MM-DD",
+  "fecha_situacion": "Fecha de la situación en formato YYYY-MM-DD",
+  "fecha_incorporacion": "Fecha de incorporación en formato YYYY-MM-DD",
+  "documento_referencia": "Nombre y número del documento (ej: RD N° 1646-2025 DIRREHUM, MEMORANDUM N° ...)",
+  "fecha_documento": "Fecha del documento en formato YYYY-MM-DD",
+  "motivo": "Motivo o causal si figura",
+  "observacion": "Observaciones adicionales"
 }
-Si algún dato no aparece explícitamente en la imagen, déjalo vacío (""). Devuelve ÚNICAMENTE el objeto JSON sin texto antes ni después.
+
+REGLAS CRÍTICAS:
+1. Si un dato no figura en la imagen, déjalo como cadena vacía "".
+2. Si una fecha figura en formato DD/MM/YYYY o DD-MM-YYYY, conviértela OBLIGATORIAMENTE a formato YYYY-MM-DD (ejemplo '27/10/1984' -> '1984-10-27').
+3. Devuelve ÚNICAMENTE el objeto JSON válido sin texto antes ni después.
 `;
 
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -15264,12 +15294,19 @@ Si algún dato no aparece explícitamente en la imagen, déjalo vacío (""). Dev
       const resData = await resp.json();
       const rawText = resData?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!rawText) throw new Error('No se recibió texto desde la IA.');
-      return JSON.parse(rawText);
+      let cleanedText = rawText.trim();
+      if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      }
+      return JSON.parse(cleanedText);
     }
 
     function fillFormWithAiData(data) {
       if (!data) return 0;
       let count = 0;
+
+      // Limpiar y formatear apellidos y nombres (eliminar comas si vienen 'APELLIDOS, NOMBRES')
+      const rawNombres = (data.apellidos_nombres || data.apellidos_y_nombres || '').replace(/,\s*/g, ' ').trim().replace(/\s+/g, ' ');
 
       // Calcular jerarquía automáticamente según el grado
       const gradoVal = data.grado || document.getElementById('grado')?.value || '';
@@ -15290,24 +15327,32 @@ Si algún dato no aparece explícitamente en la imagen, déjalo vacío (""). Dev
         'JERARQUÍA': jerarquiaAuto,
         'especialidad': jerarquiaAuto.includes('SERVICIOS') ? 'SERVICIOS' : (jerarquiaAuto ? 'DE ARMAS' : ''),
         'ESPECIALIDAD': jerarquiaAuto.includes('SERVICIOS') ? 'SERVICIOS' : (jerarquiaAuto ? 'DE ARMAS' : ''),
-        'apellidos_nombres': data.apellidos_nombres,
-        'apellidos_y_nombres': data.apellidos_nombres,
-        'APELLIDOS Y NOMBRES': data.apellidos_nombres,
+        'apellidos_nombres': rawNombres,
+        'apellidos_y_nombres': rawNombres,
+        'APELLIDOS Y NOMBRES': rawNombres,
         'unidad_origen': data.unidad_origen,
         'unidad_de_origen': data.unidad_origen,
         'UNIDAD DE ORIGEN': data.unidad_origen,
         'lista_revista': data.lista_revista || data.unidad_origen,
         'lista_de_revista': data.lista_revista || data.unidad_origen,
         'LISTA DE REVISTA': data.lista_revista || data.unidad_origen,
+        'cargo': data.cargo,
+        'CARGO': data.cargo,
         'condicion': data.condicion,
         'situacion_actual': data.situacion_actual,
-        'fecha_situacion': data.fecha_situacion,
+        'aptitud_psicosomatico': data.aptitud_psicosomatico,
+        'fecha_de_nacimiento': formatDateForInput(data.fecha_de_nacimiento),
+        'f_ingreso_al_estado': formatDateForInput(data.f_ingreso_al_estado),
+        'f_ingreso_a_la_escuela': formatDateForInput(data.f_ingreso_a_la_escuela),
+        'f_egreso_de_la_escuela': formatDateForInput(data.f_egreso_de_la_escuela),
+        'f_ultimo_ascenso': formatDateForInput(data.f_ultimo_ascenso),
+        'fecha_situacion': formatDateForInput(data.fecha_situacion),
         'documento_referencia': data.documento_referencia,
         'resolucion_memorandum': data.documento_referencia,
         'documento_que_sustenta': data.documento_referencia,
-        'fecha_documento': data.fecha_documento,
-        'fecha_salida': data.fecha_situacion || data.fecha_documento,
-        'fecha_de_incorporacion': data.fecha_situacion || data.fecha_documento,
+        'fecha_documento': formatDateForInput(data.fecha_documento),
+        'fecha_salida': formatDateForInput(data.fecha_situacion || data.fecha_documento),
+        'fecha_de_incorporacion': formatDateForInput(data.fecha_incorporacion || data.fecha_situacion || data.fecha_documento),
         'motivo': data.motivo,
         'observacion': data.observacion,
         'observaciones': data.observacion
