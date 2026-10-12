@@ -14258,6 +14258,34 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
           console.warn('Registro de orden en documentos:', eDoc);
         }
 
+        // Registrar movimiento de nuevo personal
+        try {
+          const docRefMov = nroOrden || docRefComb || docSustenta;
+          const motMov = (condicion === 'DESTACADO')
+            ? (motIncorpVal ? `DESTAQUE - ${motIncorpVal}` : 'DESTAQUE POR NECESIDAD DEL SERVICIO')
+            : (motivoCombinado || 'INCORPORACIÓN / REASIGNACIÓN');
+          const obsMov = (condicion === 'DESTACADO')
+            ? (document.getElementById('dest_incorp_observacion')?.value || getFieldValue('dest_incorp_observacion') || '')
+            : (document.getElementById('incorp_observacion')?.value || getFieldValue('incorp_observacion') || '');
+
+          await registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: (condicion === 'DESTACADO' ? 'DESTAQUE' : 'INCORPORACIÓN'),
+            fecha: fechaIncorp || todayYMD,
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidadOrigen,
+            unidad_anterior: unidadAnterior,
+            documento_referencia: docRefMov,
+            motivo: motMov,
+            observacion: obsMov,
+            modulo_origen: 'personal'
+          });
+        } catch (eMov) {
+          console.warn('Error registrando movimiento para nuevo personal (Orden):', eMov);
+        }
+
         // 5. Cerrar formularios y recargar datos
         closeGenerarDocNuevoPersonalModal();
         closeForm();
@@ -14474,6 +14502,34 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
           console.warn('Registro de oficio en documentos:', eOficio);
         }
 
+        // Registrar movimiento de nuevo personal
+        try {
+          const docRefMov = nroOficio || docSustenta;
+          const motMov = (condicion === 'DESTACADO')
+            ? (motIncorp ? `DESTAQUE - ${motIncorp}` : 'DESTAQUE POR NECESIDAD DEL SERVICIO')
+            : (detalleMotivo || 'INCORPORACIÓN / REASIGNACIÓN');
+          const obsMov = (condicion === 'DESTACADO')
+            ? (document.getElementById('dest_incorp_observacion')?.value || getFieldValue('dest_incorp_observacion') || '')
+            : (document.getElementById('incorp_observacion')?.value || getFieldValue('incorp_observacion') || '');
+
+          await registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: (condicion === 'DESTACADO' ? 'DESTAQUE' : 'INCORPORACIÓN'),
+            fecha: fechaIncorp || todayYMD,
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidadOrigen,
+            unidad_anterior: unidadAnterior,
+            documento_referencia: docRefMov,
+            motivo: motMov,
+            observacion: obsMov,
+            modulo_origen: 'personal'
+          });
+        } catch (eMov) {
+          console.warn('Error registrando movimiento para nuevo personal (Oficio):', eMov);
+        }
+
         // 5. Cerrar formularios y recargar datos
         closeGenerarDocNuevoPersonalModal();
         closeForm();
@@ -14628,6 +14684,36 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
             nroDocumentoGenerado: null,
             fechaDocumentoGenerado: null
           });
+        }
+
+        // Registrar movimiento de nuevo personal
+        try {
+          const valDestMotivo = (condicion === 'DESTACADO')
+            ? (getFieldValue('dest_incorp_motivo') || 'NECESIDAD DEL SERVICIO')
+            : (getFieldValue('incorp_motivo') || 'CAMBIO DE COLOCACIÓN');
+          const docRefMov = (condicion === 'DESTACADO')
+            ? (getFieldValue('dest_incorp_a_merito') || getFieldValue('dest_incorp_documento_referencia') || docSustenta || 'ALTA')
+            : (docSustenta || getFieldValue('incorp_a_merito') || 'ALTA');
+          const obsMov = (condicion === 'DESTACADO')
+            ? (document.getElementById('dest_incorp_observacion')?.value || getFieldValue('dest_incorp_observacion') || '')
+            : (document.getElementById('incorp_observacion')?.value || getFieldValue('incorp_observacion') || '');
+
+          await registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: (condicion === 'DESTACADO' ? 'DESTAQUE' : 'INCORPORACIÓN'),
+            fecha: fechaIncorp || todayYMD,
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidadOrigen,
+            unidad_anterior: unidadAnterior,
+            documento_referencia: docRefMov,
+            motivo: (condicion === 'DESTACADO' ? `DESTAQUE - ${valDestMotivo}` : `INCORPORACIÓN - ${valDestMotivo}`),
+            observacion: obsMov,
+            modulo_origen: 'personal'
+          });
+        } catch (eMov) {
+          console.warn('Error registrando movimiento para nuevo personal (Sin documento):', eMov);
         }
 
         closeGenerarDocNuevoPersonalModal();
@@ -17132,6 +17218,23 @@ REGLAS CRÍTICAS:
                 modulo_origen: currentTable
               });
             }
+          } else {
+            const condActual = String(document.getElementById('condicion')?.value || obj['CONDICIÓN'] || '').trim().toUpperCase();
+            const tipoMovNuevo = (currentTable === 'destacados' || condActual === 'DESTACADO') ? 'DESTAQUE' : 'INCORPORACIÓN';
+            const motMovNuevo = (currentTable === 'destacados' || condActual === 'DESTACADO') ? 'DESTAQUE POR NECESIDAD DEL SERVICIO' : 'ALTA / INCORPORACIÓN';
+            registrarMovimientoEfectivo({
+              cip: cipClean,
+              grado: gradoMov,
+              apellidos_nombres: nomMov,
+              tipo_movimiento: tipoMovNuevo,
+              fecha: fecMov,
+              lista_de_revista: revMov,
+              unidad_de_origen: unOrigMov,
+              unidad_anterior: unAntMov,
+              documento_referencia: docRefMov,
+              motivo: motMovNuevo,
+              modulo_origen: currentTable
+            });
           }
         } catch (errMov) {
           console.warn('Advertencia al registrar movimiento automático:', errMov);
