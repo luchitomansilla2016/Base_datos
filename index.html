@@ -14013,7 +14013,6 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
 
       const grado = document.getElementById('grado')?.value || (current ? firstValue(current, ['GRADO', 'grado']) : '') || '—';
       const nombres = document.getElementById('apellidos_y_nombres')?.value || (current ? firstValue(current, ['APELLIDOS Y NOMBRES', 'apellidos_nombres']) : '') || '—';
-      const dni = onlyDigits(document.getElementById('dni')?.value || (current ? firstValue(current, ['DNI', 'dni']) : '')) || '—';
       const condicion = document.getElementById('condicion')?.value || (current ? firstValue(current, ['CONDICIÓN', 'condicion']) : '') || 'NATO';
       const unidadAnt = document.getElementById('unidad_anterior')?.value || (current ? firstValue(current, ['UNIDAD ANTERIOR', 'unidad_anterior']) : '') || 'DIRREHUM PNP';
       const unidadOrigen = document.getElementById('unidad_de_origen')?.value || (current ? firstValue(current, ['UNIDAD DE ORIGEN', 'unidad_origen']) : '') || 'REGPOL HUÁNUCO';
