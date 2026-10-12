@@ -6843,6 +6843,7 @@
       fecha_inclusion: { label: 'FECHA INCLUSIÓN', type: 'date' },
       doc_retorno: { label: 'Doc. Retorno', type: 'text', cls: 'wide' },
       exclusion_inclusion: { label: 'Exclusión / Inclusión', type: 'text' },
+      fecha_exclusion_inclusion: { label: 'Fecha Exclusión / Inclusión', type: 'date' },
       incorp_situacion: { label: 'SITUACIÓN', type: 'text' },
       incorp_tipo_incorporacion: { label: 'TIPO DE INCORPORACIÓN', type: 'text' },
       incorp_motivo: { label: 'MOTIVO', type: 'select', cls: 'wide' },
@@ -7075,6 +7076,7 @@
         { title: 'Datos del Efectivo', fields: ['cip','grado','apellidos_nombres'] },
         { title: 'Unidad y Situación', fields: ['lista_de_revista','condicion','situacion_actual'] },
         { title: 'Detalles del Destacamento', fields: ['documento_referencia','fecha_incorp_salida','destino'] },
+        { title: 'DATOS DE RETORNO (TÉRMINO DE DESTAQUE)', id: 'sec_destacados_retorno', fields: ['fecha_retorno','doc_retorno','exclusion_inclusion','fecha_exclusion_inclusion'] },
         { title: 'Observaciones', fields: ['observacion'] }
       ],
       reasignados: [
@@ -7453,7 +7455,7 @@
       const cond = String(firstValue(r, ['condicion', 'CONDICIÓN']) || '').toUpperCase().trim();
       const sit = String(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'situacion', 'estado']) || '').toUpperCase().trim();
 
-      if (sit.includes('RETORNO')) return '';
+      if (sit.includes('RETORNO') || cond.includes('RETORNO') || cond.includes('TERMINO')) return '';
       const cumpleCondicion = cond.includes('NATO') || cond.includes('DESTACADO');
       const cumpleSituacion = sit.includes('PRESENTE') || sit.includes('DESTACADO');
 
@@ -10493,6 +10495,29 @@ MOTIVO: ${motivoText}`;
       }
     }
 
+    function checkDestacadoRetornoVisibility() {
+      if (currentTable !== 'destacados') return;
+      const condEl = document.getElementById('condicion');
+      const condVal = String(condEl?.value || '').trim().toUpperCase();
+      const secRetorno = document.getElementById('sec_destacados_retorno');
+      if (!secRetorno) return;
+
+      const isRetorno = condVal.includes('RETORNO') || condVal.includes('TERMINO');
+      secRetorno.style.display = isRetorno ? 'contents' : 'none';
+
+      if (isRetorno) {
+        const todayYMD = typeof getTodayPeruYMD === 'function' ? getTodayPeruYMD() : new Date().toISOString().slice(0, 10);
+        const fRetornoEl = document.getElementById('fecha_retorno');
+        if (fRetornoEl && !fRetornoEl.value) {
+          fRetornoEl.value = todayYMD;
+        }
+        const fExclInclEl = document.getElementById('fecha_exclusion_inclusion');
+        if (fExclInclEl && !fExclInclEl.value) {
+          fExclInclEl.value = todayYMD;
+        }
+      }
+    }
+
     function formatConstanciaInclusionCurso(el) {
       if (!el) return;
       let rawVal = String(el.value || '').trim();
@@ -11225,6 +11250,16 @@ MOTIVO: ${motivoText}`;
                   </select>
                 </div>`;
             }
+          if (k === 'condicion' && currentTable === 'destacados') {
+            const condDestOpts = ['DESTACADO', 'APOYO', 'NATO', 'RETORNO (TERMINO DE DESTAQUE)'];
+            return `
+              <div class="field ${meta.cls || ''}">
+                <label for="${k}">${meta.label}</label>
+                <select id="${k}" onchange="checkDestacadoRetornoVisibility()" oninput="checkDestacadoRetornoVisibility()">
+                  <option value="">Seleccione...</option>
+                  ${condDestOpts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}
+                </select>
+              </div>`;
           }
 
           if (k === 'incorp_situacion') {
@@ -11342,11 +11377,17 @@ MOTIVO: ${motivoText}`;
       }
 
       const condEl = document.getElementById('condicion');
-      if (condEl && currentTable === 'personal') {
-        condEl.addEventListener('change', updateCondicionVisibility);
-        condEl.addEventListener('input', updateCondicionVisibility);
+      if (condEl) {
+        if (currentTable === 'personal') {
+          condEl.addEventListener('change', updateCondicionVisibility);
+          condEl.addEventListener('input', updateCondicionVisibility);
+        } else if (currentTable === 'destacados') {
+          condEl.addEventListener('change', checkDestacadoRetornoVisibility);
+          condEl.addEventListener('input', checkDestacadoRetornoVisibility);
+        }
       }
       updateCondicionVisibility();
+      checkDestacadoRetornoVisibility();
 
       const sitEl = document.getElementById('situacion_actual');
       if (sitEl) {
@@ -16712,6 +16753,20 @@ REGLAS CRÍTICAS:
                     if (opt) el.value = opt.value;
                   }
                   if (otroInp) { otroInp.style.display = 'none'; otroInp.value = ''; }
+                } else if (k === 'condicion' && currentTable === 'destacados') {
+                  const cVal = String(val ?? '').trim().toUpperCase();
+                  if (cVal) {
+                    let opt = Array.from(el.options).find(o => o.value.toUpperCase() === cVal || (cVal.includes('RETORNO') && o.value.includes('RETORNO')));
+                    if (!opt) {
+                      opt = document.createElement('option');
+                      opt.value = cVal;
+                      opt.textContent = cVal;
+                      el.appendChild(opt);
+                    }
+                    if (opt) el.value = opt.value;
+                  } else {
+                    el.value = '';
+                  }
                 } else {
                   el.value = val ?? '';
                 }
@@ -16815,6 +16870,8 @@ REGLAS CRÍTICAS:
         checkSituacionRetornoVisibility(false);
       } else if (currentTable === 'en_curso') {
         checkSituacionRetornoCursoVisibility(false);
+      } else if (currentTable === 'destacados') {
+        checkDestacadoRetornoVisibility();
       }
 
       if (currentTable === 'personal') {
@@ -17037,6 +17094,8 @@ REGLAS CRÍTICAS:
             } else if (currentTable === 'destacados') {
               if (k === 'observaciones' || k === 'observacion') {
                 obj['observacion'] = finalVal;
+              } else if (k === 'lista_de_revista' || k === 'lista_revista') {
+                obj['lista_revista'] = finalVal;
               } else {
                 obj[k] = finalVal;
               }
@@ -17188,6 +17247,22 @@ REGLAS CRÍTICAS:
             console.warn('Advertencia al sincronizar situación en personal_policial:', errSync);
           }
         }
+
+        let fueRetornoDestacado = false;
+        if (currentTable === 'destacados') {
+          const condValDest = String(obj['condicion'] || document.getElementById('condicion')?.value || '').trim().toUpperCase();
+          if (condValDest.includes('RETORNO') || condValDest.includes('TERMINO')) {
+            fueRetornoDestacado = true;
+            const cipClean = onlyDigits(cipVal);
+            try {
+              await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipClean), { method: 'DELETE' });
+              console.log(`Efectivo ${cipClean} retirado de personal_policial por término de destaque.`);
+            } catch (errDelPers) {
+              console.warn('Advertencia al retirar efectivo de personal_policial tras retorno de destaque:', errDelPers);
+            }
+          }
+        }
+
         // Registrar movimiento individual del efectivo
         try {
           const cipClean = onlyDigits(cipVal);
@@ -17200,7 +17275,22 @@ REGLAS CRÍTICAS:
           const docRefMov = getFieldValue('documento_que_sustenta') || getFieldValue('documento_referencia') || obj['DOCUMENTO QUE SUSTENTA'] || (current ? firstValue(current, ['documento_que_sustenta', 'documento_referencia']) : '');
           const sitMov = String(getFieldValue('situacion_actual') || obj['SITUACIÓN ACTUAL'] || (current ? firstValue(current, ['situacion_actual', 'SITUACIÓN ACTUAL']) : 'PRESENTE')).trim().toUpperCase();
 
-          if (current) {
+          if (fueRetornoDestacado) {
+            registrarMovimientoEfectivo({
+              cip: cipClean,
+              grado: gradoMov,
+              apellidos_nombres: nomMov,
+              tipo_movimiento: 'TÉRMINO DE DESTAQUE',
+              fecha: obj['fecha_retorno'] || getFieldValue('fecha_retorno') || fecMov,
+              lista_de_revista: obj['destino'] || getFieldValue('destino') || unOrigMov || revMov,
+              unidad_de_origen: unOrigMov || (current ? firstValue(current, ['unidad_de_origen', 'UNIDAD DE ORIGEN']) : ''),
+              unidad_anterior: revMov || unAntMov,
+              documento_referencia: obj['doc_retorno'] || getFieldValue('doc_retorno') || docRefMov,
+              motivo: 'TÉRMINO DE DESTAQUE / RETORNO A UNIDAD DE ORIGEN',
+              observacion: obj['observacion'] || getFieldValue('observacion') || 'RETORNO POR TÉRMINO DE DESTAQUE TEMPORAL',
+              modulo_origen: 'destacados'
+            });
+          } else if (current) {
             const revAnterior = String(firstValue(current, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '').trim();
             const sitAnterior = String(firstValue(current, ['situacion_actual', 'SITUACIÓN ACTUAL']) || '').trim().toUpperCase();
             if (revMov && (revMov !== revAnterior || sitMov !== sitAnterior)) {
@@ -17240,7 +17330,11 @@ REGLAS CRÍTICAS:
           console.warn('Advertencia al registrar movimiento automático:', errMov);
         }
 
-        toast('Registro guardado exitosamente', 'success');
+        if (fueRetornoDestacado) {
+          toast('¡Retorno de destaque guardado con éxito y efectivo retirado del padrón de Personal!', 'success');
+        } else {
+          toast('Registro guardado exitosamente', 'success');
+        }
         closeForm();
         loadData();
       } catch (err) {
