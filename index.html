@@ -6799,7 +6799,8 @@
       fecha_de_oficio: { label: 'Fecha de oficio', type: 'date' },
       fecha_incorp_salida: { label: 'Fecha Incorp / Salida', type: 'date' },
       destino: { label: 'Destino / Unidad apoyo', type: 'text', cls: 'wide' },
-      numero_oficio_pone_disposición: { label: 'Doc. que pone a disposición', type: 'text', cls: 'wide' },
+      numero_oficio_pone_disposicion: { label: 'Doc. que pone a disposición', type: 'text', cls: 'wide' },
+      'numero_oficio_pone_disposición': { label: 'Doc. que pone a disposición', type: 'text', cls: 'wide' },
       constancia_exclusion: { label: 'Constancia exclusión', type: 'text' },
       fecha_de_exclusion: { label: 'Fecha exclusión', type: 'date' },
       fecha_de_retorno: { label: 'Fecha de retorno', type: 'date', cls: 'wide' },
@@ -6919,7 +6920,8 @@
       situacion_actual: 'SITUACION ACTUAL',
       documento_referencia: 'DOCUMENTO DE REFERENCIA',
       diagnostico: 'DIAGNOSTICO',
-      numero_oficio_pone_disposición: 'DOC PONE A DISPOSICION',
+      numero_oficio_pone_disposicion: 'DOC PONE A DISPOSICION',
+      'numero_oficio_pone_disposición': 'DOC PONE A DISPOSICION',
       fecha_de_oficio: 'FECHA DOC',
       constancia_exclusion: 'NRO EXCLUSION',
       fecha_de_exclusion: 'FECHA EXCLUSION',
@@ -11250,6 +11252,8 @@ MOTIVO: ${motivoText}`;
                   </select>
                 </div>`;
             }
+          }
+
           if (k === 'condicion' && currentTable === 'destacados') {
             const condDestOpts = ['DESTACADO', 'APOYO', 'NATO', 'RETORNO (TERMINO DE DESTAQUE)'];
             return `
