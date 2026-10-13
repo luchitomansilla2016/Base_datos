@@ -4828,6 +4828,7 @@
                 <option value="CAMBIO DE REVISTA">CAMBIO DE LISTA DE REVISTA</option>
                 <option value="INCORPORACIÓN">INCORPORACIÓN</option>
                 <option value="DESTAQUE">DESTAQUE</option>
+                <option value="APOYO">APOYO</option>
                 <option value="CURSO">CURSO</option>
                 <option value="REFERIDO">REFERIDO</option>
                 <option value="REASIGNADO">REASIGNADO</option>
@@ -8390,6 +8391,7 @@
           const tm = String(m.tipo_movimiento || '').toUpperCase();
           const badgeColor = tm.includes('INCORP') ? '#166534; background:#dcfce7; border:1px solid #bbf7d0;' :
                              tm.includes('DESTAC') ? '#854d0e; background:#fef9c3; border:1px solid #fef08a;' :
+                             tm.includes('APOYO') ? '#0e7490; background:#cffafe; border:1px solid #a5f3fc;' :
                              tm.includes('CURSO') ? '#1e40af; background:#dbeafe; border:1px solid #bfdbfe;' :
                              tm.includes('REFER') ? '#991b1b; background:#fee2e2; border:1px solid #fecaca;' :
                              tm.includes('REASIG') ? '#5b21b6; background:#ede9fe; border:1px solid #ddd6fe;' :
