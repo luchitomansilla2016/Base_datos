@@ -7274,10 +7274,95 @@
       return r;
     }
 
-    async function loadCatalogos() {
-      if (_staticCatalogsReady && catalogos['grado'] && catalogos['grado'].length > 0) return;
+    const CUSTOM_ESP_STORAGE_KEY = 'pnp_custom_especialidades_v1';
+    function getCustomEspecialidadesLocal() {
       try {
-        const resGrados = await req(SUPABASE_URL + '/rest/v1/grados?select=*');
+        const raw = localStorage.getItem(CUSTOM_ESP_STORAGE_KEY);
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      } catch (_) { return []; }
+    }
+    async function guardarNuevaEspecialidadCatalogo(nuevaEsp) {
+      const clean = String(nuevaEsp || '').trim().toUpperCase().replace(/\s+/g, ' ');
+      if (!clean || clean === '__OTRO__') return;
+      if (!Array.isArray(catalogos['especialidad'])) catalogos['especialidad'] = [];
+      const exists = catalogos['especialidad'].some(x => normalizeText(x) === normalizeText(clean));
+      if (!exists) {
+        catalogos['especialidad'].push(clean);
+      }
+      try {
+        const localArr = getCustomEspecialidadesLocal();
+        if (!localArr.includes(clean)) {
+          localArr.push(clean);
+          localStorage.setItem(CUSTOM_ESP_STORAGE_KEY, JSON.stringify(localArr));
+        }
+      } catch (_) {}
+      if (!exists) {
+        try {
+          const nextNum = (catalogos['especialidad'].length || 6) + 1;
+          await req(SUPABASE_URL + '/rest/v1/especialidad', {
+            method: 'POST',
+            body: JSON.stringify({ "N°": nextNum, "ESPECIALIDAD": clean })
+          });
+        } catch (_) {
+          try {
+            await req(SUPABASE_URL + '/rest/v1/especialidad', {
+              method: 'POST',
+              body: JSON.stringify({ "ESPECIALIDAD": clean })
+            });
+          } catch (_e2) {}
+        }
+      }
+    }
+
+    async function loadCatalogos() {
+      if (_staticCatalogsReady && catalogos['grado'] && catalogos['grado'].length > 0 && catalogos['especialidad'] && catalogos['especialidad'].length > 0) return;
+      const fetchCatalog = async (tableName, columnKeys) => {
+        try {
+          const res = await req(SUPABASE_URL + '/rest/v1/' + encodeURIComponent(tableName) + '?select=*');
+          if (!Array.isArray(res)) return [];
+          const list = [];
+          res.forEach(item => {
+            for (const k of columnKeys) {
+              const val = item[k];
+              if (val !== undefined && val !== null && String(val).trim() !== '') {
+                const clean = String(val).trim().replace(/\s+/g, ' ');
+                if (!list.includes(clean)) list.push(clean);
+                break;
+              }
+            }
+          });
+          return list;
+        } catch (_) {
+          return [];
+        }
+      };
+
+      try {
+        const [
+          resGrados,
+          tiposDni,
+          jerarquias,
+          especialidadesDb,
+          condiciones,
+          situaciones,
+          cargos,
+          aptitudes,
+          sexos,
+          estadosCiviles
+        ] = await Promise.all([
+          req(SUPABASE_URL + '/rest/v1/grados?select=*').catch(() => []),
+          fetchCatalog('tipo_dni', ['TIPO DNI', 'tipo_dni', 'tipo']),
+          fetchCatalog('jerarquía', ['JERARQUÍA', 'jerarquia', 'JERARQUIA']),
+          fetchCatalog('especialidad', ['ESPECIALIDAD', 'especialidad']),
+          fetchCatalog('condición', ['CONDICIÓN', 'condicion', 'CONDICION']),
+          fetchCatalog('situación_actual', ['SITUACIÓN ACTUAL', 'situacion_actual', 'SITUACION ACTUAL']),
+          fetchCatalog('cargo', ['CARGO', 'cargo']),
+          fetchCatalog('aptitud_psicosomático', ['APTITUD PSICOSOMÁTICO', 'aptitud_psicosomatico', 'APTITUD PSICOSOMATICO']),
+          fetchCatalog('sexo', ['SEXO', 'sexo']),
+          fetchCatalog('estado_civil', ['ESTADO CIVIL', 'estado_civil', 'ESTADO_CIVIL'])
+        ]);
+
         const grados = [];
         gradoOrden = {};
         (resGrados || []).forEach(g => {
@@ -7287,17 +7372,43 @@
             if (!grados.includes(val)) grados.push(val);
           }
         });
-        catalogos['tipo_dni'] = ['ELECTRONICO', 'CLASICO', 'AZUL', 'AMARILLO'];
+
+        catalogos['tipo_dni'] = tiposDni.length ? tiposDni : ['ELECTRONICO', 'CLASICO', 'AZUL', 'AMARILLO'];
         catalogos['grado'] = grados;
-        catalogos['jerarquia'] = ['OFICIAL DE ARMAS', 'SUBOFICIAL DE ARMAS', 'OFICIAL DE SERVICIOS', 'SUBOFICIAL DE SERVICIOS'];
-        catalogos['especialidad'] = ['DE ARMAS', 'DE SERVICIOS', 'POLICIA', 'ADMINISTRACION'];
-        catalogos['condicion'] = ['NATO', 'DESTACADO', 'REASIGNADO'];
-        catalogos['situacion_actual'] = ['PRESENTE', 'REFERIDO', 'CURSO', 'DESTACADO', 'SOMETIDO A LEY', 'DISPONIBILIDAD', 'RETIRO', 'REASIGNADO', 'DETENIDO'];
-        catalogos['cargo'] = ['OPERATIVO', 'ADMINISTRATIVO', 'JEFE', 'COMISARIO', 'SECRETARIO', 'OFAD', 'JEFE DE DIVISION'];
-        catalogos['aptitud_psicosomatico'] = ['APTO CODIGO 0', 'APTO CON OBSERVACION CODIGO 1', 'APTO CON OBSERVACION CODIGO 2', 'INAPTO'];
-        catalogos['sexo'] = ['M', 'F'];
+        catalogos['jerarquia'] = jerarquias.length ? jerarquias : ['OFICIAL DE ARMAS', 'SUBOFICIAL DE ARMAS', 'OFICIAL DE SERVICIOS', 'SUBOFICIAL DE SERVICIOS'];
+        ['OFICIAL DE ARMAS', 'SUBOFICIAL DE ARMAS', 'OFICIAL DE SERVICIOS', 'SUBOFICIAL DE SERVICIOS'].forEach(j => {
+          if (!catalogos['jerarquia'].includes(j)) catalogos['jerarquia'].push(j);
+        });
+
+        const baseEspecialidades = especialidadesDb.length
+          ? [...especialidadesDb]
+          : ['ABOGADO', 'ECONOMISTA', 'INV. CRIMI.', 'ING. QUIMICO', 'ORDEN PUBL. SEG.', 'POLICÍA'];
+        ['ABOGADO', 'ECONOMISTA', 'INV. CRIMI.', 'ING. QUIMICO', 'ORDEN PUBL. SEG.', 'POLICÍA'].forEach(esp => {
+          const normEsp = normalizeText(esp).replace(/\s+/g, '');
+          const already = baseEspecialidades.some(x => normalizeText(x).replace(/\s+/g, '') === normEsp);
+          if (!already) baseEspecialidades.push(esp);
+        });
+        getCustomEspecialidadesLocal().forEach(esp => {
+          if (esp && !baseEspecialidades.includes(esp)) baseEspecialidades.push(esp);
+        });
+        catalogos['especialidad'] = baseEspecialidades;
+
+        catalogos['condicion'] = condiciones.length ? condiciones : ['NATO', 'DESTACADO', 'APOYO'];
+        catalogos['situacion_actual'] = situaciones.length ? situaciones : ['PRESENTE', 'REFERIDO', 'CURSO', 'DESTACADO', 'SOMETIDO A LEY', 'DISPONIBILIDAD', 'RETIRO', 'REASIGNADO', 'DETENIDO'];
+        ['PRESENTE', 'REFERIDO', 'CURSO', 'DESTACADO', 'SOMETIDO A LEY', 'DISPONIBILIDAD', 'RETIRO', 'REASIGNADO', 'DETENIDO'].forEach(s => {
+          if (!catalogos['situacion_actual'].includes(s)) catalogos['situacion_actual'].push(s);
+        });
+        catalogos['cargo'] = cargos.length ? cargos : ['OPERATIVO', 'ADMINISTRATIVO', 'JEFE', 'COMISARIO', 'SECRETARIO', 'OFAD'];
+        if (!catalogos['cargo'].includes('OPERATIVO')) {
+          catalogos['cargo'].unshift('OPERATIVO');
+        }
+        catalogos['aptitud_psicosomatico'] = aptitudes.length ? aptitudes : ['APTO CODIGO 0', 'APTO CON OBSERVACION CODIGO 1', 'APTO CON OBSERVACION CODIGO 2', 'INAPTO'];
+        if (!catalogos['aptitud_psicosomatico'].includes('APTO CODIGO 0')) {
+          catalogos['aptitud_psicosomatico'].unshift('APTO CODIGO 0');
+        }
+        catalogos['sexo'] = sexos.length ? sexos : ['M', 'F'];
         catalogos['hijos'] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-        catalogos['estado_civil'] = ['SOLTERO(A)', 'CASADO(A)', 'CONVIVIENTE', 'DIVORCIADO(A)', 'VIUDO(A)', 'SOLTERO', 'CASADO'];
+        catalogos['estado_civil'] = estadosCiviles.length ? estadosCiviles : ['SOLTERO', 'CASADO', 'DIVORCIADO', 'VIUDO'];
         catalogos['incorp_motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
         catalogos['dest_incorp_motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
         catalogos['motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
@@ -11488,6 +11599,55 @@ MOTIVO: ${motivoText}`;
       }
     }
 
+    function toggleEspecialidadCustomInput(e) {
+      if (e) e.preventDefault();
+      const sel = document.getElementById('especialidad');
+      const inp = document.getElementById('especialidad_otro');
+      if (!sel || !inp) return;
+      if (inp.style.display === 'none' || !inp.style.display) {
+        sel.value = '__OTRO__';
+        inp.style.display = 'block';
+        inp.focus();
+      } else {
+        inp.style.display = 'none';
+        inp.value = '';
+        if (sel.value === '__OTRO__') {
+          const firstValid = Array.from(sel.options).find(o => o.value && o.value !== '__OTRO__');
+          sel.value = firstValid ? firstValid.value : '';
+        }
+      }
+    }
+
+    function handleEspecialidadSelectChange(sel) {
+      const inp = document.getElementById('especialidad_otro');
+      if (!inp) return;
+      if (sel.value === '__OTRO__') {
+        inp.style.display = 'block';
+        inp.focus();
+      } else {
+        inp.style.display = 'none';
+        inp.value = '';
+      }
+    }
+
+    function syncEspecialidadOtro(inputEl) {
+      const val = inputEl.value.trim().toUpperCase();
+      const sel = document.getElementById('especialidad');
+      if (!sel) return;
+      if (val) {
+        let opt = Array.from(sel.options).find(o => o.value.toUpperCase() === val);
+        if (!opt) {
+          opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = val;
+          const otroOpt = Array.from(sel.options).find(o => o.value === '__OTRO__');
+          if (otroOpt) sel.insertBefore(opt, otroOpt);
+          else sel.appendChild(opt);
+        }
+        sel.value = opt.value;
+      }
+    }
+
     function toggleCargoCustomInput(e) {
       if (e) e.preventDefault();
       const sel = document.getElementById('cargo');
@@ -11690,6 +11850,31 @@ MOTIVO: ${motivoText}`;
               <div class="field ${meta.cls || ''}">
                 <label for="${k}">${meta.label}</label>
                 <input id="${k}" type="text" placeholder="Ej. 15 o 001" onblur="formatConstanciaInclusionPersonal(this)" onchange="formatConstanciaInclusionPersonal(this)" />
+              </div>`;
+          }
+
+          if (k === 'especialidad') {
+            const espOpts = (catalogos['especialidad'] && catalogos['especialidad'].length)
+              ? catalogos['especialidad']
+              : ['ABOGADO', 'ECONOMISTA', 'INV. CRIMI.', 'ING. QUIMICO', 'ORDEN PUBL. SEG.', 'POLICÍA'];
+            const defaultVal = (!isEdit && currentTable === 'personal') ? (espOpts.find(o => normalizeText(o) === 'policia') || espOpts[0] || '') : '';
+            const optionsHtml = espOpts.map(o => {
+              const selected = (!isEdit && defaultVal && o.toUpperCase() === defaultVal.toUpperCase()) ? ' selected' : '';
+              return `<option value="${esc(o)}"${selected}>${esc(o)}</option>`;
+            }).join('');
+            const firstOpt = (!isEdit && defaultVal && espOpts.some(o => o.toUpperCase() === defaultVal.toUpperCase())) ? '' : '<option value="">Seleccione...</option>';
+            return `
+              <div class="field ${meta.cls || ''}">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <label for="${k}" style="margin-bottom:0;">${meta.label}</label>
+                  <a href="javascript:void(0)" onclick="toggleEspecialidadCustomInput(event)" style="font-size:11px; color:#0284c7; text-decoration:underline; font-weight:700;">✏️ Agregar otra</a>
+                </div>
+                <select id="${k}" onchange="handleEspecialidadSelectChange(this)">
+                  ${firstOpt}
+                  ${optionsHtml}
+                  <option value="__OTRO__">➕ OTRO (Agregar nueva especialidad)...</option>
+                </select>
+                <input id="especialidad_otro" type="text" placeholder="Escriba aquí la nueva especialidad..." style="display:none; margin-top:6px; font-weight:600; border-color:#0284c7; background:#f0f9ff;" oninput="syncEspecialidadOtro(this)" />
               </div>`;
           }
 
@@ -17130,6 +17315,23 @@ REGLAS CRÍTICAS:
                     if (opt) el.value = opt.value;
                   }
                   if (otroInp) { otroInp.style.display = 'none'; otroInp.value = ''; }
+                } else if (k === 'especialidad') {
+                  const eVal = String(val ?? '').trim();
+                  const otroEspInp = document.getElementById('especialidad_otro');
+                  if (eVal) {
+                    const normTarget = normalizeText(eVal).replace(/\s+/g, '');
+                    let opt = Array.from(el.options).find(o => o.value !== '__OTRO__' && (o.value.toUpperCase() === eVal.toUpperCase() || normalizeText(o.value).replace(/\s+/g, '') === normTarget));
+                    if (!opt && eVal !== '__OTRO__') {
+                      opt = document.createElement('option');
+                      opt.value = eVal.toUpperCase();
+                      opt.textContent = eVal.toUpperCase();
+                      const otroOpt = Array.from(el.options).find(o => o.value === '__OTRO__');
+                      if (otroOpt) el.insertBefore(opt, otroOpt);
+                      else el.appendChild(opt);
+                    }
+                    if (opt) el.value = opt.value;
+                  }
+                  if (otroEspInp) { otroEspInp.style.display = 'none'; otroEspInp.value = ''; }
                 } else if (k === 'condicion' && currentTable === 'destacados') {
                   const cVal = String(val ?? '').trim().toUpperCase();
                   if (cVal) {
@@ -17425,6 +17627,17 @@ REGLAS CRÍTICAS:
               }
             }
             const meta = allFieldMeta[k] || {};
+            if (k === 'especialidad') {
+              const otroEspInp = document.getElementById('especialidad_otro');
+              if (v === '__OTRO__' && otroEspInp && otroEspInp.value.trim()) {
+                v = otroEspInp.value.trim().toUpperCase();
+              } else if (otroEspInp && otroEspInp.style.display !== 'none' && otroEspInp.value.trim()) {
+                v = otroEspInp.value.trim().toUpperCase();
+              }
+              if (v && v !== '__OTRO__') {
+                guardarNuevaEspecialidadCatalogo(v);
+              }
+            }
             if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
             const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
 
@@ -17770,6 +17983,17 @@ REGLAS CRÍTICAS:
             if (!el) return;
             let v = el.value.trim();
             const meta = allFieldMeta[k] || {};
+            if (k === 'especialidad') {
+              const otroEspInp = document.getElementById('especialidad_otro');
+              if (v === '__OTRO__' && otroEspInp && otroEspInp.value.trim()) {
+                v = otroEspInp.value.trim().toUpperCase();
+              } else if (otroEspInp && otroEspInp.style.display !== 'none' && otroEspInp.value.trim()) {
+                v = otroEspInp.value.trim().toUpperCase();
+              }
+              if (v && v !== '__OTRO__') {
+                guardarNuevaEspecialidadCatalogo(v);
+              }
+            }
             if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
             const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
 

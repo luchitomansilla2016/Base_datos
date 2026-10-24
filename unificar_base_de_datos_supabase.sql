@@ -203,7 +203,8 @@ BEGIN
     'oficios', 'informes', 'memorandum', 'informe_administrativo',
     'decreto', 'carta_informativa', 'devolucion', 'resolucion',
     'comunicacion_telefonica', 'orden_telefonica', 'orden_incorporacion',
-    'orden_reincorporacion', 'orden_lactancia', 'orden_gravidez'
+    'orden_reincorporacion', 'orden_lactancia', 'orden_gravidez',
+    'especialidad', 'cargo'
   ]
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY;', t);
