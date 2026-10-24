@@ -3974,8 +3974,8 @@
 
   <!-- SCRIPTS Y LÓGICA DE CONEXIÓN CON REGLAS DE SEGURIDAD (RBAC) -->
   <script>
-    const SUPABASE_URL = 'https://ngsujkfmkgofngqwuqnf.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nc3Vqa2Zta2dvZm5ncXd1cW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDk2MzQsImV4cCI6MjEwNDIyNTYzNH0.KL1YmWPLSkMHs9LCf4TC8quqo2G4cd8K0zaGxvoU3Vg';
+    const SUPABASE_URL = 'https://cmbjqttrwdphrirerzyx.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtYmpxdHRyd2RwaHJpcmVyenl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDM1OTMsImV4cCI6MjA5NjYxOTU5M30.JVCjFMNiv7NMjrwKpmbpXz-3HNgda6gWR_TSUJ3pHds';
 
     const TABLES_CONFIG = {
       oficios: { title: 'OFICIOS', icon: '&#128196;', hasDestino: true, hasQuienOrdena: false, hasFechasRango: false },
@@ -5835,7 +5835,189 @@
       return nivel === 'ADMIN' || nivel === 'ADMINISTRADOR' || nivel === 'ADMINI';
     }
 
+    function normalizeUserFromOficina(u) {
+      if (!u || typeof u !== 'object') return u;
+      return Object.assign({}, u, {
+        id: u.id,
+        cip: u.cip || u.CIP || '',
+        grado: u.grado || u.GRADO || '',
+        apellidos_nombres: u.apellidos_nombres || u['APELLIDOS Y NOMBRES'] || '',
+        correo_personal: u.correo_personal || u.CORREO_PERSONAL || '',
+        celular: u.celular || u.CELULAR || '',
+        nivel: u.nivel || u.NIVEL || 'USUARIO',
+        activo: (u.activo !== undefined) ? u.activo : (u.ACTIVO !== false),
+        'contraseña': u['contraseña'] || u['CONTRASEÑA'] || u.contrasena || ''
+      });
+    }
+
+    function mapUserPayloadToOficina(p) {
+      if (!p || typeof p !== 'object') return p;
+      const out = {};
+      if (p.cip !== undefined) out['CIP'] = p.cip;
+      if (p.grado !== undefined) out['GRADO'] = p.grado;
+      if (p.apellidos_nombres !== undefined) out['APELLIDOS Y NOMBRES'] = p.apellidos_nombres;
+      if (p.correo_personal !== undefined) out['CORREO_PERSONAL'] = p.correo_personal;
+      if (p.nivel !== undefined) out['NIVEL'] = p.nivel;
+      if (p['contraseña'] !== undefined) out['CONTRASEÑA'] = p['contraseña'];
+      if (p.activo !== undefined) out['ACTIVO'] = p.activo;
+      return Object.keys(out).length > 0 ? out : p;
+    }
+
+    function unpackHistorialDocRow(r) {
+      if (!r || typeof r !== 'object') return r;
+      let parsed = {};
+      if (r.observacion && typeof r.observacion === 'string' && r.observacion.trim().startsWith('{')) {
+        try { parsed = JSON.parse(r.observacion); } catch (_) {}
+      }
+      return Object.assign({}, parsed, {
+        id: r.id,
+        created_at: r.created_at,
+        numero_documento: parsed.numero_documento || r.documento_referencia || '',
+        fecha_documento: parsed.fecha_documento || r.fecha || '',
+        destino: parsed.destino || r.lista_de_revista || '',
+        descripcion: parsed.descripcion || r.motivo || '',
+        grado_apellidos_nombres: parsed.grado_apellidos_nombres || r.apellidos_nombres || '',
+        apellidos_nombres: parsed.apellidos_nombres || parsed.grado_apellidos_nombres || r.apellidos_nombres || '',
+        unidad_procedencia: parsed.unidad_procedencia || r.unidad_de_origen || '',
+        procedencia: parsed.procedencia || parsed.unidad_procedencia || r.unidad_de_origen || '',
+        quien_ordena: parsed.quien_ordena || r.unidad_anterior || '',
+        cip: parsed.cip || r.grado || ''
+      });
+    }
+
+    function packHistorialDocPayload(tableName, payload) {
+      const p = payload || {};
+      return {
+        cip: 'DOC_' + String(tableName).toUpperCase(),
+        grado: String(p.cip || ''),
+        apellidos_nombres: String(p.grado_apellidos_nombres || p.apellidos_nombres || ''),
+        tipo_movimiento: String(tableName).toUpperCase(),
+        fecha: String(p.fecha_documento || ''),
+        lista_de_revista: String(p.destino || p.procedencia || ''),
+        unidad_de_origen: String(p.unidad_procedencia || p.procedencia || ''),
+        unidad_anterior: String(p.quien_ordena || ''),
+        documento_referencia: String(p.numero_documento || ''),
+        motivo: String(p.descripcion || ''),
+        observacion: JSON.stringify(p),
+        modulo_origen: 'doc_' + tableName
+      };
+    }
+
     async function apiRequest(endpoint, options = {}) {
+      const headers = Object.assign({
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      }, options.headers || {});
+
+      const method = (options.method || 'GET').toUpperCase();
+      const [rawTable, rawQuery = ''] = String(endpoint).split('?');
+
+      // 1. Adaptador directo para firmantes_jefes -> jefes
+      if (rawTable === 'firmantes_jefes') {
+        const jRes = await fetch(`${SUPABASE_URL}/rest/v1/jefes${rawQuery ? '?' + rawQuery : ''}`, Object.assign({}, options, { headers }));
+        if (jRes.ok) return await jRes.json();
+      }
+
+      // 2. Adaptador directo para usuarios -> usuario_oficina
+      if (rawTable === 'usuarios') {
+        const mappedQuery = rawQuery.replace(/\bcip=eq\./gi, 'CIP=eq.');
+        const uOpts = Object.assign({}, options, { headers });
+        if (uOpts.body && (method === 'POST' || method === 'PATCH')) {
+          try {
+            const parsedBody = JSON.parse(uOpts.body);
+            uOpts.body = JSON.stringify(mapUserPayloadToOficina(parsedBody));
+          } catch (_) {}
+        }
+        const uRes = await fetch(`${SUPABASE_URL}/rest/v1/usuario_oficina${mappedQuery ? '?' + mappedQuery : ''}`, uOpts);
+        if (uRes.ok) {
+          const type = uRes.headers.get('content-type');
+          if (type && type.includes('application/json')) {
+            const data = await uRes.json();
+            return Array.isArray(data) ? data.map(normalizeUserFromOficina) : normalizeUserFromOficina(data);
+          }
+          return null;
+        }
+      }
+
+      // 3. Intento directo en la tabla dedicada de Supabase
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, Object.assign({ cache: 'no-store' }, options, { headers }));
+      if (res.ok) {
+        const type = res.headers.get('content-type');
+        if (type && type.includes('application/json')) {
+          return await res.json();
+        }
+        return null;
+      }
+
+      // 4. Puente automático en la nube vía historial_movimientos si la tabla dedicada aún no ha sido creada (404)
+      if (res.status === 404 && TABLES_CONFIG[rawTable] && !TABLES_CONFIG[rawTable].isUserTable) {
+        const modTag = 'doc_' + rawTable;
+        if (method === 'GET') {
+          const fbRes = await fetch(`${SUPABASE_URL}/rest/v1/historial_movimientos?modulo_origen=eq.${encodeURIComponent(modTag)}&select=*&order=id.desc`, { headers });
+          if (fbRes.ok) {
+            const rows = await fbRes.json();
+            return Array.isArray(rows) ? rows.map(unpackHistorialDocRow) : [];
+          }
+        } else if (method === 'POST') {
+          const bodyObj = options.body ? JSON.parse(options.body) : {};
+          const packed = packHistorialDocPayload(rawTable, bodyObj);
+          const fbRes = await fetch(`${SUPABASE_URL}/rest/v1/historial_movimientos`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(packed)
+          });
+          if (fbRes.ok) {
+            const rows = await fbRes.json();
+            return Array.isArray(rows) ? rows.map(unpackHistorialDocRow) : unpackHistorialDocRow(rows);
+          }
+        } else if (method === 'PATCH') {
+          const bodyObj = options.body ? JSON.parse(options.body) : {};
+          const idMatch = rawQuery.match(/\bid=eq\.([^&]+)/);
+          if (idMatch) {
+            const targetId = idMatch[1];
+            const getExisting = await fetch(`${SUPABASE_URL}/rest/v1/historial_movimientos?id=eq.${targetId}&select=*`, { headers });
+            let mergedPayload = bodyObj;
+            if (getExisting.ok) {
+              const exRows = await getExisting.json();
+              if (Array.isArray(exRows) && exRows[0]) {
+                const prevUnpacked = unpackHistorialDocRow(exRows[0]);
+                mergedPayload = Object.assign({}, prevUnpacked, bodyObj);
+              }
+            }
+            const packed = packHistorialDocPayload(rawTable, mergedPayload);
+            const fbRes = await fetch(`${SUPABASE_URL}/rest/v1/historial_movimientos?id=eq.${targetId}`, {
+              method: 'PATCH',
+              headers,
+              body: JSON.stringify(packed)
+            });
+            if (fbRes.ok) {
+              const rows = await fbRes.json();
+              return Array.isArray(rows) ? rows.map(unpackHistorialDocRow) : unpackHistorialDocRow(rows);
+            }
+          }
+        } else if (method === 'DELETE') {
+          const idMatch = rawQuery.match(/\bid=eq\.([^&]+)/);
+          if (idMatch) {
+            const fbRes = await fetch(`${SUPABASE_URL}/rest/v1/historial_movimientos?id=eq.${idMatch[1]}`, {
+              method: 'DELETE',
+              headers
+            });
+            if (fbRes.ok) return null;
+          }
+        }
+      }
+
+      let msg = `Error ${res.status}`;
+      try {
+        const err = await res.json();
+        msg = err.message || err.hint || msg;
+      } catch (_) {}
+      throw new Error(msg);
+    }
+
+    async function _rawApiRequest(endpoint, options = {}) {
       const headers = Object.assign({
         'apikey': SUPABASE_KEY,
         'Authorization': 'Bearer ' + SUPABASE_KEY,

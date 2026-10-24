@@ -23,8 +23,8 @@
  * =========================================================================================
  */
 
-const SUPABASE_URL = "https://ngsujkfmkgofngqwuqnf.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nc3Vqa2Zta2dvZm5ncXd1cW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDk2MzQsImV4cCI6MjEwNDIyNTYzNH0.KL1YmWPLSkMHs9LCf4TC8quqo2G4cd8K0zaGxvoU3Vg";
+const SUPABASE_URL = "https://cmbjqttrwdphrirerzyx.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtYmpxdHRyd2RwaHJpcmVyenl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDM1OTMsImV4cCI6MjA5NjYxOTU5M30.JVCjFMNiv7NMjrwKpmbpXz-3HNgda6gWR_TSUJ3pHds";
 
 // Valores predeterminados oficiales
 const DEFAULT_PROCEDENCIA = "COMOPPOL DIRNOS REGPOL HUANUCO EM OFAD";
@@ -281,10 +281,31 @@ function subirANube() {
           muteHttpExceptions: true
         };
 
-        // Inserción en la tabla orden_reincorporacion
-        const response = UrlFetchApp.fetch(SUPABASE_URL + "/rest/v1/orden_reincorporacion", options);
-        const code = response.getResponseCode();
-        const resText = response.getContentText();
+        // Inserción en la tabla orden_reincorporacion (con respaldo automático en historial_movimientos)
+        let response = UrlFetchApp.fetch(SUPABASE_URL + "/rest/v1/orden_reincorporacion", options);
+        let code = response.getResponseCode();
+        let resText = response.getContentText();
+
+        if (code === 404) {
+          const fallbackPayload = {
+            cip: "DOC_ORDEN_REINCORPORACION",
+            grado: cip,
+            apellidos_nombres: gradoNombresFinal,
+            tipo_movimiento: "ORDEN_REINCORPORACION",
+            fecha: formattedFecha,
+            lista_de_revista: payload.destino,
+            unidad_de_origen: payload.unidad_procedencia,
+            unidad_anterior: payload.quien_ordena,
+            documento_referencia: payload.numero_documento,
+            motivo: payload.descripcion,
+            observacion: JSON.stringify(payload),
+            modulo_origen: "doc_orden_reincorporacion"
+          };
+          const fbOptions = Object.assign({}, options, { payload: JSON.stringify(fallbackPayload) });
+          response = UrlFetchApp.fetch(SUPABASE_URL + "/rest/v1/historial_movimientos", fbOptions);
+          code = response.getResponseCode();
+          resText = response.getContentText();
+        }
 
         if (code >= 200 && code < 300) {
           const data = JSON.parse(resText);
@@ -332,13 +353,17 @@ function obtenerUltimoCorrelativoSupabase() {
       },
       muteHttpExceptions: true
     };
-    const response = UrlFetchApp.fetch(url, options);
+    let response = UrlFetchApp.fetch(url, options);
+    if (response.getResponseCode() === 404) {
+      const fbUrl = SUPABASE_URL + "/rest/v1/historial_movimientos?modulo_origen=eq.doc_orden_reincorporacion&select=documento_referencia,observacion,id&order=id.desc&limit=150";
+      response = UrlFetchApp.fetch(fbUrl, options);
+    }
     if (response.getResponseCode() === 200) {
       const list = JSON.parse(response.getContentText());
       let max = 0;
       if (Array.isArray(list)) {
         list.forEach(item => {
-          const numStr = String(item.numero_documento || "");
+          const numStr = String(item.numero_documento || item.documento_referencia || "");
           const m = numStr.match(/N[°º\s]*(\d+)/i) || numStr.match(/^(\d+)/);
           if (m) {
             const val = parseInt(m[1], 10);

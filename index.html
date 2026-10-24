@@ -6408,8 +6408,8 @@
     const API_HISTORIAL_MOVIMIENTOS = SUPABASE_URL + '/rest/v1/historial_movimientos';
 
     // Base de datos de Registro de Documentos (Orden de Incorporación)
-    const DOCS_SUPABASE_URL = 'https://ngsujkfmkgofngqwuqnf.supabase.co';
-    const DOCS_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nc3Vqa2Zta2dvZm5ncXd1cW5mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NDk2MzQsImV4cCI6MjEwNDIyNTYzNH0.KL1YmWPLSkMHs9LCf4TC8quqo2G4cd8K0zaGxvoU3Vg';
+    const DOCS_SUPABASE_URL = SUPABASE_URL;
+    const DOCS_KEY = KEY;
     const API_ORDEN_INCORPORACION = DOCS_SUPABASE_URL + '/rest/v1/orden_incorporacion';
     const API_OFICIOS = DOCS_SUPABASE_URL + '/rest/v1/oficios';
     const API_INFORMES = DOCS_SUPABASE_URL + '/rest/v1/informes';
@@ -6429,7 +6429,133 @@
     let jefesList = [];
     let currentOrdenData = null;
 
+    function _unpackDocFromHistorial(r) {
+      if (!r || typeof r !== 'object') return r;
+      let parsed = {};
+      if (r.observacion && typeof r.observacion === 'string' && r.observacion.trim().startsWith('{')) {
+        try { parsed = JSON.parse(r.observacion); } catch (_) {}
+      }
+      return Object.assign({}, parsed, {
+        id: r.id,
+        created_at: r.created_at,
+        numero_documento: parsed.numero_documento || r.documento_referencia || '',
+        fecha_documento: parsed.fecha_documento || r.fecha || '',
+        destino: parsed.destino || r.lista_de_revista || '',
+        descripcion: parsed.descripcion || r.motivo || '',
+        grado_apellidos_nombres: parsed.grado_apellidos_nombres || r.apellidos_nombres || '',
+        unidad_procedencia: parsed.unidad_procedencia || r.unidad_de_origen || '',
+        quien_ordena: parsed.quien_ordena || r.unidad_anterior || '',
+        cip: parsed.cip || r.grado || ''
+      });
+    }
+
+    function _packDocToHistorial(tableName, payload) {
+      const p = payload || {};
+      return {
+        cip: 'DOC_' + String(tableName).toUpperCase(),
+        grado: String(p.cip || ''),
+        apellidos_nombres: String(p.grado_apellidos_nombres || p.apellidos_nombres || ''),
+        tipo_movimiento: String(tableName).toUpperCase(),
+        fecha: String(p.fecha_documento || ''),
+        lista_de_revista: String(p.destino || p.procedencia || ''),
+        unidad_de_origen: String(p.unidad_procedencia || p.procedencia || ''),
+        unidad_anterior: String(p.quien_ordena || ''),
+        documento_referencia: String(p.numero_documento || ''),
+        motivo: String(p.descripcion || ''),
+        observacion: JSON.stringify(p),
+        modulo_origen: 'doc_' + tableName
+      };
+    }
+
     async function docReq(url, options = {}) {
+      const headers = Object.assign({
+        'apikey': DOCS_KEY,
+        'Authorization': 'Bearer ' + DOCS_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      }, options.headers || {});
+      const res = await fetch(url, Object.assign({}, options, { headers }));
+      if (res.ok) {
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return await res.json();
+        }
+        return null;
+      }
+
+      if (res.status === 404) {
+        const method = (options.method || 'GET').toUpperCase();
+        const afterRest = String(url).split('/rest/v1/')[1] || '';
+        const [rawTable, rawQuery = ''] = afterRest.split('?');
+        if (rawTable && rawTable !== 'usuarios') {
+          const modTag = 'doc_' + rawTable;
+          if (method === 'GET') {
+            const fbRes = await fetch(`${DOCS_SUPABASE_URL}/rest/v1/historial_movimientos?modulo_origen=eq.${encodeURIComponent(modTag)}&select=*&order=id.desc`, { headers });
+            if (fbRes.ok) {
+              const rows = await fbRes.json();
+              return Array.isArray(rows) ? rows.map(_unpackDocFromHistorial) : [];
+            }
+          } else if (method === 'POST') {
+            const bodyObj = options.body ? JSON.parse(options.body) : {};
+            const packed = _packDocToHistorial(rawTable, bodyObj);
+            const fbRes = await fetch(`${DOCS_SUPABASE_URL}/rest/v1/historial_movimientos`, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify(packed)
+            });
+            if (fbRes.ok) {
+              const rows = await fbRes.json();
+              return Array.isArray(rows) ? rows.map(_unpackDocFromHistorial) : _unpackDocFromHistorial(rows);
+            }
+          } else if (method === 'PATCH') {
+            const bodyObj = options.body ? JSON.parse(options.body) : {};
+            const numMatch = rawQuery.match(/numero_documento=eq\.([^&]+)/);
+            const idMatch = rawQuery.match(/\bid=eq\.([^&]+)/);
+            let filterParam = '';
+            if (idMatch) filterParam = `id=eq.${idMatch[1]}`;
+            else if (numMatch) filterParam = `modulo_origen=eq.${encodeURIComponent(modTag)}&documento_referencia=eq.${numMatch[1]}`;
+            if (filterParam) {
+              const getEx = await fetch(`${DOCS_SUPABASE_URL}/rest/v1/historial_movimientos?${filterParam}&select=*`, { headers });
+              let merged = bodyObj;
+              if (getEx.ok) {
+                const exRows = await getEx.json();
+                if (Array.isArray(exRows) && exRows[0]) {
+                  merged = Object.assign({}, _unpackDocFromHistorial(exRows[0]), bodyObj);
+                }
+              }
+              const packed = _packDocToHistorial(rawTable, merged);
+              const fbRes = await fetch(`${DOCS_SUPABASE_URL}/rest/v1/historial_movimientos?${filterParam}`, {
+                method: 'PATCH',
+                headers,
+                body: JSON.stringify(packed)
+              });
+              if (fbRes.ok) {
+                const rows = await fbRes.json();
+                return Array.isArray(rows) ? rows.map(_unpackDocFromHistorial) : _unpackDocFromHistorial(rows);
+              }
+            }
+          } else if (method === 'DELETE') {
+            const idMatch = rawQuery.match(/\bid=eq\.([^&]+)/);
+            if (idMatch) {
+              const fbRes = await fetch(`${DOCS_SUPABASE_URL}/rest/v1/historial_movimientos?id=eq.${idMatch[1]}`, {
+                method: 'DELETE',
+                headers
+              });
+              if (fbRes.ok) return null;
+            }
+          }
+        }
+      }
+
+      let errorMsg = `Error HTTP ${res.status}`;
+      try {
+        const errJson = await res.json();
+        errorMsg = errJson.message || errJson.error || errorMsg;
+      } catch (_) {}
+      throw new Error(errorMsg);
+    }
+
+    async function _rawDocReq(url, options = {}) {
       const headers = Object.assign({
         'apikey': DOCS_KEY,
         'Authorization': 'Bearer ' + DOCS_KEY,
@@ -6737,7 +6863,7 @@
     }
 
     async function req(url, options = {}) {
-      let response = await fetch(url, { ...options, headers: buildHeaders(options.headers || {}) });
+      let response = await fetch(url, { cache: 'no-store', ...options, headers: buildHeaders(options.headers || {}) });
       if (!response.ok) {
         const errorText = await response.text();
         if (response.status === 401 || errorText.includes('JWT expired') || errorText.includes('PGRST303')) {
@@ -7265,7 +7391,8 @@
 
         try {
           while (true) {
-            const page = await req(apiSnapshot + '?select=*&offset=' + from + '&limit=' + pageSize);
+            const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
+            const page = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + from + '&limit=' + pageSize);
             if (token !== loadDataToken || tableSnapshot !== currentTable) return;
             loadedRows.push(...(page || []));
             if (!page || page.length < pageSize) break;
@@ -8433,6 +8560,18 @@
     // MÓDULO DE ORDEN DE INCORPORACIÓN Y JEFES
     // ==========================================
     async function loadJefesList() {
+      try {
+        const res = await req(API_JEFES + '?select=*&order=id.asc');
+        if (Array.isArray(res) && res.length > 0) {
+          jefesList = res.filter(j => j.ACTIVO !== false);
+          try { localStorage.setItem('regpol_jefes_custom', JSON.stringify(jefesList)); } catch (_) {}
+          populateJefesSelect();
+          return;
+        }
+      } catch (_) {}
+      return _loadJefesListFallback();
+    }
+    async function _loadJefesListFallback() {
       // 1. Cargar desde almacenamiento local (personalizado por usuario)
       try {
         const localSaved = localStorage.getItem('regpol_jefes_custom');
@@ -18577,6 +18716,37 @@ REGLAS CRÍTICAS:
     loadData();
     loadDestinatariosListStorage();
     loadSolicitudesData();
+    async function refreshDataSilent() {
+      try {
+        if (document.hidden) return;
+        const anyModalOpen = document.querySelector('.modal.open');
+        if (anyModalOpen) return;
+        const tableSnapshot = currentTable;
+        const cfg = tableConfig(tableSnapshot);
+        const apiSnapshot = cfg.api;
+        const pageSize = 1000;
+        let from = 0;
+        let loadedRows = [];
+        const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
+        while (true) {
+          const page = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + from + '&limit=' + pageSize);
+          if (tableSnapshot !== currentTable) return;
+          loadedRows.push(...(page || []));
+          if (!page || page.length < pageSize) break;
+          from += pageSize;
+        }
+        if (tableSnapshot !== currentTable) return;
+        rows = loadedRows;
+        tableSampleRows[tableSnapshot] = (loadedRows && loadedRows[0]) ? loadedRows[0] : null;
+        ordenarRegistros(rows);
+        render();
+      } catch (_) {}
+    }
+
+    window.addEventListener('focus', () => { refreshDataSilent(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDataSilent(); });
+    setInterval(refreshDataSilent, 20000);
+
     initQrBroadcastListener();
   </script>
 </body>
