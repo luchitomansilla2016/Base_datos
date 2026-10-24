@@ -6467,6 +6467,7 @@
       };
     }
 
+    const _missingDocTables = new Set();
     async function docReq(url, options = {}) {
       const headers = Object.assign({
         'apikey': DOCS_KEY,
@@ -6474,19 +6475,26 @@
         'Content-Type': 'application/json',
         'Prefer': 'return=representation'
       }, options.headers || {});
-      const res = await fetch(url, Object.assign({}, options, { headers }));
-      if (res.ok) {
-        const contentType = res.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          return await res.json();
+      const method = (options.method || 'GET').toUpperCase();
+      const afterRest = String(url).split('/rest/v1/')[1] || '';
+      const [rawTable, rawQuery = ''] = afterRest.split('?');
+
+      let res = null;
+      if (!_missingDocTables.has(rawTable)) {
+        res = await fetch(url, Object.assign({ cache: 'no-store' }, options, { headers }));
+        if (res.ok) {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            return await res.json();
+          }
+          return null;
         }
-        return null;
+        if (res.status === 404 && rawTable && rawTable !== 'usuarios') {
+          _missingDocTables.add(rawTable);
+        }
       }
 
-      if (res.status === 404) {
-        const method = (options.method || 'GET').toUpperCase();
-        const afterRest = String(url).split('/rest/v1/')[1] || '';
-        const [rawTable, rawQuery = ''] = afterRest.split('?');
+      if (_missingDocTables.has(rawTable) || (res && res.status === 404)) {
         if (rawTable && rawTable !== 'usuarios') {
           const modTag = 'doc_' + rawTable;
           if (method === 'GET') {
@@ -7250,7 +7258,52 @@
     const retornoModalFields = ['fecha_de_retorno', 'documento_de_retorno', 'constancia_de_inclusion', 'fecha_de_inclusion'];
     const retornoCursoModalFields = ['fecha_de_retorno', 'documento_referencia_retorno', 'n_inclusion_curso', 'fecha_de_inclusion', 'doc_pone_disposicion_subunidad', 'fecha_doc'];
 
+    let _staticCatalogsReady = false;
+    function _preindexRow(r) {
+      if (!r || typeof r !== 'object') return r;
+      r._searchBlob = normalizeText([
+        firstValue(r, ['cip', 'CIP']),
+        firstValue(r, ['dni', 'DNI']),
+        firstValue(r, ['grado', 'GRADO']),
+        firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombres', 'apellidos_nombre']),
+        firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_origen']),
+        firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']),
+        firstValue(r, ['descripcion_del_curso', 'descripcion_curso', 'lugar', 'numero_de_oficio']),
+        firstValue(r, ['destino', 'documento_referencia', 'DOCUMENTO DE REFERENCIA', 'documento_que_sustenta', 'resolucion_memorandum', 'motivo', 'observacion', 'observaciones'])
+      ].join(' '));
+      return r;
+    }
+
     async function loadCatalogos() {
+      if (_staticCatalogsReady && catalogos['grado'] && catalogos['grado'].length > 0) return;
+      try {
+        const resGrados = await req(SUPABASE_URL + '/rest/v1/grados?select=*');
+        const grados = [];
+        gradoOrden = {};
+        (resGrados || []).forEach(g => {
+          const val = String(g.GRADO || g.grado || '').trim().toUpperCase();
+          if (val) {
+            gradoOrden[val] = Number(g.orden || g.id || g.ID || 999);
+            if (!grados.includes(val)) grados.push(val);
+          }
+        });
+        catalogos['tipo_dni'] = ['ELECTRONICO', 'CLASICO', 'AZUL', 'AMARILLO'];
+        catalogos['grado'] = grados;
+        catalogos['jerarquia'] = ['OFICIAL DE ARMAS', 'SUBOFICIAL DE ARMAS', 'OFICIAL DE SERVICIOS', 'SUBOFICIAL DE SERVICIOS'];
+        catalogos['especialidad'] = ['DE ARMAS', 'DE SERVICIOS', 'POLICIA', 'ADMINISTRACION'];
+        catalogos['condicion'] = ['NATO', 'DESTACADO', 'REASIGNADO'];
+        catalogos['situacion_actual'] = ['PRESENTE', 'REFERIDO', 'CURSO', 'DESTACADO', 'SOMETIDO A LEY', 'DISPONIBILIDAD', 'RETIRO', 'REASIGNADO', 'DETENIDO'];
+        catalogos['cargo'] = ['OPERATIVO', 'ADMINISTRATIVO', 'JEFE', 'COMISARIO', 'SECRETARIO', 'OFAD', 'JEFE DE DIVISION'];
+        catalogos['aptitud_psicosomatico'] = ['APTO CODIGO 0', 'APTO CON OBSERVACION CODIGO 1', 'APTO CON OBSERVACION CODIGO 2', 'INAPTO'];
+        catalogos['sexo'] = ['M', 'F'];
+        catalogos['hijos'] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+        catalogos['estado_civil'] = ['SOLTERO(A)', 'CASADO(A)', 'CONVIVIENTE', 'DIVORCIADO(A)', 'VIUDO(A)', 'SOLTERO', 'CASADO'];
+        catalogos['incorp_motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
+        catalogos['dest_incorp_motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
+        catalogos['motivo'] = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
+      } catch (_) {}
+    }
+    async function _legacyLoadCatalogos() {
       catalogos = {};
 
       const fetchCatalog = async (tableName, columnKeys) => {
@@ -7379,6 +7432,71 @@
       if (status) status.textContent = 'Cargando datos...';
 
       try {
+        const catalogsPromise = _staticCatalogsReady
+          ? Promise.resolve()
+          : Promise.all([loadCatalogos(), loadUnidadesCatalog(), loadJefesList()]).then(() => { _staticCatalogsReady = true; });
+
+        const pageSize = 1000;
+        const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
+
+        const fetchRowsPromise = (async () => {
+          if (tableSnapshot === 'personal') {
+            const [p0, p1, p2] = await Promise.all([
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=2000&limit=' + pageSize)
+            ]);
+            const combined = [...(p0 || []), ...(p1 || []), ...(p2 || [])];
+            if (p2 && p2.length === pageSize) {
+              let extraFrom = 3000;
+              while (true) {
+                const px = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + extraFrom + '&limit=' + pageSize);
+                combined.push(...(px || []));
+                if (!px || px.length < pageSize) break;
+                extraFrom += pageSize;
+              }
+            }
+            return combined;
+          } else {
+            let acc = [];
+            let from = 0;
+            while (true) {
+              const page = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + from + '&limit=' + pageSize);
+              acc.push(...(page || []));
+              if (!page || page.length < pageSize) break;
+              from += pageSize;
+            }
+            return acc;
+          }
+        })();
+
+        const [loadedRows] = await Promise.all([fetchRowsPromise, catalogsPromise]);
+        if (token !== loadDataToken || tableSnapshot !== currentTable) return;
+
+        rows = (loadedRows || []).map(_preindexRow);
+        tableSampleRows[tableSnapshot] = (rows && rows[0]) ? rows[0] : null;
+        ordenarRegistros(rows);
+        buildAdvancedFilters();
+        setTableHeaders();
+        render();
+      } catch (error) {
+        if (token === loadDataToken) {
+          rows = [];
+          render();
+          if (status) status.textContent = 'Error al cargar: ' + error.message;
+          toast('Error cargando datos: ' + error.message, 'error');
+        }
+      }
+    }
+    async function _legacyLoadData() {
+      const status = document.getElementById('status');
+      const token = ++loadDataToken;
+      const tableSnapshot = currentTable;
+      const cfg = tableConfig(tableSnapshot);
+      let apiSnapshot = cfg.api;
+      if (status) status.textContent = 'Cargando datos...';
+
+      try {
         await loadGradoOrden();
         await loadCatalogos();
         await loadUnidadesCatalog();
@@ -7386,6 +7504,43 @@
         if (token !== loadDataToken || tableSnapshot !== currentTable) return;
 
         let loadedRows = [];
+        {
+          const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
+          if (tableSnapshot === 'personal') {
+            const initialPages = await Promise.all([
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=2000&limit=' + pageSize)
+            ]);
+            if (tableSnapshot !== currentTable) return;
+            for (const p of initialPages) {
+              if (p && p.length) loadedRows.push(...p);
+            }
+            let fromExtra = 3000;
+            while (initialPages[2] && initialPages[2].length === pageSize) {
+              const extraPage = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + fromExtra + '&limit=' + pageSize);
+              if (tableSnapshot !== currentTable) return;
+              if (!extraPage || !extraPage.length) break;
+              loadedRows.push(...extraPage);
+              if (extraPage.length < pageSize) break;
+              fromExtra += pageSize;
+            }
+          } else {
+            while (true) {
+              const page = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + from + '&limit=' + pageSize);
+              if (tableSnapshot !== currentTable) return;
+              loadedRows.push(...(page || []));
+              if (!page || page.length < pageSize) break;
+              from += pageSize;
+            }
+          }
+          if (tableSnapshot !== currentTable) return;
+          rows = loadedRows.map(_preindexRow);
+          tableSampleRows[tableSnapshot] = (loadedRows && loadedRows[0]) ? loadedRows[0] : null;
+          ordenarRegistros(rows);
+          render();
+          return;
+        }
         const pageSize = 1000;
         let from = 0;
 
@@ -7873,6 +8028,81 @@
       const nivel2 = document.getElementById('filterNivel2')?.value || '';
       const nivel3 = document.getElementById('filterNivel3')?.value || '';
 
+      let matchUnidadesSet = null;
+      if (unidadVal && unidadVal !== 'TODOS') {
+        matchUnidadesSet = new Set(
+          unidadesCatalog
+            .filter(u => (!unidadVal || u.nivel_1 === unidadVal) && (!nivel1 || u.nivel_2 === nivel1) && (!nivel2 || u.nivel_3 === nivel2) && (!nivel3 || u.nivel_4 === nivel3))
+            .map(unidadNombreFinal)
+        );
+      } else if (nivel1 || nivel2 || nivel3) {
+        matchUnidadesSet = new Set(
+          unidadesCatalog
+            .filter(u => (!nivel1 || u.nivel_2 === nivel1) && (!nivel2 || u.nivel_3 === nivel2) && (!nivel3 || u.nivel_4 === nivel3))
+            .map(unidadNombreFinal)
+        );
+      }
+
+      let matchRevistasSet = null;
+      if (listaRevista) {
+        matchRevistasSet = new Set(
+          unidadesCatalog
+            .filter(u => String(u.nivel_1_nombre || '').trim() === listaRevista)
+            .map(unidadNombreFinal)
+        );
+      }
+      const normModFiltro = moduloFiltro ? normalizeText(moduloFiltro) : '';
+      const sitUpper = situacion ? String(situacion).toUpperCase() : '';
+      const isGenMod = isGenericModule();
+
+      const filtered = rows.filter(r => {
+        const searchBlob = (r._searchBlob !== undefined) ? r._searchBlob : _preindexRow(r)._searchBlob;
+        const matchesSearch = !q || searchBlob.includes(q);
+        if (!matchesSearch) return false;
+
+        if (isGenMod) {
+          if (!moduloFiltro) return true;
+          const sitActual = (r._sitActualNorm !== undefined) ? r._sitActualNorm : _preindexRow(r)._sitActualNorm;
+          if (currentTable === 'reasignados') {
+            if (moduloFiltro === 'REASIGNADO') return sitActual.includes('reasignad');
+            if (moduloFiltro === 'INCORPORADO') return sitActual.includes('incorporad');
+            return true;
+          }
+          if (currentTable === 'disponibilidad_retiro') {
+            if (moduloFiltro === 'DISPONIBILIDAD') return sitActual.includes('disponib');
+            if (moduloFiltro === 'RETIRO') return sitActual.includes('retir');
+            return true;
+          }
+          if (currentTable === 'sometido_ley') {
+            if (moduloFiltro === 'SOMETIDO A LEY') return sitActual.includes('sometid') || sitActual.includes('ley');
+            return true;
+          }
+          if (currentTable === 'detenidos_sin_sentencia') {
+            if (moduloFiltro === 'DETENIDO') return sitActual.includes('detenid');
+            return true;
+          }
+          if (currentTable === 'incorporados_destacados') {
+            if (moduloFiltro === 'PRESENTE') return sitActual.includes('present') || (!sitActual.includes('retorn') && sitActual !== '');
+            if (moduloFiltro === 'RETORNO') return sitActual.includes('retorn');
+            return true;
+          }
+          return searchBlob.includes(normModFiltro) || sitActual.includes(normModFiltro);
+        }
+
+        if (sitUpper && String(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL']) || '').toUpperCase() !== sitUpper) return false;
+        if (condicion && String(firstValue(r, ['condicion', 'CONDICIÓN']) || '') !== condicion) return false;
+        if (sexo && String(firstValue(r, ['sexo', 'SEXO']) || '') !== sexo) return false;
+        if (aptitud && String(firstValue(r, ['aptitud_psicosomatico', 'APTITUD PSICOSOMÁTICO']) || '') !== aptitud) return false;
+
+        if (matchUnidadesSet || matchRevistasSet) {
+          const revista = String(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA']) || '');
+          if (matchUnidadesSet && !matchUnidadesSet.has(revista)) return false;
+          if (matchRevistasSet && !matchRevistasSet.has(revista) && revista !== listaRevista) return false;
+        }
+        return true;
+      });
+      if (false) {
+
       const filtered = rows.filter(r => {
         const searchBlob = normalizeText([
           firstValue(r, ['cip', 'CIP']),
@@ -7973,7 +8203,8 @@
         return matchesSearch && matchesSit && matchesCond && matchesSex && matchesApt && matchesNiv && matchesList;
       });
 
-      ordenarRegistros(filtered);
+      }
+      lastFilteredRows = filtered;
       lastFilteredRows = filtered;
       updateKpis(filtered);
       renderMobileCards(filtered);
@@ -7997,6 +8228,7 @@
     }
 
     function renderMobileCards(filtered) {
+      if (window.innerWidth > 900) return;
       const box = document.getElementById('mobileCards');
       if (!box) return;
       if (!filtered || !filtered.length) {
@@ -17477,6 +17709,17 @@ REGLAS CRÍTICAS:
 
         if (fueRetornoDestacado) {
           toast('¡Retorno de destaque guardado con éxito y efectivo retirado del padrón de Personal!', 'success');
+        } else if (current) {
+          toast('Registro guardado exitosamente', 'success');
+          closeForm();
+          Object.assign(current, finalPayload);
+          _preindexRow(current);
+          ordenarRegistros(rows);
+          render();
+          setTimeout(refreshDataSilent, 300);
+          return;
+        }
+        if (false) {
         } else {
           toast('Registro guardado exitosamente', 'success');
         }
@@ -18727,6 +18970,43 @@ REGLAS CRÍTICAS:
         const pageSize = 1000;
         let from = 0;
         let loadedRows = [];
+        {
+          const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
+          if (tableSnapshot === 'personal') {
+            const initialPages = await Promise.all([
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
+              req(apiSnapshot + '?select=*' + orderParam + '&offset=2000&limit=' + pageSize)
+            ]);
+            if (tableSnapshot !== currentTable) return;
+            for (const p of initialPages) {
+              if (p && p.length) loadedRows.push(...p);
+            }
+            let fromExtra = 3000;
+            while (initialPages[2] && initialPages[2].length === pageSize) {
+              const extraPage = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + fromExtra + '&limit=' + pageSize);
+              if (tableSnapshot !== currentTable) return;
+              if (!extraPage || !extraPage.length) break;
+              loadedRows.push(...extraPage);
+              if (extraPage.length < pageSize) break;
+              fromExtra += pageSize;
+            }
+          } else {
+            while (true) {
+              const page = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + from + '&limit=' + pageSize);
+              if (tableSnapshot !== currentTable) return;
+              loadedRows.push(...(page || []));
+              if (!page || page.length < pageSize) break;
+              from += pageSize;
+            }
+          }
+          if (tableSnapshot !== currentTable) return;
+          rows = loadedRows.map(_preindexRow);
+          tableSampleRows[tableSnapshot] = (loadedRows && loadedRows[0]) ? loadedRows[0] : null;
+          ordenarRegistros(rows);
+          render();
+          return;
+        }
         const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
         while (true) {
           const page = await req(apiSnapshot + '?select=*' + orderParam + '&offset=' + from + '&limit=' + pageSize);

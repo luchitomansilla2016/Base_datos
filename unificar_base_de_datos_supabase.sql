@@ -212,3 +212,16 @@ BEGIN
     EXECUTE format('GRANT ALL ON TABLE public.%I TO anon, authenticated, service_role;', t);
   END LOOP;
 END $$;
+
+-- 16. ÍNDICES DE ALTO RENDIMIENTO PARA ACELERAR CONSULTAS Y ACTUALIZACIONES
+CREATE INDEX IF NOT EXISTS idx_personal_policial_cip ON public.personal_policial ("CIP");
+CREATE INDEX IF NOT EXISTS idx_personal_policial_dni ON public.personal_policial ("DNI");
+CREATE INDEX IF NOT EXISTS idx_personal_policial_revista ON public.personal_policial ("LISTA DE REVISTA");
+CREATE INDEX IF NOT EXISTS idx_personal_policial_situacion ON public.personal_policial ("SITUACIÓN ACTUAL");
+CREATE INDEX IF NOT EXISTS idx_referidos_cip ON public.referidos ("CIP");
+CREATE INDEX IF NOT EXISTS idx_en_curso_cip ON public.en_curso (cip);
+CREATE INDEX IF NOT EXISTS idx_incorporados_destacados_cip ON public.incorporados_destacados (cip);
+CREATE INDEX IF NOT EXISTS idx_incorporados_reasignados_cip ON public.incorporados_reasignados (cip);
+CREATE INDEX IF NOT EXISTS idx_historial_movimientos_cip ON public.historial_movimientos (cip);
+CREATE INDEX IF NOT EXISTS idx_historial_movimientos_modulo ON public.historial_movimientos (modulo_origen);
+

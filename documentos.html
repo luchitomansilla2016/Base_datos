@@ -5903,6 +5903,7 @@
       };
     }
 
+    const _missingDocTables = new Set();
     async function apiRequest(endpoint, options = {}) {
       const headers = Object.assign({
         'apikey': SUPABASE_KEY,
@@ -5941,21 +5942,27 @@
         }
       }
 
-      // 3. Intento directo en la tabla dedicada de Supabase
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, Object.assign({ cache: 'no-store' }, options, { headers }));
-      if (res.ok) {
-        const type = res.headers.get('content-type');
-        if (type && type.includes('application/json')) {
-          return await res.json();
+      // 3. Intento directo en la tabla dedicada de Supabase (con caché de tablas 404 para respuesta instantánea)
+      let res = null;
+      if (!_missingDocTables.has(rawTable)) {
+        res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, Object.assign({ cache: 'no-store' }, options, { headers }));
+        if (res.ok) {
+          const type = res.headers.get('content-type');
+          if (type && type.includes('application/json')) {
+            return await res.json();
+          }
+          return null;
         }
-        return null;
+        if (res.status === 404 && TABLES_CONFIG[rawTable] && !TABLES_CONFIG[rawTable].isUserTable) {
+          _missingDocTables.add(rawTable);
+        }
       }
 
       // 4. Puente automático en la nube vía historial_movimientos si la tabla dedicada aún no ha sido creada (404)
-      if (res.status === 404 && TABLES_CONFIG[rawTable] && !TABLES_CONFIG[rawTable].isUserTable) {
+      if ((_missingDocTables.has(rawTable) || (res && res.status === 404)) && TABLES_CONFIG[rawTable] && !TABLES_CONFIG[rawTable].isUserTable) {
         const modTag = 'doc_' + rawTable;
         if (method === 'GET') {
-          const fbRes = await fetch(`${SUPABASE_URL}/rest/v1/historial_movimientos?modulo_origen=eq.${encodeURIComponent(modTag)}&select=*&order=id.desc`, { headers });
+          const fbRes = await fetch(`${SUPABASE_URL}/rest/v1/historial_movimientos?modulo_origen=eq.${encodeURIComponent(modTag)}&select=*&order=id.desc`, { cache: 'no-store', headers });
           if (fbRes.ok) {
             const rows = await fbRes.json();
             return Array.isArray(rows) ? rows.map(unpackHistorialDocRow) : [];
@@ -6306,7 +6313,7 @@
         loadCurrentTableData(true);
         loadAllBadges();
       }
-    }, 3500);
+    }, 12000);
 
     function toggleMobileSidebar(force) {
       const sidebar = document.querySelector('.sidebar');
