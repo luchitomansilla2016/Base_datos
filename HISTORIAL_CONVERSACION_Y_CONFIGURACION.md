@@ -46,3 +46,19 @@ Todo el sistema (Personal, Registro Documentario, Auto-Registro QR y Google Shee
   `C:\Users\luchi\.gemini\antigravity\brain\79c541f9-8dcc-4091-8467-7b94c2328bca`
 - **En OneDrive (disponible en cualquier otra PC):**  
   Este archivo (`HISTORIAL_CONVERSACION_Y_CONFIGURACION.md`) y toda la carpeta `BASE DE DATOS DEL PERSONAL` están dentro de tu **OneDrive**, por lo que se sincronizan automáticamente en tus demás computadoras.
+
+
+---
+
+## 5. Últimos avances realizados (23/10/2026 - Noche)
+1. **Sincronización Multi-PC garantizada**:
+   - Se desactivó la caché del navegador (`cache: 'no-store'`) en `index.html` y `documentos.html`.
+   - Se agregó orden determinístico (`&order=id.asc`) en la paginación y auto-refresco silencioso (`refreshDataSilent()`) al cambiar de pestaña/ventana o cada 20 segundos.
+   - Se creó `sincronizar_github.ps1` y se actualizó `subir_a_github.bat` para subir todos los cambios directamente a GitHub (`luchitomansilla2016/Base_datos`) sin depender de `git.exe`.
+2. **Optimización de Velocidad de Consulta, Búsqueda y Guardado**:
+   - Carga en paralelo (`Promise.all`) de los 3 bloques de `personal_policial` (2,781 efectivos) en un solo viaje de red.
+   - Pre-indexación de búsqueda (`_preindexRow` / `_searchBlob`) y filtrado por unidad mediante `Set` ($O(1)$) para respuesta instantánea al escribir.
+   - Actualización optimista inmediata en pantalla (`< 50 ms`) al guardar cambios en un registro (`saveRecord`).
+3. **Mejora en el campo `ESPECIALIDAD`**:
+   - Conectado a la tabla `especialidad` de Supabase (`ABOGADO`, `ECONOMISTA`, `INV. CRIMI.`, `ING. QUIMICO`, `ORDEN PUBL. SEG.`, `POLICÍA`).
+   - Se añadió el botón **`✏️ Agregar otra`** y la opción **`➕ OTRO (Agregar nueva especialidad)...`** que guarda automáticamente nuevas especialidades en el catálogo.
