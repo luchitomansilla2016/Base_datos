@@ -3598,8 +3598,16 @@
           <button id="newRecordBtn" class="primary role-editor" onclick="handlePrimaryAction()">+ Nuevo registro</button>
         </div>
 
+        <!-- Botón de Búsqueda Avanzada (SOLO VISIBLE EN PERSONAL) -->
+        <div id="advancedSearchToggleWrap" style="margin: -4px 0 8px 4px; display: flex; align-items: center;">
+          <button id="btnToggleAdvancedSearch" type="button" onclick="toggleAdvancedSearchPanel()" style="background: rgba(255,255,255,0.9); border: 1px solid #cbd5e1; color: #06351f; font-size: 11.5px; font-weight: 800; padding: 4px 12px; min-height: 26px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">
+            <span>🔍 Búsqueda avanzada</span>
+            <span id="advSearchChevron" style="font-size: 10px; transition: transform 0.2s;">▼</span>
+          </button>
+        </div>
+
         <!-- Panel de Filtros en Cascada (SOLO ACTIVO Y VISIBLE EN PERSONAL) -->
-        <div id="filtersPanel" class="filters-panel">
+        <div id="filtersPanel" class="filters-panel" style="display:none">
           <div class="filter-field">
             <label id="labelUnidad" for="filterUnidad">UNIDAD</label>
             <select id="filterUnidad"><option value="__dash__">- seleccionar -</option></select>
@@ -7784,6 +7792,26 @@
       }
     }
 
+    let _advancedSearchOpen = false;
+    function toggleAdvancedSearchPanel(forceState) {
+      const filtersPanel = document.getElementById('filtersPanel');
+      const chevron = document.getElementById('advSearchChevron');
+      const btn = document.getElementById('btnToggleAdvancedSearch');
+      if (!filtersPanel) return;
+      if (isGenericModule()) {
+        filtersPanel.style.display = 'none';
+        return;
+      }
+      _advancedSearchOpen = (typeof forceState === 'boolean') ? forceState : !_advancedSearchOpen;
+      filtersPanel.style.display = _advancedSearchOpen ? 'grid' : 'none';
+      if (chevron) chevron.textContent = _advancedSearchOpen ? '▲' : '▼';
+      if (btn) {
+        btn.style.background = _advancedSearchOpen ? '#06351f' : 'rgba(255,255,255,0.9)';
+        btn.style.color = _advancedSearchOpen ? '#ffffff' : '#06351f';
+        btn.style.borderColor = _advancedSearchOpen ? '#06351f' : '#cbd5e1';
+      }
+    }
+
     function switchTable(tableName) {
       toggleSidebar(false);
       currentTable = tableName;
@@ -7808,9 +7836,13 @@
         document.getElementById(cfg.menu)?.classList.toggle('active', tableName === key);
       });
 
+      const advToggleWrap = document.getElementById('advancedSearchToggleWrap');
+      if (advToggleWrap) {
+        advToggleWrap.style.display = isGenericModule() ? 'none' : 'flex';
+      }
       const filtersPanel = document.getElementById('filtersPanel');
       if (filtersPanel) {
-        filtersPanel.style.display = isGenericModule() ? 'none' : 'grid';
+        filtersPanel.style.display = (!isGenericModule() && _advancedSearchOpen) ? 'grid' : 'none';
       }
 
       configureModuleStatusSelect();
