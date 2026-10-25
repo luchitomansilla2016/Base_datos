@@ -7261,6 +7261,7 @@
     let _staticCatalogsReady = false;
     function _preindexRow(r) {
       if (!r || typeof r !== 'object') return r;
+      r._sitActualNorm = normalizeText(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion', 'estado']) || '');
       r._searchBlob = normalizeText([
         firstValue(r, ['cip', 'CIP']),
         firstValue(r, ['dni', 'DNI']),
@@ -7268,6 +7269,8 @@
         firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombres', 'apellidos_nombre']),
         firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_origen']),
         firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']),
+        firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion', 'estado']),
+        firstValue(r, ['condicion', 'CONDICIÓN', 'CONDICION']),
         firstValue(r, ['descripcion_del_curso', 'descripcion_curso', 'lugar', 'numero_de_oficio']),
         firstValue(r, ['destino', 'documento_referencia', 'DOCUMENTO DE REFERENCIA', 'documento_que_sustenta', 'resolucion_memorandum', 'motivo', 'observacion', 'observaciones'])
       ].join(' '));
@@ -8173,7 +8176,7 @@
 
         if (isGenMod) {
           if (!moduloFiltro) return true;
-          const sitActual = (r._sitActualNorm !== undefined) ? r._sitActualNorm : _preindexRow(r)._sitActualNorm;
+          const sitActual = String((r._sitActualNorm !== undefined) ? r._sitActualNorm : (_preindexRow(r)._sitActualNorm || ''));
           if (currentTable === 'reasignados') {
             if (moduloFiltro === 'REASIGNADO') return sitActual.includes('reasignad');
             if (moduloFiltro === 'INCORPORADO') return sitActual.includes('incorporad');
