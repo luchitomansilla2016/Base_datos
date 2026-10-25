@@ -8319,12 +8319,65 @@
 
       }
       lastFilteredRows = filtered;
-      lastFilteredRows = filtered;
       updateKpis(filtered);
       renderMobileCards(filtered);
 
       const status = document.getElementById('status');
-      if (status) status.textContent = `Tabla: ${tableConfig().title} | Mostrando: ${filtered.length} de ${rows.length} registros`;
+      if (status) {
+        const baseStatus = `Tabla: ${tableConfig().title} | Mostrando: ${filtered.length} de ${rows.length} registros`;
+        if (currentTable === 'personal' && filtered.length > 0) {
+          const counts = {
+            PRESENTE: 0,
+            REFERIDO: 0,
+            CURSO: 0,
+            DESTACADO: 0,
+            'SOMETIDO A LEY': 0,
+            DISPONIBILIDAD: 0,
+            RETIRO: 0,
+            REASIGNADO: 0,
+            DETENIDO: 0
+          };
+          const otherCounts = {};
+          filtered.forEach(r => {
+            const sitRaw = String(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion']) || 'PRESENTE').trim().toUpperCase();
+            if (sitRaw.includes('REFERID')) counts.REFERIDO++;
+            else if (sitRaw.includes('CURSO')) counts.CURSO++;
+            else if (sitRaw.includes('DESTACAD')) counts.DESTACADO++;
+            else if (sitRaw.includes('SOMETID')) counts['SOMETIDO A LEY']++;
+            else if (sitRaw.includes('DISPONIB')) counts.DISPONIBILIDAD++;
+            else if (sitRaw.includes('RETIR')) counts.RETIRO++;
+            else if (sitRaw.includes('REASIGNAD')) counts.REASIGNADO++;
+            else if (sitRaw.includes('DETENID')) counts.DETENIDO++;
+            else if (sitRaw.includes('PRESENT') || !sitRaw) counts.PRESENTE++;
+            else otherCounts[sitRaw] = (otherCounts[sitRaw] || 0) + 1;
+          });
+
+          const labelsMap = [
+            ['PRESENTE', 'PRESENTES', '#065f46', '#d1fae5'],
+            ['CURSO', 'CURSO', '#1e40af', '#dbeafe'],
+            ['REFERIDO', 'REFERIDOS', '#9a3412', '#ffedd5'],
+            ['DESTACADO', 'DESTACADOS', '#5b21b6', '#ede9fe'],
+            ['REASIGNADO', 'REASIGNADOS', '#0f766e', '#ccfbf1'],
+            ['DISPONIBILIDAD', 'DISPONIBILIDAD', '#854d0e', '#fef9c3'],
+            ['RETIRO', 'RETIRO', '#475569', '#f1f5f9'],
+            ['SOMETIDO A LEY', 'SOMETIDO A LEY', '#991b1b', '#fee2e2'],
+            ['DETENIDO', 'DETENIDOS', '#7f1d1d', '#fecaca']
+          ];
+
+          const pillsHtml = labelsMap
+            .filter(([key]) => counts[key] > 0 || key === 'CURSO' || key === 'REFERIDO' || key === 'PRESENTE')
+            .map(([key, label, color, bg]) => `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:800;color:${color};background:${bg};border:1px solid ${color}25;">${label}: ${counts[key]}</span>`)
+            .join(' ');
+
+          const extraHtml = Object.entries(otherCounts)
+            .map(([k, v]) => `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:800;color:#334155;background:#f1f5f9;">${esc(k)}: ${v}</span>`)
+            .join(' ');
+
+          status.innerHTML = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;"><span>${esc(baseStatus)}</span><span style="color:#cbd5e1;">|</span>${pillsHtml}${extraHtml ? ' ' + extraHtml : ''}</div>`;
+        } else {
+          status.textContent = baseStatus;
+        }
+      }
 
       if (isGenericModule()) {
         renderGenericRows(filtered);
