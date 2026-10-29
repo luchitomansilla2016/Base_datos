@@ -3551,7 +3551,8 @@
           <button id="menuIncorpReasignados" class="side-sub-btn" onclick="switchTable('incorporados_reasignados')">↳ Reasignados</button>
           <button id="menuIncorpDestacados" class="side-sub-btn" onclick="switchTable('incorporados_destacados')">↳ Destacados</button>
         </div>
-        <button id="menuAuditoria" class="side-btn admin-only" onclick="openAuditPanel()" style="display:none">▣ Auditoría</button>
+        <button id="menuUnidades" class="side-btn" onclick="switchTable('unidades')">&#9635; Unidades</button>
+        <button id="menuAuditoria" class="side-btn admin-only" onclick="openAuditPanel()" style="display:none">&#9635; Auditor&iacute;a</button>
       </div>
       <div class="side-section-title">Opciones</div>
       <div class="side-menu">
@@ -6396,6 +6397,83 @@
     </div>
   </div>
 
+    <!-- Modal Formulario de Unidad (Dividido por Divisiones) -->
+  <div id="unidadModal" class="modal" onclick="if(event.target===this) closeUnidadModal()">
+    <div class="dialog" style="max-width: 820px; width: 95%;">
+      <div class="dialog-header" style="background: linear-gradient(135deg, #06351f 0%, #0b5a3c 100%); color: #fff;">
+        <div>
+          <h2 id="unidadModalTitle" style="color:#fff; margin:0; font-size:17px;">&#127963;&#65039; Formulario de Unidad Policial</h2>
+          <div style="font-size:11.5px; color:#d8b23f; font-weight:700; margin-top:2px;">ESTRUCTURA ORG&Aacute;NICA POR DIVISIONES &mdash; REGPOL HU&Aacute;NUCO</div>
+        </div>
+        <button class="close" onclick="closeUnidadModal()" style="color:#fff;">&#10005;</button>
+      </div>
+      <div class="dialog-body" style="padding: 18px 20px;">
+        <input type="hidden" id="u_id" value="" />
+        <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 12px;">
+          <div class="field">
+            <label for="u_nivel1">DIVISI&Oacute;N / &Oacute;RGANO (NIVEL 1) *</label>
+            <input id="u_nivel1" type="text" list="dl_u_nivel1" placeholder="Ej: DIVOPUS HUANUCO, ESTADO MAYOR, DIVINCRI..." oninput="onUnidadDivisionInput()" />
+            <datalist id="dl_u_nivel1"></datalist>
+          </div>
+          <div class="field">
+            <label for="u_exacto1">DENOMINACI&Oacute;N EXACTA NIVEL 1 (EXACTO 1) *</label>
+            <input id="u_exacto1" type="text" placeholder="Ej: COMOPPOL DIRNOS REGPOL HUANUCO DIVOPUS HUANUCO" oninput="updateUnidadPreview()" />
+          </div>
+
+          <div class="field">
+            <label for="u_nivel2">DEPARTAMENTO / COMISAR&Iacute;A (NIVEL 2)</label>
+            <input id="u_nivel2" type="text" list="dl_u_nivel2" placeholder="Ej: COM HUANUCO A, DUE, DEPINCRI HUANUCO..." oninput="updateUnidadPreview()" />
+            <datalist id="dl_u_nivel2"></datalist>
+          </div>
+          <div class="field">
+            <label for="u_exacto2">DENOMINACI&Oacute;N EXACTA NIVEL 2 (EXACTO 2)</label>
+            <input id="u_exacto2" type="text" placeholder="Ej: COMOPPOL DIRNOS REGPOL HUANUCO DIVOPUS HUANUCO COM HUANUCO A" oninput="updateUnidadPreview()" />
+          </div>
+
+          <div class="field">
+            <label for="u_nivel3">SECCI&Oacute;N (NIVEL 3)</label>
+            <input id="u_nivel3" type="text" placeholder="Ej: SECPAT, SECCOP, SECINV..." oninput="updateUnidadPreview()" />
+          </div>
+          <div class="field">
+            <label for="u_exacto3">DENOMINACI&Oacute;N EXACTA NIVEL 3 (EXACTO 3)</label>
+            <input id="u_exacto3" type="text" placeholder="Denominaci&oacute;n oficial de nivel 3 (si aplica)" oninput="updateUnidadPreview()" />
+          </div>
+
+          <div class="field">
+            <label for="u_nivel4">&Aacute;REA / SUBUNIDAD (NIVEL 4)</label>
+            <input id="u_nivel4" type="text" placeholder="Ej: ARERHU, ARELOG, etc. (si aplica)" oninput="updateUnidadPreview()" />
+          </div>
+          <div class="field">
+            <label for="u_exacto4">DENOMINACI&Oacute;N EXACTA NIVEL 4 (EXACTO 4)</label>
+            <input id="u_exacto4" type="text" placeholder="Denominaci&oacute;n oficial de nivel 4 (si aplica)" oninput="updateUnidadPreview()" />
+          </div>
+
+          <div class="field full" style="grid-column: 1 / -1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 10px 14px; margin-top: 4px;">
+            <div style="font-size: 11px; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.4px;">&#128204; Denominaci&oacute;n Final para Lista de Revista:</div>
+            <div id="u_preview_final" style="font-size: 13.5px; font-weight: 900; color: #06351f; margin-top: 3px; word-break: break-word;">&mdash;</div>
+          </div>
+
+          <div class="field full" style="grid-column: 1 / -1; margin-top: 4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label style="margin:0; font-size:11.5px; color:#06351f; font-weight:800;">&#128203; UNIDADES REGISTRADAS EN ESTA DIVISI&Oacute;N (<span id="u_div_count">0</span>)</label>
+              <span style="font-size:11px; color:#64748b;">Haz clic en cualquiera para cargarla</span>
+            </div>
+            <div id="u_division_units_list" style="max-height: 170px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; padding: 6px;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer" style="justify-content: space-between;">
+        <div>
+          <button id="btnDeleteUnidad" type="button" class="danger" onclick="deleteUnidadRecord()" style="display:none;">&#128465;&#65039; Eliminar unidad</button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="secondary" onclick="closeUnidadModal()">Cancelar</button>
+          <button id="btnSaveUnidad" type="button" class="primary" onclick="saveUnidadRecord()">&#128190; Guardar Unidad</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -6412,6 +6490,7 @@
     const API_DETENIDOS = SUPABASE_URL + '/rest/v1/detenidos_sin_sentencia';
     const API_INCORPORADOS_REASIGNADOS = SUPABASE_URL + '/rest/v1/incorporados_reasignados';
     const API_INCORPORADOS_DESTACADOS = SUPABASE_URL + '/rest/v1/incorporados_destacados';
+    const API_UNIDADES = SUPABASE_URL + '/rest/v1/unidades';
     const API_JEFES = SUPABASE_URL + '/rest/v1/jefes';
     const API_HISTORIAL_MOVIMIENTOS = SUPABASE_URL + '/rest/v1/historial_movimientos';
 
@@ -6661,7 +6740,8 @@
       sometido_ley: { title: 'SOMETIDO A LEY', api: API_SOMETIDO_LEY, menu: 'menuSometidoLey', fallbackApi: API_PERSONAL, optValue: 'SOMETID', optLabel: 'SOMETIDO A LEY' },
       detenidos_sin_sentencia: { title: 'DETENIDOS', api: API_DETENIDOS, menu: 'menuDetenidos', fallbackApi: API_PERSONAL, optValue: 'DETENID', optLabel: 'DETENIDOS' },
       incorporados_reasignados: { title: 'INCORP. POR REASIGNACIÓN', api: API_INCORPORADOS_REASIGNADOS, menu: 'menuIncorpReasignados', optValue: '', optLabel: 'INCORP. REASIGNACIÓN' },
-      incorporados_destacados: { title: 'INCORP. POR DESTAQUE', api: API_INCORPORADOS_DESTACADOS, menu: 'menuIncorpDestacados', optValue: 'PRESENTE', optLabel: 'PRESENTES' }
+      incorporados_destacados: { title: 'INCORP. POR DESTAQUE', api: API_INCORPORADOS_DESTACADOS, menu: 'menuIncorpDestacados', optValue: 'PRESENTE', optLabel: 'PRESENTES' },
+      unidades: { title: 'UNIDADES POR DIVISI\u00d3N', api: API_UNIDADES, menu: 'menuUnidades', optValue: '', optLabel: 'TODAS LAS DIVISIONES' }
     };
 
     function tableConfig(name = currentTable) { return tableConfigs[name] || tableConfigs.personal; }
@@ -7310,7 +7390,15 @@
         firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion', 'estado']),
         firstValue(r, ['condicion', 'CONDICIÓN', 'CONDICION']),
         firstValue(r, ['descripcion_del_curso', 'descripcion_curso', 'lugar', 'numero_de_oficio']),
-        firstValue(r, ['destino', 'documento_referencia', 'DOCUMENTO DE REFERENCIA', 'documento_que_sustenta', 'resolucion_memorandum', 'motivo', 'observacion', 'observaciones'])
+        firstValue(r, ['destino', 'documento_referencia', 'DOCUMENTO DE REFERENCIA', 'documento_que_sustenta', 'resolucion_memorandum', 'motivo', 'observacion', 'observaciones']),
+        firstValue(r, ['NIVEL1', 'nivel_1']),
+        firstValue(r, ['EXACTO1', 'nivel_1_nombre']),
+        firstValue(r, ['NIVEL2', 'nivel_2']),
+        firstValue(r, ['EXACTO2', 'nivel_2_nombre']),
+        firstValue(r, ['NIVEL3', 'nivel_3']),
+        firstValue(r, ['EXACTO3', 'nivel_3_nombre']),
+        firstValue(r, ['NIVEL4', 'nivel_4']),
+        firstValue(r, ['EXACTO4', 'nivel_4_nombre'])
       ].join(' '));
       return r;
     }
@@ -7565,6 +7653,9 @@
     }
 
     function ordenarRegistros(lista) {
+      if (currentTable === 'unidades') {
+        return lista.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+      }
       return lista.sort((a, b) => {
         const gradoA = gradoOrden[String(firstValue(a, ['grado', 'GRADO'])).trim().toUpperCase()] || 9999;
         const gradoB = gradoOrden[String(firstValue(b, ['grado', 'GRADO'])).trim().toUpperCase()] || 9999;
@@ -7796,6 +7887,29 @@
         return;
       }
 
+      if (currentTable === 'unidades') {
+        const divOrder = [
+          'JEFATURA',
+          'ESTADO MAYOR',
+          'UNIADM (UE - HUANUCO)',
+          'DIVREINT',
+          'DIVINCRI',
+          'DIVPOCOM',
+          'DIVOPUS HUANUCO',
+          'DIVOPUS LEONCIO PRADO',
+          'DIVOPUS PUERTO INCA',
+          'DIVCUD HUANUCO',
+          'TODOS'
+        ];
+        const dynamicDivs = [...new Set((unidadesCatalog || []).map(u => String(u.nivel_1 || '').trim()).filter(Boolean))];
+        dynamicDivs.forEach(d => { if (!divOrder.includes(d)) divOrder.push(d); });
+        const prevVal = select.value;
+        select.innerHTML = `<option value="">TODAS LAS DIVISIONES</option>` +
+          divOrder.map(d => `<option value="${esc(d)}">DIVISI\u00d3N: ${esc(d)}</option>`).join('');
+        select.value = divOrder.includes(prevVal) ? prevVal : '';
+        return;
+      }
+
       if (currentTable === 'incorporados_reasignados') {
         select.innerHTML = `
           <option value="">TODOS</option>
@@ -7902,6 +8016,8 @@
         headRow.innerHTML = `<th>CIP</th><th>GRADO</th><th>APELLIDOS Y NOMBRES</th><th>UNIDAD ORIGEN</th><th>LISTA REVISTA</th><th>FECHA INCORP.</th><th>CONDICIÓN</th><th>SITUACIÓN ACTUAL</th><th>DOC. REFERENCIA</th><th>FECHA DOCUMENTO</th><th>FECHA REINCORP.</th><th>DOC. REINCORP.</th><th>N° INCLUSIÓN</th><th>FECHA INCLUSIÓN</th><th>DESTINO</th><th>OBSERVACIÓN</th>`;
       } else if (currentTable === 'incorporados_reasignados') {
         headRow.innerHTML = `<th>CIP</th><th>GRADO</th><th>APELLIDOS Y NOMBRES</th><th>LISTA REVISTA ANT.</th><th>SITUACIÓN</th><th>F. INCORP REGPOL</th><th>TIPO INCORP</th><th>MOTIVO</th><th>DOC. REFERENCIA</th><th>A MÉRITO</th><th>UNIDAD ORIGEN ACTUAL</th><th>LISTA REVISTA NUEVA</th><th>N° INCLUSIÓN</th><th>F. INCLUSIÓN</th><th>DOC. PONE DISP.</th><th>F. DOC</th><th>OBSERVACIÓN</th>`;
+      } else if (currentTable === 'unidades') {
+        headRow.innerHTML = `<th style="width:55px;">ID</th><th>DIVISI&Oacute;N (NIVEL 1)</th><th>DEPARTAMENTO / COMISAR&Iacute;A (NIVEL 2)</th><th>SECCI&Oacute;N (NIVEL 3)</th><th>&Aacute;REA (NIVEL 4)</th><th>DENOMINACI&Oacute;N OFICIAL (LISTA DE REVISTA)</th><th style="width:110px;text-align:center;">ACCI&Oacute;N</th>`;
       } else if (currentTable === 'incorporados_destacados') {
         headRow.innerHTML = `<th>CIP</th><th>GRADO</th><th>APELLIDOS Y NOMBRES</th><th>UNIDAD ACTUAL</th><th>LISTA REVISTA ANT.</th><th>CONDICIÓN</th><th>SITUACIÓN ACTUAL</th><th>FECHA INCORP</th><th>MOTIVO</th><th>DOC. REFERENCIA</th><th>DESTINO</th><th>N° INCLUSIÓN</th><th>F. INCLUSIÓN</th><th>DOC. PONE DISP.</th><th>F. DOC</th><th>F. RETORNO</th><th>DOC. RETORNO</th><th>N° EXCLUSIÓN</th><th>F. EXCLUSIÓN</th><th>OBSERVACIÓN</th>`;
       } else {
@@ -7929,6 +8045,56 @@
     function renderGenericRows(filtered) {
       const tbody = document.getElementById('tbody');
       if (!tbody) return;
+      if (currentTable === 'unidades') {
+        if (!filtered.length) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:28px; color:var(--muted); font-weight:700;">No se encontraron unidades con el filtro actual.</td></tr>`;
+          return;
+        }
+        const groups = new Map();
+        filtered.forEach(r => {
+          const divName = String(r.NIVEL1 || r.nivel_1 || 'SIN DIVISI\u00d3N').trim();
+          if (!groups.has(divName)) groups.set(divName, []);
+          groups.get(divName).push(r);
+        });
+        let htmlOut = '';
+        for (const [divName, items] of groups.entries()) {
+          const exacto1 = String(items[0]?.EXACTO1 || items[0]?.nivel_1_nombre || divName).trim();
+          htmlOut += `
+            <tr style="background: linear-gradient(90deg, #06351f 0%, #0b5a3c 100%); color: #ffffff;">
+              <td colspan="7" style="padding: 9px 14px; font-weight: 900; font-size: 12.5px; letter-spacing: 0.4px; border-top: 2px solid #d8b23f;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                  <span>&#127963;&#65039; DIVISI&Oacute;N: <span style="color:#fde047;">${esc(divName)}</span> <span style="font-weight:500; opacity:0.88; font-size:11.5px; margin-left:6px;">(${esc(exacto1)})</span></span>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="background:rgba(255,255,255,0.18); color:#fff; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:800;">${items.length} ${items.length === 1 ? 'unidad' : 'unidades'}</span>
+                    ${canEdit() ? `<button type="button" onclick="event.stopPropagation(); openUnidadModal(null, '${esc(divName)}')" style="background:#d8b23f; color:#06351f; border:none; padding:3px 10px; min-height:24px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">+ Agregar en ${esc(divName)}</button>` : ''}
+                  </div>
+                </div>
+              </td>
+            </tr>`;
+          items.forEach(r => {
+            const uid = esc(r.id);
+            const n1 = esc(r.NIVEL1 || 'â€”');
+            const n2 = esc(r.NIVEL2 || 'â€”');
+            const n3 = esc(r.NIVEL3 || 'â€”');
+            const n4 = esc(r.NIVEL4 || 'â€”');
+            const denomFinal = esc(r.EXACTO4 || r.EXACTO3 || r.EXACTO2 || r.EXACTO1 || 'â€”');
+            htmlOut += `
+              <tr class="data-row" onclick="openUnidadModal('${uid}')">
+                <td style="font-weight:800; color:#475569;">#${uid}</td>
+                <td><span class="pill" style="background:#dcfce7; color:#065f46; font-weight:800;">${n1}</span></td>
+                <td><b>${n2}</b></td>
+                <td>${n3}</td>
+                <td>${n4}</td>
+                <td style="font-weight:700; color:#06351f;">${denomFinal}</td>
+                <td style="text-align:center;">
+                  <button type="button" class="secondary" onclick="event.stopPropagation(); openUnidadModal('${uid}')" style="padding:4px 10px; min-height:26px; font-size:11.5px; font-weight:800;">&#9998; Editar</button>
+                </td>
+              </tr>`;
+          });
+        }
+        tbody.innerHTML = htmlOut;
+        return;
+      }
       tbody.innerHTML = filtered.map(r => {
         const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
         const id = esc(rawId);
@@ -8257,6 +8423,9 @@
             if (moduloFiltro === 'DETENIDO') return sitActual.includes('detenid');
             return true;
           }
+          if (currentTable === 'unidades') {
+            return String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase() === String(moduloFiltro).trim().toUpperCase();
+          }
           if (currentTable === 'incorporados_destacados') {
             if (moduloFiltro === 'PRESENTE') return sitActual.includes('present') || (!sitActual.includes('retorn') && sitActual !== '');
             if (moduloFiltro === 'RETORNO') return sitActual.includes('retorn');
@@ -8436,6 +8605,16 @@
             .join(' ');
 
           status.innerHTML = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;"><span>${esc(baseStatus)}</span><span style="color:#cbd5e1;">|</span>${pillsHtml}${extraHtml ? ' ' + extraHtml : ''}</div>`;
+        } else if (currentTable === 'unidades' && rows.length > 0) {
+          const divCounts = {};
+          filtered.forEach(r => {
+            const d = String(r.NIVEL1 || r.nivel_1 || 'OTROS').trim();
+            divCounts[d] = (divCounts[d] || 0) + 1;
+          });
+          const divPills = Object.entries(divCounts)
+            .map(([d, c]) => `<span onclick="filterUnidadesByDivision('${esc(d)}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;color:#065f46;background:#d1fae5;border:1px solid #065f4630;" title="Clic para filtrar por ${esc(d)}">${esc(d)}: ${c}</span>`)
+            .join(' ');
+          status.innerHTML = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;"><span>${esc(baseStatus)}</span><span style="color:#cbd5e1;">|</span>${divPills}</div>`;
         } else {
           status.textContent = baseStatus;
         }
@@ -8460,6 +8639,41 @@
       if (window.innerWidth > 900) return;
       const box = document.getElementById('mobileCards');
       if (!box) return;
+      if (currentTable === 'unidades') {
+        if (!filtered || !filtered.length) {
+          box.innerHTML = '<div class="person-card"><h3>Sin unidades</h3><div class="meta">No se encontraron unidades con los filtros actuales.</div></div>';
+          return;
+        }
+        const groups = new Map();
+        filtered.forEach(r => {
+          const d = String(r.NIVEL1 || 'SIN DIVISIÃ“N').trim();
+          if (!groups.has(d)) groups.set(d, []);
+          groups.get(d).push(r);
+        });
+        let mHtml = '';
+        for (const [d, items] of groups.entries()) {
+          mHtml += `<div style="background:#06351f;color:#fff;padding:8px 12px;border-radius:8px;font-weight:800;font-size:12.5px;border-left:4px solid #d8b23f;margin-top:6px;">ðŸ›ï¸ DIVISIÃ“N: ${esc(d)} (${items.length})</div>`;
+          items.forEach(r => {
+            const uid = esc(r.id);
+            const sub = esc([r.NIVEL2, r.NIVEL3, r.NIVEL4].filter(Boolean).join(' â€º ') || r.NIVEL1 || 'â€”');
+            const denom = esc(r.EXACTO4 || r.EXACTO3 || r.EXACTO2 || r.EXACTO1 || 'â€”');
+            mHtml += `
+              <article class="person-card" onclick="openUnidadModal('${uid}')">
+                <h3>#${uid} Â· ${sub}</h3>
+                <div class="meta">
+                  <div><b>DivisiÃ³n</b>${esc(r.NIVEL1 || 'â€”')}</div>
+                  <div><b>Dpto / ComisarÃ­a</b>${esc(r.NIVEL2 || 'â€”')}</div>
+                  <div style="grid-column:1/-1;"><b>DenominaciÃ³n Oficial</b>${denom}</div>
+                </div>
+                <div class="actions">
+                  <button class="primary" onclick="event.stopPropagation(); openUnidadModal('${uid}')">âœ Ver / Editar Unidad</button>
+                </div>
+              </article>`;
+          });
+        }
+        box.innerHTML = mHtml;
+        return;
+      }
       if (!filtered || !filtered.length) {
         box.innerHTML = '<div class="person-card"><h3>Sin registros</h3><div class="meta">No se encontraron resultados con los filtros actuales.</div></div>';
         return;
@@ -10560,14 +10774,169 @@ MOTIVO: ${motivoText}`;
     }
 
     function handlePrimaryAction() {
+      if (currentTable === 'unidades') {
+        const currentDiv = document.getElementById('filterModuloEstado')?.value || '';
+        openUnidadModal(null, currentDiv);
+        return;
+      }
       openForm();
     }
 
     function updatePrimaryActionButton() {
       const btn = document.getElementById('newRecordBtn');
       if (!btn) return;
-      btn.textContent = '+ Nuevo registro';
+      btn.textContent = (currentTable === 'unidades') ? '+ Nueva unidad' : '+ Nuevo registro';
       btn.style.display = canEdit() ? '' : 'none';
+    }
+
+    function filterUnidadesByDivision(divName) {
+      const sel = document.getElementById('filterModuloEstado');
+      if (!sel) return;
+      sel.value = (sel.value === divName) ? '' : divName;
+      render();
+    }
+
+    function openUnidadModal(id = null, presetDivision = '') {
+      const modal = document.getElementById('unidadModal');
+      if (!modal) return;
+      const rec = id ? rows.find(r => String(r.id) === String(id)) : null;
+
+      const divs = [...new Set(rows.map(r => String(r.NIVEL1 || '').trim()).filter(Boolean))];
+      const dl1 = document.getElementById('dl_u_nivel1');
+      if (dl1) dl1.innerHTML = divs.map(d => `<option value="${esc(d)}"></option>`).join('');
+
+      document.getElementById('u_id').value = rec ? rec.id : '';
+      document.getElementById('u_nivel1').value = rec ? (rec.NIVEL1 || '') : (presetDivision || '');
+      document.getElementById('u_exacto1').value = rec ? (rec.EXACTO1 || '') : '';
+      document.getElementById('u_nivel2').value = rec ? (rec.NIVEL2 || '') : '';
+      document.getElementById('u_exacto2').value = rec ? (rec.EXACTO2 || '') : '';
+      document.getElementById('u_nivel3').value = rec ? (rec.NIVEL3 || '') : '';
+      document.getElementById('u_exacto3').value = rec ? (rec.EXACTO3 || '') : '';
+      document.getElementById('u_nivel4').value = rec ? (rec.NIVEL4 || '') : '';
+      document.getElementById('u_exacto4').value = rec ? (rec.EXACTO4 || '') : '';
+
+      if (!rec && presetDivision) {
+        const matchDiv = rows.find(r => String(r.NIVEL1 || '').trim().toUpperCase() === presetDivision.trim().toUpperCase() && r.EXACTO1);
+        if (matchDiv) document.getElementById('u_exacto1').value = matchDiv.EXACTO1;
+      }
+
+      const titleEl = document.getElementById('unidadModalTitle');
+      if (titleEl) titleEl.textContent = rec ? `Editar Unidad #${rec.id} (${rec.NIVEL1 || ''})` : 'Registrar Nueva Unidad Policial';
+
+      const delBtn = document.getElementById('btnDeleteUnidad');
+      if (delBtn) delBtn.style.display = (rec && isAdmin()) ? 'inline-flex' : 'none';
+
+      const saveBtn = document.getElementById('btnSaveUnidad');
+      if (saveBtn) saveBtn.style.display = canEdit() ? 'inline-flex' : 'none';
+
+      onUnidadDivisionInput(Boolean(rec));
+      updateUnidadPreview();
+      modal.classList.add('open');
+    }
+
+    function closeUnidadModal() {
+      document.getElementById('unidadModal')?.classList.remove('open');
+    }
+
+    function onUnidadDivisionInput(keepExacto1 = false) {
+      const divVal = String(document.getElementById('u_nivel1')?.value || '').trim();
+      const ex1Input = document.getElementById('u_exacto1');
+      const sameDivRows = rows.filter(r => String(r.NIVEL1 || '').trim().toUpperCase() === divVal.toUpperCase());
+
+      if (!keepExacto1 && ex1Input && !ex1Input.value.trim() && sameDivRows.length > 0) {
+        ex1Input.value = sameDivRows[0].EXACTO1 || '';
+      }
+
+      const n2List = [...new Set(sameDivRows.map(r => String(r.NIVEL2 || '').trim()).filter(Boolean))];
+      const dl2 = document.getElementById('dl_u_nivel2');
+      if (dl2) dl2.innerHTML = n2List.map(d => `<option value="${esc(d)}"></option>`).join('');
+
+      const countEl = document.getElementById('u_div_count');
+      if (countEl) countEl.textContent = sameDivRows.length;
+
+      const listBox = document.getElementById('u_division_units_list');
+      if (listBox) {
+        if (!sameDivRows.length) {
+          listBox.innerHTML = `<div style="padding:10px; color:#64748b; font-size:12px; text-align:center;">Seleccione o escriba una Divisi&oacute;n para ver sus unidades.</div>`;
+        } else {
+          listBox.innerHTML = sameDivRows.map(u => {
+            const finalName = u.EXACTO4 || u.EXACTO3 || u.EXACTO2 || u.EXACTO1 || '';
+            const subLabel = [u.NIVEL2, u.NIVEL3, u.NIVEL4].filter(Boolean).join(' > ') || u.NIVEL1;
+            return `<div onclick="openUnidadModal('${esc(u.id)}')" style="padding:6px 10px; border-bottom:1px solid #e2e8f0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12px;" onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='transparent'">
+              <div><b style="color:#06351f;">${esc(subLabel)}</b><div style="font-size:11px; color:#475569;">${esc(finalName)}</div></div>
+              <span style="font-size:11px; color:#0284c7; font-weight:700;">#${esc(u.id)}</span>
+            </div>`;
+          }).join('');
+        }
+      }
+      updateUnidadPreview();
+    }
+
+    function updateUnidadPreview() {
+      const ex1 = String(document.getElementById('u_exacto1')?.value || '').trim();
+      const ex2 = String(document.getElementById('u_exacto2')?.value || '').trim();
+      const ex3 = String(document.getElementById('u_exacto3')?.value || '').trim();
+      const ex4 = String(document.getElementById('u_exacto4')?.value || '').trim();
+      const finalStr = ex4 || ex3 || ex2 || ex1 || 'â€”';
+      const prevEl = document.getElementById('u_preview_final');
+      if (prevEl) prevEl.textContent = finalStr;
+    }
+
+    async function saveUnidadRecord() {
+      if (!canEdit()) { toast('No tiene permisos para editar unidades', 'warning'); return; }
+      const id = String(document.getElementById('u_id')?.value || '').trim();
+      const payload = {
+        NIVEL1: String(document.getElementById('u_nivel1')?.value || '').trim().toUpperCase() || null,
+        EXACTO1: String(document.getElementById('u_exacto1')?.value || '').trim().toUpperCase() || null,
+        NIVEL2: String(document.getElementById('u_nivel2')?.value || '').trim().toUpperCase() || null,
+        EXACTO2: String(document.getElementById('u_exacto2')?.value || '').trim().toUpperCase() || null,
+        NIVEL3: String(document.getElementById('u_nivel3')?.value || '').trim().toUpperCase() || null,
+        EXACTO3: String(document.getElementById('u_exacto3')?.value || '').trim().toUpperCase() || null,
+        NIVEL4: String(document.getElementById('u_nivel4')?.value || '').trim().toUpperCase() || null,
+        EXACTO4: String(document.getElementById('u_exacto4')?.value || '').trim().toUpperCase() || null
+      };
+
+      if (!payload.NIVEL1 || !payload.EXACTO1) {
+        toast('Complete al menos la Division (NIVEL 1) y su Denominacion Exacta (EXACTO 1)', 'warning');
+        return;
+      }
+
+      try {
+        if (id) {
+          await req(`${API_UNIDADES}?id=eq.${encodeURIComponent(id)}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload)
+          });
+          toast('Unidad actualizada correctamente', 'success');
+        } else {
+          await req(API_UNIDADES, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+          toast('Nueva unidad registrada correctamente', 'success');
+        }
+        closeUnidadModal();
+        await loadUnidadesCatalog();
+        await loadData();
+      } catch (err) {
+        toast('Error al guardar unidad: ' + err.message, 'error');
+      }
+    }
+
+    async function deleteUnidadRecord() {
+      if (!isAdmin()) { toast('Solo el administrador puede eliminar unidades', 'warning'); return; }
+      const id = String(document.getElementById('u_id')?.value || '').trim();
+      if (!id) return;
+      if (!confirm('Â¿Esta seguro de eliminar esta unidad de la tabla unidades?')) return;
+      try {
+        await req(`${API_UNIDADES}?id=eq.${encodeURIComponent(id)}`, { method: 'DELETE' });
+        toast('Unidad eliminada', 'success');
+        closeUnidadModal();
+        await loadUnidadesCatalog();
+        await loadData();
+      } catch (err) {
+        toast('Error al eliminar unidad: ' + err.message, 'error');
+      }
     }
 
     // Funciones para la Ventana Flotante de Inclusión / Retorno
@@ -18532,6 +18901,14 @@ REGLAS CRÍTICAS:
           ['unidad_origen_actual', 'Unidad origen actual'], ['lista_revista_nueva', 'Lista revista nueva'], ['numero_inclusion', 'N° Inclusión'], ['fecha_inclusion', 'Fecha inclusión'],
           ['documento_pone_disposicion', 'Doc. Pone disposición'], ['fecha_documento', 'Fecha documento'],
           ['observacion', 'Observaciones']
+        ];
+      } else if (currentTable === 'unidades') {
+        fieldList = [
+          ['id', 'ID'],
+          ['NIVEL1', 'Division (NIVEL 1)'], ['EXACTO1', 'Denominacion Nivel 1 (EXACTO 1)'],
+          ['NIVEL2', 'Departamento / Comisaria (NIVEL 2)'], ['EXACTO2', 'Denominacion Nivel 2 (EXACTO 2)'],
+          ['NIVEL3', 'Seccion (NIVEL 3)'], ['EXACTO3', 'Denominacion Nivel 3 (EXACTO 3)'],
+          ['NIVEL4', 'Area (NIVEL 4)'], ['EXACTO4', 'Denominacion Nivel 4 (EXACTO 4)']
         ];
       } else if (currentTable === 'incorporados_destacados') {
         fieldList = [
