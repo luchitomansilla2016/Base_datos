@@ -11798,6 +11798,10 @@ MOTIVO: ${motivoText}`;
           if (currentTable === 'personal') {
             if (k === 'unidad_de_origen') {
               meta.cls = 'col-span-3'; // Ampliado hacia la derecha completando la fila con ESPECIALIDAD (1 + 3 = 4)
+            } else if (k === 'lista_de_revista') {
+              meta.cls = 'full'; // Ampliado por su extremo derecho hasta el límite del formulario (span 4)
+            } else if (k === 'subunidad_donde_se_encuentra_por_curso_o_apoyo') {
+              meta.cls = 'full'; // Debajo de LISTA DE REVISTA ocupando el ancho del formulario
             } else if (k === 'unidad_anterior') {
               meta.cls = 'full'; // Ampliado por su lado derecho hasta el limite del formulario (span 4)
             } else if (k === 'aptitud_psicosomatico') {
