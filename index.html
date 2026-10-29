@@ -18452,7 +18452,21 @@ REGLAS CRÍTICAS:
       render();
       const box = document.getElementById('exportFields');
       let fieldList = Object.entries(allFieldMeta).map(([k, v]) => [k, v.label]);
-      if (currentTable === 'en_curso') {
+      if (currentTable === 'personal') {
+        fieldList = [
+          ['cip', 'CIP'], ['dni', 'DNI'], ['tipo_dni', 'Tipo DNI'], ['codofin', 'CODOFIN'],
+          ['grado', 'Grado'], ['apellidos_y_nombres', 'Apellidos y nombres'], ['sexo', 'Sexo'],
+          ['jerarquia', 'JerarquÃ­a'], ['especialidad', 'Especialidad'], ['cargo', 'Cargo'],
+          ['condicion', 'CondiciÃ³n'], ['situacion_actual', 'SituaciÃ³n actual'],
+          ['aptitud_psicosomatico', 'Aptitud psicosomÃ¡tico'],
+          ['unidad_de_origen', 'Unidad de origen'], ['subunidad_curso_apoyo', 'Subunidad curso/apoyo'],
+          ['lista_de_revista', 'Lista de revista'], ['documento_referencia', 'Documento referencia'],
+          ['fecha_ingreso_o_salida', 'Fecha ingreso o salida'], ['resolucion_memorandum', 'ResoluciÃ³n/MemorÃ¡ndum'],
+          ['motivo', 'Motivo'], ['observaciones', 'Observaciones'],
+          ['correo', 'Correo'], ['celular', 'Celular'], ['direccion', 'DirecciÃ³n'],
+          ['estado_civil', 'Estado civil'], ['hijos', 'Hijos'], ['fecha_nacimiento', 'Fecha nacimiento']
+        ];
+      } else if (currentTable === 'en_curso') {
         fieldList = [
           ['cip', 'CIP'], ['grado', 'Grado'], ['apellidos_nombres', 'Apellidos y nombres'],
           ['lista_revista', 'Lista revista'], ['condicion', 'Condición'], ['situacion_actual', 'Situación actual'],
@@ -18655,14 +18669,17 @@ REGLAS CRÍTICAS:
       if (!sourceRows.length) { toast('No hay registros cargados para respaldar', 'warning'); return; }
       const sampleKeys = Object.keys(sourceRows[0]).filter(k => !k.startsWith('_'));
       const headers = sampleKeys.length ? sampleKeys : Object.keys(allFieldMeta);
-      const lines = [headers.map(h => `"${String(h).replace(/"/g, '""')}"`).join(',')];
-      sourceRows.forEach(r => lines.push(headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(',')));
-      const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>' +
+        headers.map(h => `<th style="background:#0b5a3c;color:#ffffff;font-weight:bold;white-space:nowrap;">${esc(h)}</th>`).join('') +
+        '</tr></thead><tbody>' +
+        sourceRows.map(r => '<tr>' + headers.map(h => `<td style="mso-number-format:'\\@';white-space:nowrap;">${esc(String(r[h] ?? ''))}</td>`).join('') + '</tr>').join('') +
+        '</tbody></table></body></html>';
+      const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `backup_${currentTable === 'personal' ? 'personal_policial' : currentTable}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `respaldo_${currentTable === 'personal' ? 'personal_policial' : currentTable}_${new Date().toISOString().slice(0,10)}.xls`;
       a.click();
-      toast(`Respaldo CSV descargado (${sourceRows.length} registros)`, 'success');
+      toast(`Respaldo Excel en columnas descargado (${sourceRows.length} registros)`, 'success');
     }
 
     async function openAuditPanel() {
