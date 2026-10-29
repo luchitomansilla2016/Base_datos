@@ -691,7 +691,9 @@
         headers: {
           'apikey': KEY,
           'Authorization': `Bearer ${KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-pnp-app-token': 'REGPOL-HCO-2026-SEC-92A153C6',
+          'x-pnp-client': 'regpol-hco-qr'
         }
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1047,7 +1049,9 @@
             'apikey': KEY,
             'Authorization': `Bearer ${KEY}`,
             'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
+            'Prefer': 'return=minimal',
+            'x-pnp-app-token': 'REGPOL-HCO-2026-SEC-92A153C6',
+            'x-pnp-client': 'regpol-hco-qr'
           },
           body: JSON.stringify(cloudPayload)
         });

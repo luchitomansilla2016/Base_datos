@@ -275,7 +275,10 @@ function subirANube() {
           headers: {
             "apikey": SUPABASE_KEY,
             "Authorization": "Bearer " + SUPABASE_KEY,
-            "Prefer": "return=representation"
+            "Prefer": "return=representation",
+            "x-pnp-app-token": "REGPOL-HCO-2026-SEC-92A153C6",
+            "x-pnp-client": "regpol-hco-gas",
+            "x-pnp-cip": "31390176"
           },
           payload: JSON.stringify(payload),
           muteHttpExceptions: true
@@ -349,7 +352,10 @@ function obtenerUltimoCorrelativoSupabase() {
       method: "get",
       headers: {
         "apikey": SUPABASE_KEY,
-        "Authorization": "Bearer " + SUPABASE_KEY
+        "Authorization": "Bearer " + SUPABASE_KEY,
+        "x-pnp-app-token": "REGPOL-HCO-2026-SEC-92A153C6",
+        "x-pnp-client": "regpol-hco-gas",
+        "x-pnp-cip": "31390176"
       },
       muteHttpExceptions: true
     };

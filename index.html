@@ -6477,11 +6477,17 @@
 
     const _missingDocTables = new Set();
     async function docReq(url, options = {}) {
+      const lookupCip = _extractLookupCip(url);
       const headers = Object.assign({
         'apikey': DOCS_KEY,
         'Authorization': 'Bearer ' + DOCS_KEY,
         'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
+        'Prefer': 'return=representation',
+        'x-pnp-app-token': 'REGPOL-HCO-2026-SEC-92A153C6',
+        'x-pnp-client': 'regpol-hco-v2',
+        'x-pnp-cip': _getSessionCip(),
+        'x-pnp-pass': _getSessionPass(),
+        ...(lookupCip ? { 'x-pnp-lookup-cip': lookupCip } : {})
       }, options.headers || {});
       const method = (options.method || 'GET').toUpperCase();
       const afterRest = String(url).split('/rest/v1/')[1] || '';
@@ -6572,11 +6578,17 @@
     }
 
     async function _rawDocReq(url, options = {}) {
+      const lookupCip = _extractLookupCip(url);
       const headers = Object.assign({
         'apikey': DOCS_KEY,
         'Authorization': 'Bearer ' + DOCS_KEY,
         'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
+        'Prefer': 'return=representation',
+        'x-pnp-app-token': 'REGPOL-HCO-2026-SEC-92A153C6',
+        'x-pnp-client': 'regpol-hco-v2',
+        'x-pnp-cip': _getSessionCip(),
+        'x-pnp-pass': _getSessionPass(),
+        ...(lookupCip ? { 'x-pnp-lookup-cip': lookupCip } : {})
       }, options.headers || {});
       const res = await fetch(url, Object.assign({}, options, { headers }));
       if (!res.ok) {
@@ -6607,16 +6619,34 @@
     let unidadesCatalog = [];
     let toastTimer = null;
 
+    const PNP_APP_SECURITY_TOKEN = 'REGPOL-HCO-2026-SEC-92A153C6';
+    function _getSessionCip() {
+      return sessionStorage.getItem('pnp_user_cip') || localStorage.getItem('pnp_user_cip') || '';
+    }
+    function _getSessionPass() {
+      return sessionStorage.getItem('pnp_user_pass') || localStorage.getItem('pnp_user_pass') || '';
+    }
+    function _extractLookupCip(urlStr = '') {
+      const m = String(urlStr || '').match(/\bCIP=eq\.([^&]+)/i);
+      return m ? decodeURIComponent(m[1]).trim() : '';
+    }
+
     function authToken() {
       return sessionStorage.getItem('pnp_access_token') || KEY;
     }
 
-    function buildHeaders(extra = {}) {
+    function buildHeaders(extra = {}, url = '') {
+      const lookupCip = _extractLookupCip(url);
       return {
         apikey: KEY,
         Authorization: 'Bearer ' + authToken(),
         'Content-Type': 'application/json',
         Prefer: 'return=representation',
+        'x-pnp-app-token': PNP_APP_SECURITY_TOKEN,
+        'x-pnp-client': 'regpol-hco-v2',
+        'x-pnp-cip': _getSessionCip(),
+        'x-pnp-pass': _getSessionPass(),
+        ...(lookupCip ? { 'x-pnp-lookup-cip': lookupCip } : {}),
         ...extra
       };
     }
@@ -6879,7 +6909,7 @@
     }
 
     async function req(url, options = {}) {
-      let response = await fetch(url, { cache: 'no-store', ...options, headers: buildHeaders(options.headers || {}) });
+      let response = await fetch(url, { cache: 'no-store', ...options, headers: buildHeaders(options.headers || {}, url) });
       if (!response.ok) {
         const errorText = await response.text();
         if (response.status === 401 || errorText.includes('JWT expired') || errorText.includes('PGRST303')) {
@@ -18802,28 +18832,36 @@ REGLAS CRÍTICAS:
         const role = String(user[roleKey] || 'admin').toLowerCase();
         sessionStorage.setItem('pnp_logged', '1');
         sessionStorage.setItem('pnp_user_cip', cip);
+        sessionStorage.setItem('pnp_user_pass', pass);
+        localStorage.setItem('pnp_user_cip', cip);
+        localStorage.setItem('pnp_user_pass', pass);
         currentUserRole = role;
         sessionStorage.setItem('pnp_role', currentUserRole);
         const userFullName = ((user[gradoKey] || '') + ' ' + (user[nameKey] || '')).trim() || cip;
         sessionStorage.setItem('pnp_user_fullname', userFullName);
 
-        document.getElementById('roleBadge').textContent = currentUserRole.toUpperCase() + ' · ' + cip;
+        document.getElementById('roleBadge').textContent = currentUserRole.toUpperCase() + ' Â· ' + cip;
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin() ? '' : 'none');
         document.getElementById('loginOverlay').classList.add('hidden');
         toast('Bienvenido al sistema', 'success');
         loadData();
+        loadSolicitudesData();
       } catch (e) { err.textContent = e.message; }
     }
 
     async function logout() {
       sessionStorage.clear();
+      localStorage.removeItem('pnp_user_cip');
+      localStorage.removeItem('pnp_user_pass');
       document.getElementById('loginOverlay').classList.remove('hidden');
     }
 
     function checkLogin() {
       if (sessionStorage.getItem('pnp_logged') === '1') {
         currentUserRole = sessionStorage.getItem('pnp_role') || 'admin';
-        document.getElementById('roleBadge').textContent = currentUserRole.toUpperCase() + ' · ' + (sessionStorage.getItem('pnp_user_cip') || '31390176');
+        const savedCip = sessionStorage.getItem('pnp_user_cip') || localStorage.getItem('pnp_user_cip') || '31390176';
+        sessionStorage.setItem('pnp_user_cip', savedCip);
+        document.getElementById('roleBadge').textContent = currentUserRole.toUpperCase() + ' Â· ' + savedCip;
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin() ? '' : 'none');
         document.getElementById('loginOverlay').classList.add('hidden');
       }
@@ -19272,12 +19310,15 @@ REGLAS CRÍTICAS:
 
     attachNumericInputMasks();
     checkLogin();
-    loadData();
     loadDestinatariosListStorage();
-    loadSolicitudesData();
+    if (sessionStorage.getItem('pnp_logged') === '1') {
+      loadData();
+      loadSolicitudesData();
+    }
     async function refreshDataSilent() {
       try {
         if (document.hidden) return;
+        if (sessionStorage.getItem('pnp_logged') !== '1') return;
         const anyModalOpen = document.querySelector('.modal.open');
         if (anyModalOpen) return;
         const tableSnapshot = currentTable;
