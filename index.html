@@ -3655,6 +3655,7 @@
         </div>
 
         <div id="unidadesCategoryTabs" style="display:none; gap:8px; flex-wrap:wrap; margin-bottom:10px;"></div>
+        <div id="seccionesEspFilterPanel" style="display:none; flex-direction:column; gap:10px; background:linear-gradient(180deg, #eff6ff 0%, #ffffff 100%); border:1.5px solid #3b82f6; border-radius:12px; padding:12px 14px; margin-bottom:10px; box-shadow:0 3px 10px rgba(59, 130, 246, 0.12);"></div>
         <div id="comisariasFilterPanel" style="display:none; flex-direction:column; gap:10px; background:linear-gradient(180deg, #fffbeb 0%, #ffffff 100%); border:1.5px solid #f59e0b; border-radius:12px; padding:12px 14px; margin-bottom:12px; box-shadow:0 3px 10px rgba(245, 158, 11, 0.12);"></div>
         <div id="status" class="table-status-bar">Cargando...</div>
 
@@ -7985,6 +7986,10 @@
       if (uTabs) {
         uTabs.style.display = (tableName === 'unidades') ? 'flex' : 'none';
       }
+      const secPanel = document.getElementById('seccionesEspFilterPanel');
+      if (secPanel && tableName !== 'unidades') {
+        secPanel.style.display = 'none';
+      }
       const comPanel = document.getElementById('comisariasFilterPanel');
       if (comPanel && tableName !== 'unidades') {
         comPanel.style.display = 'none';
@@ -7994,6 +7999,9 @@
         _comFilterCategoria = 'ALL';
         _comFilterSubModo = 'SOLO_SEDES';
         _comFilterNombre = '';
+        _secFilterTipo = 'ALL';
+        _secFilterSubModo = 'SOLO_SEDES_SEC';
+        _secFilterNombre = '';
       }
       const advToggleWrap = document.getElementById('advancedSearchToggleWrap');
       if (advToggleWrap) {
@@ -8061,21 +8069,102 @@
     let _comFilterCategoria = 'ALL'; // ALL, A, B, C, D, E
     let _comFilterSubModo = 'SOLO_SEDES'; // SOLO_SEDES, CON_SECCIONES, SOLO_SECOSP, SOLO_SECINPOL, SIN_SEC
     let _comFilterNombre = ''; // Nombre exacto de NIVEL2 (ej. COM HUANUCO A)
-    let _showComPanelInAll = false;
+
+    let _secFilterTipo = 'ALL'; // ALL, SECSEESP, SECEME, SECDEEXP, SECOPESP, SECTSV, SECPIAT, SECPIRV, SECSEEST
+    let _secFilterSubModo = 'SOLO_SEDES_SEC'; // SOLO_SEDES_SEC, CON_AREAS_SEC, SOLO_SECEME_ARESBAN, SOLO_ARESBAN
+    let _secFilterNombre = ''; // Clave exacta DIV|NIVEL3 (o NIVEL3)
+
+    const DUE_SEC_CATALOG = [
+      { code: 'SECSEESP', short: 'SECSEESP', desc: 'Seguridad Especial', bg: '#dbeafe', col: '#1e40af', brd: '#93c5fd' },
+      { code: 'SECEME', short: 'SECEME', desc: 'Emergencia (+ARESBAN)', bg: '#fee2e2', col: '#991b1b', brd: '#fca5a5' },
+      { code: 'SECDEEXP', short: 'SECDEEXP', desc: 'Desactivaci\u00f3n de Explosivos (UDEX)', bg: '#fef3c7', col: '#92400e', brd: '#fcd34d' },
+      { code: 'SECOPESP', short: 'SECOPESP ESC. VERDE', desc: 'Operaciones Especiales - Escuadr\u00f3n Verde', bg: '#dcfce7', col: '#166534', brd: '#86efac' },
+      { code: 'SECTSV', short: 'SECTSV', desc: 'Tr\u00e1nsito y Seguridad Vial', bg: '#e0f2fe', col: '#075985', brd: '#7dd3fc' },
+      { code: 'SECPIAT', short: 'SECPIAT', desc: 'Investigaci\u00f3n de Accidentes de Tr\u00e1nsito', bg: '#ede9fe', col: '#5b21b6', brd: '#c4b5fd' },
+      { code: 'SECPIRV', short: 'SECPIRV', desc: 'Prevenci\u00f3n e Inv. de Robo de Veh\u00edculos', bg: '#fce7f3', col: '#9d174d', brd: '#f9a8d4' },
+      { code: 'SECSEEST', short: 'SECSEEST', desc: 'Seguridad del Estado', bg: '#f1f5f9', col: '#334155', brd: '#cbd5e1' }
+    ];
 
     function clasificarTipoUnidad(r) {
       const n2 = String(r.NIVEL2 || r.nivel_2 || '').trim().toUpperCase();
       const n3 = String(r.NIVEL3 || r.nivel_3 || '').trim().toUpperCase();
-      const n4 = String(r.NIVEL4 || r.nivel_4 || '').trim().toUpperCase();
       if (n2.startsWith('COM ') || n2 === 'COM') {
         return 'COMISARIA';
       }
-      if (n2.includes('SEC') || n3.includes('SEC') || n4.includes('SEC')) {
+      // Solo considerar como Secciones Especializadas aquellas que pertenecen a DUE y son DUE SEC...
+      if ((n2 === 'DUE' || n2.startsWith('DUE ')) && (n3.startsWith('DUE SEC') || n3.includes(' SEC'))) {
+        return 'SECCION_ESP';
+      }
+      if (n2.startsWith('DUE SEC')) {
         return 'SECCION_ESP';
       }
       return 'DIVISION';
     }
 
+    // --- Helpers de SECCIONES ESPECIALIZADAS (DUE SEC) ---
+    function esSubAreaSeccionEsp(r) {
+      if (clasificarTipoUnidad(r) !== 'SECCION_ESP') return false;
+      const n3 = String(r.NIVEL3 || r.nivel_3 || '').trim().toUpperCase();
+      const n4 = String(r.NIVEL4 || r.nivel_4 || '').trim().toUpperCase();
+      return Boolean(n4 && n4 !== n3);
+    }
+
+    function esSedeSeccionEsp(r) {
+      return clasificarTipoUnidad(r) === 'SECCION_ESP' && !esSubAreaSeccionEsp(r);
+    }
+
+    function getCodigoDueSec(r) {
+      const n3 = String(r.NIVEL3 || r.nivel_3 || '').trim().toUpperCase();
+      for (const item of DUE_SEC_CATALOG) {
+        if (n3.includes(item.code)) return item.code;
+      }
+      const m = n3.match(/^DUE\s+(SEC[A-Z0-9]+)/);
+      return m ? m[1] : 'OTRA_SEC';
+    }
+
+    function getMetaDueSec(code) {
+      return DUE_SEC_CATALOG.find(x => x.code === code) || {
+        code: code || 'SEC',
+        short: code || 'DUE SEC',
+        desc: 'Secci\u00f3n Especializada DUE',
+        bg: '#dbeafe',
+        col: '#1e40af',
+        brd: '#93c5fd'
+      };
+    }
+
+    function getSeccionesEspDueMap(allValidRows) {
+      const map = new Map();
+      (allValidRows || []).forEach(r => {
+        if (clasificarTipoUnidad(r) !== 'SECCION_ESP') return;
+        const div = String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase();
+        const n3 = String(r.NIVEL3 || r.nivel_3 || '').trim().toUpperCase();
+        if (!n3) return;
+        const key = `${div}|${n3}`;
+        if (!map.has(key)) {
+          const code = getCodigoDueSec(r);
+          const meta = getMetaDueSec(code);
+          map.set(key, {
+            key,
+            div,
+            n3,
+            code,
+            meta,
+            sedeRow: null,
+            areas: []
+          });
+        }
+        const info = map.get(key);
+        if (esSubAreaSeccionEsp(r)) {
+          info.areas.push(r);
+        } else {
+          info.sedeRow = r;
+        }
+      });
+      return map;
+    }
+
+    // --- Helpers de COMISARIAS (COM) ---
     function esSubSeccionComisaria(r) {
       if (clasificarTipoUnidad(r) !== 'COMISARIA') return false;
       const n2 = String(r.NIVEL2 || r.nivel_2 || '').trim().toUpperCase();
@@ -8129,20 +8218,102 @@
         _comFilterSubModo = 'SOLO_SEDES';
       } else if (cat === 'COMISARIA') {
         _comFilterSubModo = 'CON_SECCIONES';
+      } else if (cat === 'SOLO_SECCIONES_ESP') {
+        _secFilterSubModo = 'SOLO_SEDES_SEC';
+      } else if (cat === 'SECCION_ESP') {
+        _secFilterSubModo = 'CON_AREAS_SEC';
       }
       render();
     }
 
-    function toggleComisariasPanelFromAll() {
-      if (_selectedUnidadCategory !== 'SOLO_COMISARIAS' && _selectedUnidadCategory !== 'COMISARIA') {
-        _selectedUnidadCategory = 'SOLO_COMISARIAS';
-        _comFilterSubModo = 'SOLO_SEDES';
+    // --- Acciones de Filtro para SECCIONES ESPECIALIZADAS (DUE SEC) ---
+    function setSecFilterTipo(code) {
+      _secFilterTipo = code || 'ALL';
+      _secFilterNombre = '';
+      if (_selectedUnidadCategory !== 'SOLO_SECCIONES_ESP' && _selectedUnidadCategory !== 'SECCION_ESP') {
+        _selectedUnidadCategory = 'SOLO_SECCIONES_ESP';
+        _secFilterSubModo = 'SOLO_SEDES_SEC';
+      }
+      render();
+    }
+
+    function setSecFilterSubModo(modo) {
+      _secFilterSubModo = modo || 'SOLO_SEDES_SEC';
+      if (modo === 'SOLO_SEDES_SEC') {
+        _selectedUnidadCategory = 'SOLO_SECCIONES_ESP';
       } else {
-        _selectedUnidadCategory = 'ALL';
+        _selectedUnidadCategory = 'SECCION_ESP';
       }
       render();
     }
 
+    function setSecFilterNombre(keyVal) {
+      _secFilterNombre = String(keyVal || '').trim().toUpperCase();
+      if (_secFilterNombre && _selectedUnidadCategory !== 'SOLO_SECCIONES_ESP' && _selectedUnidadCategory !== 'SECCION_ESP') {
+        _selectedUnidadCategory = 'SECCION_ESP';
+        _secFilterSubModo = 'CON_AREAS_SEC';
+      }
+      render();
+    }
+
+    function setSecFilterDivision(divName) {
+      const select = document.getElementById('filterModuloEstado');
+      if (select) {
+        select.value = divName || '';
+      }
+      _secFilterNombre = '';
+      if (_selectedUnidadCategory !== 'SOLO_SECCIONES_ESP' && _selectedUnidadCategory !== 'SECCION_ESP') {
+        _selectedUnidadCategory = 'SOLO_SECCIONES_ESP';
+        _secFilterSubModo = 'SOLO_SEDES_SEC';
+      }
+      render();
+    }
+
+    function resetSeccionesEspFilters() {
+      _secFilterTipo = 'ALL';
+      _secFilterNombre = '';
+      _secFilterSubModo = 'SOLO_SEDES_SEC';
+      _selectedUnidadCategory = 'SOLO_SECCIONES_ESP';
+      const select = document.getElementById('filterModuloEstado');
+      if (select) select.value = '';
+      const qEl = document.getElementById('q');
+      if (qEl) qEl.value = '';
+      render();
+    }
+
+    function aplicarFiltrosSeccionEspRows(rowsList, allValidRows) {
+      const secMap = getSeccionesEspDueMap(allValidRows);
+      return rowsList.filter(r => {
+        if (clasificarTipoUnidad(r) !== 'SECCION_ESP') return false;
+        const div = String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase();
+        const n3 = String(r.NIVEL3 || r.nivel_3 || '').trim().toUpperCase();
+        const key = `${div}|${n3}`;
+        const code = getCodigoDueSec(r);
+        const info = secMap.get(key);
+
+        if (_secFilterNombre) {
+          if (_secFilterNombre.includes('|')) {
+            if (key !== _secFilterNombre) return false;
+          } else if (n3 !== _secFilterNombre) {
+            return false;
+          }
+        }
+        if (_secFilterTipo !== 'ALL' && code !== _secFilterTipo) return false;
+
+        if (_secFilterSubModo === 'SOLO_SEDES_SEC') {
+          return esSedeSeccionEsp(r);
+        }
+        if (_secFilterSubModo === 'SOLO_SECEME_ARESBAN') {
+          return code === 'SECEME' || (info && info.areas.length > 0);
+        }
+        if (_secFilterSubModo === 'SOLO_ARESBAN') {
+          return esSubAreaSeccionEsp(r);
+        }
+        return true; // CON_AREAS_SEC
+      });
+    }
+
+    // --- Acciones de Filtro para COMISARIAS (COM) ---
     function setComFilterCategoria(cat) {
       _comFilterCategoria = cat || 'ALL';
       if (_selectedUnidadCategory !== 'SOLO_COMISARIAS' && _selectedUnidadCategory !== 'COMISARIA') {
@@ -8227,22 +8398,26 @@
 
     function renderUnidadesCategoryTabs(baseRows) {
       const box = document.getElementById('unidadesCategoryTabs');
+      const secPanel = document.getElementById('seccionesEspFilterPanel');
       const comPanel = document.getElementById('comisariasFilterPanel');
       if (!box) return;
       if (currentTable !== 'unidades') {
         box.style.display = 'none';
+        if (secPanel) secPanel.style.display = 'none';
         if (comPanel) comPanel.style.display = 'none';
         return;
       }
       box.style.display = 'flex';
       const allGlobalValid = (rows || []).filter(r => String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
       const valid = (baseRows || []).filter(r => String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
-      let countDiv = 0, countSec = 0, countComRows = 0, countComSedes = 0;
+      let countDiv = 0, countSecRows = 0, countSecSedes = 0, countComRows = 0, countComSedes = 0;
       valid.forEach(r => {
         const t = clasificarTipoUnidad(r);
         if (t === 'DIVISION') countDiv++;
-        else if (t === 'SECCION_ESP') countSec++;
-        else if (t === 'COMISARIA') {
+        else if (t === 'SECCION_ESP') {
+          countSecRows++;
+          if (esSedeSeccionEsp(r)) countSecSedes++;
+        } else if (t === 'COMISARIA') {
           countComRows++;
           if (esSedeComisaria(r)) countComSedes++;
         }
@@ -8251,7 +8426,8 @@
       const tabs = [
         { id: 'ALL', icon: '&#128203;', label: 'TODAS LAS UNIDADES', count: valid.length, activeBg: '#06351f', activeColor: '#ffffff', border: '#06351f' },
         { id: 'DIVISION', icon: '&#127963;&#65039;', label: 'DIVISIONES / JEFATURAS', count: countDiv, activeBg: '#065f46', activeColor: '#ffffff', border: '#065f46' },
-        { id: 'SECCION_ESP', icon: '&#9889;', label: 'SECCIONES ESPECIALIZADAS (SEC)', count: countSec, activeBg: '#1e40af', activeColor: '#ffffff', border: '#1e40af' },
+        { id: 'SOLO_SECCIONES_ESP', icon: '&#9889;', label: 'SOLO SECCIONES (DUE SEC)', count: countSecSedes, activeBg: '#1d4ed8', activeColor: '#ffffff', border: '#1d4ed8' },
+        { id: 'SECCION_ESP', icon: '&#128737;&#65039;', label: 'DUE SEC + \u00c1REAS', count: countSecRows, activeBg: '#1e3a8a', activeColor: '#ffffff', border: '#1e3a8a' },
         { id: 'SOLO_COMISARIAS', icon: '&#128660;', label: 'SOLO COMISAR\u00cdAS (SEDES)', count: countComSedes, activeBg: '#b45309', activeColor: '#ffffff', border: '#b45309' },
         { id: 'COMISARIA', icon: '&#128194;', label: 'COMISAR\u00cdAS + SECCIONES', count: countComRows, activeBg: '#78350f', activeColor: '#ffffff', border: '#78350f' }
       ];
@@ -8262,23 +8438,180 @@
         const col = isAct ? t.activeColor : '#1e293b';
         const badgeBg = isAct ? 'rgba(255,255,255,0.25)' : '#f1f5f9';
         const badgeCol = isAct ? '#ffffff' : t.border;
-        return `<button type="button" onclick="selectUnidadCategoryTab('${t.id}')" style="background:${bg}; color:${col}; border:1.5px solid ${t.border}; border-radius:10px; padding:7px 13px; font-size:12px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:${isAct ? '0 3px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.04)'}; transition:all 0.15s ease;">
+        return `<button type="button" onclick="selectUnidadCategoryTab('${t.id}')" style="background:${bg}; color:${col}; border:1.5px solid ${t.border}; border-radius:10px; padding:7px 12px; font-size:11.5px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:${isAct ? '0 3px 8px rgba(0,0,0,0.15)' : '0 1px 2px rgba(0,0,0,0.04)'}; transition:all 0.15s ease;">
           <span>${t.icon}</span>
           <span>${t.label}</span>
           <span style="background:${badgeBg}; color:${badgeCol}; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:900;">${t.count}</span>
         </button>`;
       }).join('');
 
-      // Renderizar el Panel Detallado de Contador y Filtrador de Comisarias
-      if (!comPanel) return;
+      const activeDivFilter = String(document.getElementById('filterModuloEstado')?.value || '').trim().toUpperCase();
+      const isSecTab = (_selectedUnidadCategory === 'SOLO_SECCIONES_ESP' || _selectedUnidadCategory === 'SECCION_ESP');
       const isComTab = (_selectedUnidadCategory === 'SOLO_COMISARIAS' || _selectedUnidadCategory === 'COMISARIA');
+
+      // =========================================================================
+      // A. RENDERIZAR PANEL DE SECCIONES ESPECIALIZADAS (SOLO DUE SEC)
+      // =========================================================================
+      if (secPanel) {
+        const globalSecMap = getSeccionesEspDueMap(allGlobalValid);
+        const allSecSedes = [...globalSecMap.values()];
+        const secSedesInDiv = activeDivFilter
+          ? allSecSedes.filter(x => x.div === activeDivFilter)
+          : allSecSedes;
+
+        let totalAreasSec = 0, totalRowsSecInDiv = 0;
+        const codeCounts = { ALL: secSedesInDiv.length };
+        DUE_SEC_CATALOG.forEach(c => { codeCounts[c.code] = 0; });
+        secSedesInDiv.forEach(x => {
+          codeCounts[x.code] = (codeCounts[x.code] || 0) + 1;
+          totalAreasSec += x.areas.length;
+          totalRowsSecInDiv += 1 + x.areas.length;
+        });
+
+        const secDivStats = [
+          { key: '', label: 'TODAS LAS DIVISIONES (DUE SEC)' },
+          { key: 'DIVOPUS HUANUCO', label: 'DIVOPUS HU\u00c1NUCO' },
+          { key: 'DIVOPUS LEONCIO PRADO', label: 'DIVOPUS LEONCIO PRADO' },
+          { key: 'DIVOPUS PUERTO INCA', label: 'DIVOPUS PUERTO INCA' }
+        ].map(d => {
+          const list = d.key ? allSecSedes.filter(x => x.div === d.key) : allSecSedes;
+          const areasCount = list.reduce((acc, x) => acc + x.areas.length, 0);
+          const hasEscVerde = list.some(x => x.code === 'SECOPESP');
+          const codesSummary = list.map(x => x.code.replace('SEC', '')).join(' \u00b7 ');
+          return { ...d, count: list.length, areasCount, totalReg: list.length + areasCount, hasEscVerde, codesSummary };
+        });
+
+        if (isComTab) {
+          // Ocultar panel detallado de SEC cuando el usuario esta viendo exclusivamente Comisarias
+          secPanel.style.display = 'none';
+        } else if (!isSecTab) {
+          // Barra resumen compacta para abrir el Contador/Filtrador de Secciones Especializadas (DUE SEC) con 1 clic
+          secPanel.style.display = 'flex';
+          secPanel.style.padding = '8px 12px';
+          secPanel.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px; color:#1e3a8a; font-weight:800;">
+                <span>&#9889; RESUMEN SECCIONES ESPECIALIZADAS (DUE SEC):</span>
+                <span style="background:#dbeafe; color:#1e40af; border:1px solid #3b82f6; padding:2px 9px; border-radius:999px; font-weight:900;">${allSecSedes.length} Secciones DUE SEC</span>
+                <span style="color:#1d4ed8; font-size:11.5px;">(Hu&aacute;nuco: <b>8</b> &middot; Leoncio Prado: <b>7</b> &middot; Puerto Inca: <b>7</b> &nbsp;|&nbsp; +<b>3</b> &Aacute;reas ARESBAN = <b>${allSecSedes.length + 3}</b> reg.)</span>
+              </div>
+              <button type="button" onclick="selectUnidadCategoryTab('SOLO_SECCIONES_ESP')" style="background:linear-gradient(135deg, #1d4ed8, #1e3a8a); color:#ffffff; border:none; border-radius:8px; padding:5px 12px; font-size:11.5px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:6px; min-height:28px;">
+                &#128269; Abrir Contador y Filtrador por Solo DUE SEC (${allSecSedes.length})
+              </button>
+            </div>`;
+        } else {
+          // Panel Completo de Contador y Filtrador Exclusivo de Secciones Especializadas (DUE SEC)
+          secPanel.style.display = 'flex';
+          secPanel.style.padding = '12px 14px';
+          const hasAnySecSubFilter = (_secFilterTipo !== 'ALL' || Boolean(_secFilterNombre) || Boolean(activeDivFilter));
+
+          const divGroupsForSecSelect = ['DIVOPUS HUANUCO', 'DIVOPUS LEONCIO PRADO', 'DIVOPUS PUERTO INCA'];
+          let globalSecIdx = 0;
+          const selectSecOptionsHtml = divGroupsForSecSelect.map(dName => {
+            const list = secSedesInDiv.filter(x => x.div === dName && (_secFilterTipo === 'ALL' || x.code === _secFilterTipo));
+            if (!list.length) return '';
+            const opts = list.map(x => {
+              globalSecIdx++;
+              const areaTag = x.areas.length ? ` [+${x.areas.length} \u00c1rea: ARESBAN]` : ' [Secci\u00f3n Directa]';
+              const sel = (_secFilterNombre === x.key) ? ' selected' : '';
+              return `<option value="${esc(x.key)}"${sel}>${globalSecIdx}. ${esc(x.n3)} - ${esc(x.meta.desc)} (${esc(dName.replace('DIVOPUS ', ''))})${areaTag}</option>`;
+            }).join('');
+            return `<optgroup label="DIVISI\u00d3N: ${esc(dName)} (${list.length} Secciones DUE SEC)">${opts}</optgroup>`;
+          }).join('');
+
+          const secSubModoMeta = [
+            { id: 'SOLO_SEDES_SEC', icon: '&#9889;', label: 'Solo Secciones DUE SEC (Sedes)', count: secSedesInDiv.length },
+            { id: 'CON_AREAS_SEC', icon: '&#128194;', label: 'DUE SEC + \u00c1reas (ARESBAN)', count: totalRowsSecInDiv },
+            { id: 'SOLO_SECEME_ARESBAN', icon: '&#128680;', label: 'Solo SECEME + ARESBAN', count: (codeCounts['SECEME'] || 0) + totalAreasSec },
+            { id: 'SOLO_ARESBAN', icon: '&#127974;', label: 'Solo \u00c1reas ARESBAN', count: totalAreasSec }
+          ];
+
+          secPanel.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid #bfdbfe; padding-bottom:8px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-size:13.5px; font-weight:900; color:#1e3a8a; letter-spacing:0.3px;">&#9889; CONTADOR Y FILTRADOR EXCLUSIVO DE SECCIONES ESPECIALIZADAS (SOLO DUE SEC)</span>
+                <span style="background:#1d4ed8; color:#ffffff; padding:2px 10px; border-radius:999px; font-size:11.5px; font-weight:900;">${secSedesInDiv.length} Secciones DUE SEC</span>
+                <span style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:800;">&#127974; &Aacute;reas ARESBAN: ${totalAreasSec}</span>
+                <span style="background:#eff6ff; color:#1e40af; border:1px solid #93c5fd; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:800;">Total Registros DUE SEC: ${totalRowsSecInDiv}</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                ${hasAnySecSubFilter ? `<button type="button" onclick="resetSeccionesEspFilters()" style="background:#dc2626; color:#fff; border:none; border-radius:7px; padding:4px 10px; font-size:11px; font-weight:800; cursor:pointer; min-height:26px;">&#10006; Limpiar Filtros DUE SEC</button>` : ''}
+              </div>
+            </div>
+
+            <!-- 1. Tarjetas Contadoras de DUE SEC por Division Policial -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:8px;">
+              ${secDivStats.map(d => {
+                const isSel = (activeDivFilter === d.key);
+                return `<div onclick="setSecFilterDivision('${esc(d.key)}')" style="cursor:pointer; background:${isSel ? 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)' : '#ffffff'}; color:${isSel ? '#ffffff' : '#1e293b'}; border:${isSel ? '2px solid #1e3a8a' : '1px solid #93c5fd'}; border-radius:10px; padding:8px 12px; transition:all 0.15s ease; box-shadow:${isSel ? '0 3px 8px rgba(29,78,216,0.25)' : '0 1px 2px rgba(0,0,0,0.03)'};">
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                    <span style="font-size:11px; font-weight:900; color:${isSel ? '#bfdbfe' : '#1e40af'}; text-transform:uppercase;">&#127963;&#65039; ${esc(d.label)}</span>
+                    <span style="background:${isSel ? 'rgba(255,255,255,0.22)' : '#dbeafe'}; color:${isSel ? '#ffffff' : '#1e3a8a'}; padding:2px 9px; border-radius:999px; font-size:13px; font-weight:900;">${d.count} SEC</span>
+                  </div>
+                  <div style="font-size:10.5px; color:${isSel ? '#e0f2fe' : '#475569'}; margin-top:4px; font-weight:700;">
+                    DUE SEC: ${d.count} Sedes &middot; +${d.areasCount} &Aacute;rea ARESBAN (${d.totalReg} reg.)
+                  </div>
+                  <div style="font-size:10px; color:${isSel ? '#fde68a' : '#065f46'}; margin-top:2px; font-weight:700;">
+                    &#10003; ${d.hasEscVerde ? '8 Especialidades (Incluye Escuadr\u00f3n Verde)' : '7 Especialidades Operativas DUE'}
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+
+            <!-- 2. Filtro por Modo de Vista y por Especialidad DUE SEC -->
+            <div style="display:flex; flex-direction:column; gap:7px; padding-top:2px;">
+              <div style="display:flex; flex-wrap:wrap; align-items:center; gap:5px;">
+                <span style="font-size:11px; font-weight:900; color:#1e3a8a; margin-right:2px;">VISTA DUE SEC:</span>
+                ${secSubModoMeta.map(m => {
+                  const act = (_secFilterSubModo === m.id);
+                  return `<button type="button" onclick="setSecFilterSubModo('${m.id}')" style="background:${act ? '#1e40af' : '#ffffff'}; color:${act ? '#ffffff' : '#1e3a8a'}; border:1px solid ${act ? '#1e3a8a' : '#93c5fd'}; border-radius:8px; padding:4px 10px; font-size:11px; font-weight:800; cursor:pointer; min-height:26px; display:inline-flex; align-items:center; gap:5px;">
+                    <span>${m.icon}</span><span>${m.label}</span>
+                    <span style="background:${act ? 'rgba(255,255,255,0.25)' : '#dbeafe'}; color:${act ? '#fff' : '#1e40af'}; padding:0 6px; border-radius:999px; font-size:10.5px; font-weight:900;">${m.count}</span>
+                  </button>`;
+                }).join('')}
+              </div>
+
+              <div style="display:flex; flex-wrap:wrap; align-items:center; gap:5px;">
+                <span style="font-size:11px; font-weight:900; color:#1e3a8a; margin-right:2px;">ESPECIALIDAD (DUE SEC):</span>
+                <button type="button" onclick="setSecFilterTipo('ALL')" style="background:${_secFilterTipo === 'ALL' ? '#1e3a8a' : '#dbeafe'}; color:${_secFilterTipo === 'ALL' ? '#ffffff' : '#1e3a8a'}; border:1px solid #1e3a8a; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:900; cursor:pointer; min-height:25px;">
+                  Todas: ${codeCounts.ALL}
+                </button>
+                ${DUE_SEC_CATALOG.map(cm => {
+                  const cnt = codeCounts[cm.code] || 0;
+                  const act = (_secFilterTipo === cm.code);
+                  return `<button type="button" onclick="setSecFilterTipo('${cm.code}')" title="${esc(cm.desc)}" style="background:${act ? cm.col : cm.bg}; color:${act ? '#ffffff' : cm.col}; border:1px solid ${cm.col}; border-radius:999px; padding:3px 10px; font-size:11px; font-weight:900; cursor:pointer; min-height:25px;">
+                    ${esc(cm.short)}: ${cnt}
+                  </button>`;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- 3. Selector Desplegable por Seccion Especializada DUE SEC Especifica -->
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:#ffffff; border:1px solid #bfdbfe; border-radius:9px; padding:7px 10px;">
+              <label for="selectSeccionEspUnica" style="margin:0; font-size:11.5px; font-weight:900; color:#1e3a8a; white-space:nowrap;">&#128270; FILTRAR POR SECCI&Oacute;N DUE SEC ESPEC&Iacute;FICA:</label>
+              <select id="selectSeccionEspUnica" onchange="setSecFilterNombre(this.value)" style="flex:1; min-width:240px; max-width:520px; min-height:32px; padding:4px 10px; font-size:12px; font-weight:800; color:#1e3a8a; border:1.5px solid #3b82f6; border-radius:7px; background:#eff6ff;">
+                <option value="">-- MOSTRAR TODAS LAS SECCIONES DUE SEC FILTRADAS (${globalSecIdx}) --</option>
+                ${selectSecOptionsHtml}
+              </select>
+              ${_secFilterNombre ? `<button type="button" onclick="setSecFilterNombre('')" style="background:#2563eb; color:#fff; border:none; border-radius:7px; padding:5px 10px; font-size:11px; font-weight:800; cursor:pointer; min-height:30px;">Ver todas las DUE SEC</button>` : `<span style="font-size:11px; color:#64748b; font-weight:600;">Seleccione una Secci&oacute;n Especializada DUE SEC para aislarla</span>`}
+            </div>
+          `;
+        }
+      }
+
+      // =========================================================================
+      // B. RENDERIZAR PANEL DE COMISARIAS (COM)
+      // =========================================================================
+      if (!comPanel) return;
+      if (isSecTab) {
+        comPanel.style.display = 'none';
+        return;
+      }
       comPanel.style.display = 'flex';
 
       const globalComMap = getSeccionesDeComisariaMap(allGlobalValid);
       const allSedes = [...globalComMap.values()];
-      const activeDivFilter = String(document.getElementById('filterModuloEstado')?.value || '').trim().toUpperCase();
 
-      // Contadores por Division sobre todas las Comisarias
       const divStats = [
         { key: '', label: 'TODAS LAS DIVISIONES', short: 'REGPOL HU\u00c1NUCO' },
         { key: 'DIVOPUS HUANUCO', label: 'DIVOPUS HU\u00c1NUCO', short: 'Hu\u00e1nuco' },
@@ -8293,7 +8626,6 @@
         return { ...d, count: list.length, conSec, sinSec: list.length - conSec, catSummary };
       });
 
-      // Sedes filtradas por Division actual (para contadores de Categoria y Selector)
       const sedesInCurrentDiv = activeDivFilter
         ? allSedes.filter(x => x.div.toUpperCase() === activeDivFilter)
         : allSedes;
@@ -8309,7 +8641,6 @@
       });
 
       if (!isComTab) {
-        // Barra compacta cuando esta en TODAS, DIVISIONES o SEC para abrir el filtrador de Comisarias con 1 clic
         comPanel.style.padding = '8px 12px';
         comPanel.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -8328,7 +8659,6 @@
       comPanel.style.padding = '12px 14px';
       const hasAnySubFilter = (_comFilterCategoria !== 'ALL' || Boolean(_comFilterNombre) || Boolean(activeDivFilter));
 
-      // Construir opciones del select de las 38 Comisarias agrupadas por Division
       const divGroupsForSelect = ['DIVOPUS HUANUCO', 'DIVOPUS LEONCIO PRADO', 'DIVOPUS PUERTO INCA'];
       let globalIdx = 0;
       const selectOptionsHtml = divGroupsForSelect.map(dName => {
@@ -8436,19 +8766,22 @@
         const allGlobalValid = (rows || []).filter(r => String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
         const validRows = filtered.filter(r => String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
         const comMap = getSeccionesDeComisariaMap(allGlobalValid);
+        const secMap = getSeccionesEspDueMap(allGlobalValid);
         renderUnidadesCategoryTabs(validRows);
 
         let catRows = [];
         if (_selectedUnidadCategory === 'ALL') {
           catRows = validRows;
-        } else if (_selectedUnidadCategory === 'DIVISION' || _selectedUnidadCategory === 'SECCION_ESP') {
-          catRows = validRows.filter(r => clasificarTipoUnidad(r) === _selectedUnidadCategory);
+        } else if (_selectedUnidadCategory === 'DIVISION') {
+          catRows = validRows.filter(r => clasificarTipoUnidad(r) === 'DIVISION');
+        } else if (_selectedUnidadCategory === 'SOLO_SECCIONES_ESP' || _selectedUnidadCategory === 'SECCION_ESP') {
+          catRows = aplicarFiltrosSeccionEspRows(validRows, allGlobalValid);
         } else if (_selectedUnidadCategory === 'SOLO_COMISARIAS' || _selectedUnidadCategory === 'COMISARIA') {
           catRows = aplicarFiltrosComisariaRows(validRows, allGlobalValid);
         }
 
         if (!catRows.length) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:28px; color:var(--muted); font-weight:700;">No se encontraron Comisar&iacute;as o Unidades con los filtros seleccionados.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:28px; color:var(--muted); font-weight:700;">No se encontraron Unidades, Secciones DUE SEC o Comisar&iacute;as con los filtros seleccionados.</td></tr>`;
           return;
         }
         const groups = new Map();
@@ -8469,7 +8802,9 @@
           },
           {
             key: 'SECCION_ESP',
-            title: 'B. SECCIONES ESPECIALIZADAS (SEC)',
+            title: (_secFilterSubModo === 'SOLO_SEDES_SEC' && (_selectedUnidadCategory === 'SOLO_SECCIONES_ESP' || _selectedUnidadCategory === 'SECCION_ESP'))
+              ? 'B. SOLO SECCIONES ESPECIALIZADAS (DUE SEC - SEDES PRINCIPALES)'
+              : 'B. SECCIONES ESPECIALIZADAS DEL DUE (DUE SEC)',
             icon: '&#9889;',
             headerBg: '#eff6ff',
             headerColor: '#1e40af',
@@ -8497,11 +8832,14 @@
 
         let htmlOut = '';
         let globalComCounter = 0;
+        let globalSecCounter = 0;
 
         for (const [divName, items] of groups.entries()) {
           const exacto1 = String(items[0]?.EXACTO1 || items[0]?.nivel_1_nombre || divName).trim();
           const divItems = items.filter(r => clasificarTipoUnidad(r) === 'DIVISION');
           const secItems = items.filter(r => clasificarTipoUnidad(r) === 'SECCION_ESP');
+          const secSedesCount = secItems.filter(r => esSedeSeccionEsp(r)).length;
+          const secSubAreasCount = secItems.length - secSedesCount;
           const comItems = items.filter(r => clasificarTipoUnidad(r) === 'COMISARIA');
           const comSedesCount = comItems.filter(r => esSedeComisaria(r)).length;
           const comSubSecsCount = comItems.length - comSedesCount;
@@ -8513,7 +8851,7 @@
                   <span>&#127963;&#65039; DIVISI&Oacute;N: <span style="color:#fde047;">${esc(divName)}</span> <span style="font-weight:600; color:#cbd5e1; font-size:11.5px; margin-left:6px;">(${esc(exacto1)})</span></span>
                   <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
                     ${divItems.length ? `<span style="background:#065f46; color:#d1fae5; border:1px solid #34d399; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:800;">&#127970; Div/Dpto: ${divItems.length}</span>` : ''}
-                    ${secItems.length ? `<span style="background:#1e3a8a; color:#dbeafe; border:1px solid #60a5fa; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:800;">&#9889; SEC: ${secItems.length}</span>` : ''}
+                    ${secItems.length ? `<span style="background:#1e3a8a; color:#dbeafe; border:1px solid #60a5fa; padding:2px 9px; border-radius:999px; font-size:10.5px; font-weight:900;">&#9889; DUE SEC: ${secSedesCount}${secSubAreasCount > 0 ? ` (+${secSubAreasCount} \u00c1rea)` : ''}</span>` : ''}
                     ${comItems.length ? `<span style="background:#78350f; color:#fef3c7; border:1px solid #fbbf24; padding:2px 9px; border-radius:999px; font-size:10.5px; font-weight:900;">&#128660; Comisar&iacute;as: ${comSedesCount}${comSubSecsCount > 0 ? ` (+${comSubSecsCount} Sec.)` : ''}</span>` : ''}
                     <span style="background:rgba(255,255,255,0.2); color:#fff; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:800;">Mostrando: ${items.length}</span>
                     ${canEdit() ? `<button type="button" onclick="event.stopPropagation(); openUnidadModal(null, '${esc(divName)}')" style="background:#d8b23f; color:#06351f; border:none; padding:3px 10px; min-height:24px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">+ Agregar en ${esc(divName)}</button>` : ''}
@@ -8526,10 +8864,18 @@
             const subRows = items.filter(r => clasificarTipoUnidad(r) === sub.key);
             if (!subRows.length) return;
 
-            const sedesInSub = sub.key === 'COMISARIA' ? subRows.filter(esSedeComisaria).length : subRows.length;
-            const subCountLabel = (sub.key === 'COMISARIA' && sedesInSub > 0 && sedesInSub !== subRows.length)
-              ? `${sedesInSub} Comisar\u00edas / ${subRows.length} registros`
-              : `${subRows.length}`;
+            let subCountLabel = `${subRows.length}`;
+            if (sub.key === 'COMISARIA') {
+              const sedesInSub = subRows.filter(esSedeComisaria).length;
+              if (sedesInSub > 0 && sedesInSub !== subRows.length) {
+                subCountLabel = `${sedesInSub} Comisar\u00edas / ${subRows.length} registros`;
+              }
+            } else if (sub.key === 'SECCION_ESP') {
+              const secSedesInSub = subRows.filter(esSedeSeccionEsp).length;
+              if (secSedesInSub > 0 && secSedesInSub !== subRows.length) {
+                subCountLabel = `${secSedesInSub} Secciones DUE SEC / ${subRows.length} registros`;
+              }
+            }
 
             htmlOut += `
               <tr style="background:${sub.headerBg};">
@@ -8539,14 +8885,16 @@
               </tr>`;
 
             let divComSedeIdx = 0;
+            let divSecSedeIdx = 0;
             subRows.forEach((r, idx) => {
               const uid = esc(r.id);
+              const rawN1 = String(r.NIVEL1 || '').trim().toUpperCase();
               const rawN2 = String(r.NIVEL2 || '').trim();
               const rawN3 = String(r.NIVEL3 || '').trim();
               const rawN4 = String(r.NIVEL4 || '').trim();
               const n2 = esc(rawN2 || r.NIVEL1 || '-');
               let n3Html = esc(rawN3 || '-');
-              const n4 = esc(rawN4 || '-');
+              let n4Html = esc(rawN4 || '-');
               const denomFinal = esc(r.EXACTO4 || r.EXACTO3 || r.EXACTO2 || r.EXACTO1 || '-');
 
               let typeBadge = '';
@@ -8556,7 +8904,31 @@
               if (sub.key === 'DIVISION') {
                 typeBadge = `<span class="pill" style="background:#dcfce7; color:#065f46; border:1px solid #86efac; font-weight:800; font-size:10.5px;">&#127970; DIVISI&Oacute;N / DPTO</span>`;
               } else if (sub.key === 'SECCION_ESP') {
-                typeBadge = `<span class="pill" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; font-weight:800; font-size:10.5px;">&#9889; SECCI&Oacute;N ESP. (SEC)</span>`;
+                const isSubArea = esSubAreaSeccionEsp(r);
+                const secCode = getCodigoDueSec(r);
+                const secMeta = getMetaDueSec(secCode);
+                const secKey = `${rawN1}|${rawN3.toUpperCase()}`;
+                const secInfo = secMap.get(secKey);
+
+                if (isSubArea) {
+                  typeBadge = `<span class="pill" style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; font-weight:800; font-size:10.5px; margin-left:10px;">&#8627; &#127974; DUE SEC - &Aacute;REA</span>`;
+                  n2Display = `<span style="color:#475569; padding-left:10px;">&#8627; ${n2}</span>`;
+                } else {
+                  divSecSedeIdx++;
+                  globalSecCounter++;
+                  rowNumDisplay = `<span title="Secci&oacute;n Especializada DUE SEC N&deg; ${globalSecCounter} de REGPOL Hu&aacute;nuco">${divSecSedeIdx} <small style="color:#1d4ed8; font-weight:900;">(#${globalSecCounter})</small></span>`;
+                  typeBadge = `<span class="pill" style="background:${secMeta.bg}; color:${secMeta.col}; border:1px solid ${secMeta.brd}; font-weight:900; font-size:10.5px;">&#9889; DUE ${esc(secMeta.short)}</span>`;
+                  n3Html = `<div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
+                    <div>
+                      <b>${esc(rawN3)}</b>
+                      <div style="font-size:10.5px; color:#475569; font-weight:600;">${esc(secMeta.desc)}</div>
+                    </div>
+                    <button type="button" onclick="event.stopPropagation(); setSecFilterNombre('${esc(secKey)}')" title="Filtrar solo esta Secci&oacute;n Especializada DUE SEC" style="background:#eff6ff; color:#1e40af; border:1px solid #3b82f6; border-radius:6px; padding:1px 7px; font-size:10px; font-weight:800; cursor:pointer; min-height:20px;">&#128269; Solo esta SEC</button>
+                  </div>`;
+                  if (!rawN4 && secInfo && secInfo.areas.length > 0) {
+                    n4Html = `<span style="background:#fef2f2; color:#991b1b; border:1px solid #fca5a5; padding:1px 7px; border-radius:999px; font-size:10px; font-weight:800;">&#127974; +${secInfo.areas.length} &Aacute;rea (ARESBAN)</span>`;
+                  }
+                }
               } else if (sub.key === 'COMISARIA') {
                 const isComSubSec = esSubSeccionComisaria(r);
                 const cat = getCategoriaComisaria(r);
@@ -8595,7 +8967,7 @@
                   <td>${typeBadge}</td>
                   <td>${n2Display}</td>
                   <td style="color:${rawN3 ? '#0f172a' : '#94a3b8'}; font-weight:${rawN3 ? '700' : '400'};">${n3Html}</td>
-                  <td style="color:${rawN4 ? '#0f172a' : '#94a3b8'};">${n4}</td>
+                  <td style="color:${rawN4 ? '#0f172a' : '#94a3b8'};">${n4Html}</td>
                   <td style="font-weight:700; color:#06351f;">${denomFinal}</td>
                   <td style="text-align:center;">
                     <button type="button" class="secondary" onclick="event.stopPropagation(); openUnidadModal('${uid}')" style="padding:4px 10px; min-height:26px; font-size:11.5px; font-weight:800;">&#9998; Editar</button>
@@ -9158,13 +9530,15 @@
         let catRows = [];
         if (_selectedUnidadCategory === 'ALL') {
           catRows = validRows;
-        } else if (_selectedUnidadCategory === 'DIVISION' || _selectedUnidadCategory === 'SECCION_ESP') {
-          catRows = validRows.filter(r => clasificarTipoUnidad(r) === _selectedUnidadCategory);
+        } else if (_selectedUnidadCategory === 'DIVISION') {
+          catRows = validRows.filter(r => clasificarTipoUnidad(r) === 'DIVISION');
+        } else if (_selectedUnidadCategory === 'SOLO_SECCIONES_ESP' || _selectedUnidadCategory === 'SECCION_ESP') {
+          catRows = aplicarFiltrosSeccionEspRows(validRows, allGlobalValid);
         } else {
           catRows = aplicarFiltrosComisariaRows(validRows, allGlobalValid);
         }
         if (!catRows.length) {
-          box.innerHTML = '<div class="person-card"><h3>Sin unidades</h3><div class="meta">No se encontraron Comisar&iacute;as o Unidades con los filtros actuales.</div></div>';
+          box.innerHTML = '<div class="person-card"><h3>Sin unidades</h3><div class="meta">No se encontraron Unidades, Secciones DUE SEC o Comisar&iacute;as con los filtros actuales.</div></div>';
           return;
         }
         const groups = new Map();
@@ -9181,7 +9555,7 @@
             const t = clasificarTipoUnidad(r);
             const tagLabel = t === 'COMISARIA'
               ? (esSubSeccionComisaria(r) ? 'COM - SECCI\u00d3N' : `COMISAR\u00cdA TIPO ${getCategoriaComisaria(r)}`)
-              : (t === 'SECCION_ESP' ? 'SECCI\u00d3N ESP. (SEC)' : 'DIVISI\u00d3N / DPTO');
+              : (t === 'SECCION_ESP' ? (esSubAreaSeccionEsp(r) ? 'DUE SEC - \u00c1REA' : `DUE ${getCodigoDueSec(r)}`) : 'DIVISI\u00d3N / DPTO');
             const sub = esc([r.NIVEL2, r.NIVEL3, r.NIVEL4].filter(Boolean).join(' > ') || r.NIVEL1 || '-');
             const denom = esc(r.EXACTO4 || r.EXACTO3 || r.EXACTO2 || r.EXACTO1 || '-');
             mHtml += `
