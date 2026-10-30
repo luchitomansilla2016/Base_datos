@@ -6404,12 +6404,12 @@
     <!-- Modal Formulario de Unidad (Dividido por Divisiones) -->
   <div id="unidadModal" class="modal" onclick="if(event.target===this) closeUnidadModal()">
     <div class="dialog" style="max-width: 820px; width: 95%;">
-      <div class="dialog-header" style="background: linear-gradient(135deg, #06351f 0%, #0b5a3c 100%); color: #fff;">
+      <div class="dialog-head">
         <div>
-          <h2 id="unidadModalTitle" style="color:#fff; margin:0; font-size:17px;">&#127963;&#65039; Formulario de Unidad Policial</h2>
-          <div style="font-size:11.5px; color:#d8b23f; font-weight:700; margin-top:2px;">ESTRUCTURA ORG&Aacute;NICA POR DIVISIONES &mdash; REGPOL HU&Aacute;NUCO</div>
+          <h1 id="unidadModalTitle" style="color:#06351f; margin:0; font-size:17.5px;">&#127963;&#65039; Formulario de Unidad Policial</h1>
+          <div class="sub">Estructura Org&aacute;nica por Divisiones &mdash; REGPOL Hu&aacute;nuco</div>
         </div>
-        <button class="close" onclick="closeUnidadModal()" style="color:#fff;">&#10005;</button>
+        <button type="button" class="close-btn" onclick="closeUnidadModal()" title="Cerrar">&times;</button>
       </div>
       <div class="dialog-body" style="padding: 18px 20px;">
         <input type="hidden" id="u_id" value="" />
@@ -6478,115 +6478,113 @@
     </div>
   </div>
 
-  <!-- Modal Piloto: Cambio de Subunidad y Registro Automatico en Movimientos -->
+  <!-- Modal: Cambio de Subunidad y Registro Automatico en Movimientos -->
   <div id="cambioSubunidadModal" class="modal" style="z-index: 195;" onclick="if(event.target===this) closeCambioSubunidadModal()">
-    <div class="dialog" style="max-width: 920px; width: 96%; border-top: 5px solid #065f46;">
-      <div class="dialog-header" style="background: linear-gradient(135deg, #06351f 0%, #065f46 100%); color: #fff;">
+    <div class="dialog" style="max-width: 900px; width: 96%;">
+      <div class="dialog-head">
         <div>
-          <h2 style="color:#fff; margin:0; font-size:17.5px; display:flex; align-items:center; gap:8px;">
+          <h1 style="color:#06351f; margin:0; font-size:18px; display:flex; align-items:center; gap:8px;">
             <span>&#128260;</span> <span>Cambio de Subunidad / Lista de Revista</span>
-          </h2>
-          <div style="font-size:11.5px; color:#d8b23f; font-weight:700; margin-top:2px;">
-            Actualiza la Lista de Revista del efectivo y registra el cambio autom&aacute;ticamente en su Historial de Movimientos
-          </div>
+          </h1>
+          <div class="sub">Actualiza la Lista de Revista del efectivo y registra el cambio autom&aacute;ticamente en su Historial de Movimientos</div>
         </div>
-        <button class="close" onclick="closeCambioSubunidadModal()" style="color:#fff;">&#10005;</button>
+        <button type="button" class="close-btn" onclick="closeCambioSubunidadModal()" title="Cerrar">&times;</button>
       </div>
 
-      <div class="dialog-body" style="padding: 16px 20px; max-height: calc(88vh - 130px); overflow-y: auto; display:flex; flex-direction:column; gap:14px;">
+      <div class="dialog-body" style="padding: 16px 20px; max-height: calc(88vh - 130px); overflow-y: auto; display:flex; flex-direction:column; gap:14px; background:#f6f8f6;">
         <input type="hidden" id="cs_record_id" value="" />
         <input type="hidden" id="cs_cip" value="" />
 
-        <!-- 1. SITUACION ACTUAL DEL EFECTIVO (DATOS ACTUALES QUE MUESTRA LA BUSQUEDA) -->
-        <div style="background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #7dd3fc; border-radius: 10px; padding: 12px 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+        <!-- 1. RESUMEN DEL EFECTIVO SELECCIONADO (DATOS ACTUALES) -->
+        <div style="background:#ffffff; border:1px solid #d5e0d8; border-left:4px solid #0b5a3c; border-radius:10px; padding:12px 16px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding-bottom:10px; border-bottom:1px solid #e9efeb; margin-bottom:10px;">
             <div>
-              <span style="font-size:10.5px; font-weight:900; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px;">&#128110; EFECTIVO POLICIAL SELECCIONADO</span>
-              <div id="cs_efectivo_titulo" style="font-size:16px; font-weight:900; color:#0c4a6e; margin-top:1px;">&mdash;</div>
+              <span style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.5px;">EFECTIVO POLICIAL SELECCIONADO</span>
+              <div id="cs_efectivo_titulo" style="font-size:15.5px; font-weight:900; color:#06351f; margin-top:2px;">&mdash;</div>
             </div>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <span id="cs_efectivo_cip_badge" style="background:#0284c7; color:#fff; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:800;">CIP: &mdash;</span>
-              <span id="cs_efectivo_sit_badge" style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:800;">PRESENTE</span>
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+              <span id="cs_efectivo_cip_badge" style="background:#06351f; color:#fff; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:800;">CIP: &mdash;</span>
+              <span id="cs_efectivo_sit_badge" style="background:#eef6ef; color:#0b5a3c; border:1px solid #c9decb; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:800;">PRESENTE</span>
             </div>
           </div>
 
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:10px; background:#ffffff; border:1px solid #bae6fd; border-radius:8px; padding:10px 12px;">
-            <div>
-              <div style="font-size:10.5px; font-weight:800; color:#64748b; text-transform:uppercase;">&#127963;&#65039; Lista de Revista Actual (Pasa a Unidad Anterior)</div>
-              <div id="cs_actual_revista" style="font-size:12.5px; font-weight:900; color:#0369a1; margin-top:2px; word-break:break-word;">&mdash;</div>
+          <div style="display:grid; grid-template-columns: 1.4fr 1fr 1.1fr; gap:12px;">
+            <div style="background:#f9fbf9; border:1px solid #e2ebe4; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase;">Lista de Revista Actual (Unidad Anterior)</div>
+              <div id="cs_actual_revista" style="font-size:12px; font-weight:800; color:#1e293b; margin-top:3px; word-break:break-word;">&mdash;</div>
             </div>
-            <div>
-              <div style="font-size:10.5px; font-weight:800; color:#64748b; text-transform:uppercase;">&#128197; Fecha de Incorporaci&oacute;n Actual</div>
-              <div id="cs_actual_fecha" style="font-size:12.5px; font-weight:800; color:#0f172a; margin-top:2px;">&mdash;</div>
+            <div style="background:#f9fbf9; border:1px solid #e2ebe4; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase;">Fecha de Incorporaci&oacute;n Actual</div>
+              <div id="cs_actual_fecha" style="font-size:12px; font-weight:800; color:#1e293b; margin-top:3px;">&mdash;</div>
             </div>
-            <div>
-              <div style="font-size:10.5px; font-weight:800; color:#64748b; text-transform:uppercase;">&#128196; Documento que Sustenta Actual</div>
-              <div id="cs_actual_documento" style="font-size:12.5px; font-weight:800; color:#334155; margin-top:2px; word-break:break-word;">&mdash;</div>
+            <div style="background:#f9fbf9; border:1px solid #e2ebe4; border-radius:8px; padding:8px 12px;">
+              <div style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase;">Documento que Sustenta Actual</div>
+              <div id="cs_actual_documento" style="font-size:12px; font-weight:800; color:#1e293b; margin-top:3px; word-break:break-word;">&mdash;</div>
             </div>
           </div>
         </div>
 
-        <!-- 2. SELECCION DE NUEVA SUBUNIDAD / UNIDAD (LISTA EDITABLE DE TABLA UNIDADES) -->
-        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:14px 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-            <div style="font-size:12.5px; font-weight:900; color:#06351f; text-transform:uppercase; letter-spacing:0.3px;">
-              &#127963;&#65039; 1. Nueva Unidad / Subunidad (Lista de Unidades)
+        <!-- 2. NUEVA UNIDAD / SUBUNIDAD (LISTA EDITABLE DE LA TABLA UNIDADES) -->
+        <div style="background:#ffffff; border:1px solid #d5e0d8; border-radius:10px; padding:14px 16px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:6px 10px; background:#fbf8ee; border-left:4px solid #d8b23f; border-radius:6px; margin-bottom:10px;">
+            <div style="font-size:12px; font-weight:900; color:#06351f; text-transform:uppercase; letter-spacing:0.3px;">
+              1. Nueva Unidad / Subunidad (Cat&aacute;logo de Unidades)
             </div>
-            <span id="cs_unidades_count_badge" style="background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:800;">0 unidades disponibles</span>
+            <span id="cs_unidades_count_badge" style="background:#ffffff; color:#214b38; border:1px solid #d5e0d8; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:800;">0 unidades disponibles</span>
           </div>
 
           <div id="cs_unidad_field_wrap" class="field" style="position:relative; margin-bottom:0;">
-            <label for="cs_nueva_lista_revista">LISTA DE UNIDADES / NUEVA LISTA DE REVISTA (SELECCIONE DE LA LISTA O ESCRIBA / EDITE) *</label>
+            <label for="cs_nueva_lista_revista" style="color:#334155;">SELECCIONE UNA UNIDAD DE LA LISTA O ESCRIBA / EDITE LA NUEVA LISTA DE REVISTA *</label>
             <div style="position:relative; display:flex; align-items:center;">
               <input
                 id="cs_nueva_lista_revista"
                 type="text"
                 autocomplete="off"
-                placeholder="Haga clic para ver la lista de unidades o escriba / edite directamente..."
+                placeholder="Haga clic para desplegar la lista de unidades o escriba / edite directamente..."
                 oninput="filterCambioSubunidadDropdown(this, false)"
                 onfocus="showCambioSubunidadDropdown(false)"
                 onclick="event.stopPropagation(); showCambioSubunidadDropdown(false)"
                 onkeydown="navigateCambioSubunidadDropdown(event, this)"
-                style="width:100%; padding-right:86px; font-weight:900; color:#065f46; background:#ffffff; border:1.5px solid #059669; min-height:40px;"
+                style="width:100%; padding-right:84px; font-weight:800; color:#0f172a; background:#ffffff; border:1.5px solid #94a3b8; min-height:40px;"
               />
               <button
                 type="button"
-                title="Limpiar campo"
+                title="Limpiar texto"
                 onmousedown="event.preventDefault();"
                 onclick="event.stopPropagation(); clearCambioSubunidadInput();"
-                style="position:absolute; right:44px; background:transparent; border:none; color:#64748b; font-size:13px; font-weight:900; padding:4px 8px; cursor:pointer;"
+                style="position:absolute; right:42px; background:transparent; border:none; color:#64748b; font-size:13px; font-weight:900; padding:4px 8px; cursor:pointer; min-height:auto;"
               >&#10005;</button>
               <button
                 type="button"
-                title="Desplegar todas las unidades de la tabla unidades"
+                title="Desplegar todas las unidades"
                 onmousedown="event.preventDefault();"
                 onclick="event.stopPropagation(); toggleCambioSubunidadDropdown();"
-                style="position:absolute; right:6px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; border-radius:6px; font-size:11px; font-weight:900; padding:5px 9px; cursor:pointer;"
+                style="position:absolute; right:6px; background:#f1f5f9; border:1px solid #cbd5e1; color:#1e293b; border-radius:6px; font-size:11px; font-weight:900; padding:5px 9px; cursor:pointer; min-height:auto;"
               >&#9660;</button>
             </div>
-            <div id="cs_nueva_lista_revista_dropdown" class="autocomplete-dropdown" style="display:none; max-height:280px;"></div>
+            <div id="cs_nueva_lista_revista_dropdown" class="autocomplete-dropdown" style="display:none; max-height:260px;"></div>
             <input type="hidden" id="cs_nueva_unidad_origen" value="" />
           </div>
         </div>
 
         <!-- 3. DATOS DEL CAMBIO Y REGISTRO EN HISTORIAL DE MOVIMIENTOS -->
-        <div style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:10px; padding:14px 16px;">
-          <div style="font-size:12.5px; font-weight:900; color:#0369a1; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:10px;">
-            &#128221; 2. Datos del Cambio de Subunidad (Se grabar&aacute;n en el Efectivo y en su Historial de Movimientos)
+        <div style="background:#ffffff; border:1px solid #d5e0d8; border-radius:10px; padding:14px 16px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+          <div style="padding:6px 10px; background:#fbf8ee; border-left:4px solid #d8b23f; border-radius:6px; margin-bottom:12px; font-size:12px; font-weight:900; color:#06351f; text-transform:uppercase; letter-spacing:0.3px;">
+            2. Datos del Cambio de Subunidad y Sustento
           </div>
 
-          <div style="display:grid; grid-template-columns: repeat(12, 1fr); gap:10px;">
+          <div style="display:grid; grid-template-columns: repeat(12, 1fr); gap:12px;">
             <div class="field" style="grid-column: span 3;">
-              <label for="cs_fecha_cambio">&#128197; FECHA DE CAMBIO / INCORP. *</label>
-              <input id="cs_fecha_cambio" type="date" style="font-weight:800; color:#0f172a; border:1.5px solid #0284c7;" />
+              <label for="cs_fecha_cambio" style="color:#334155;">FECHA DE CAMBIO / INCORP. *</label>
+              <input id="cs_fecha_cambio" type="date" style="font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1;" />
             </div>
             <div class="field" style="grid-column: span 5;">
-              <label for="cs_documento_referencia">&#128196; DOCUMENTO DE REFERENCIA / SUSTENTO *</label>
-              <input id="cs_documento_referencia" type="text" placeholder="Ej. MEMOR&Aacute;NDUM N&deg; ..., OFICIO N&deg; ..., ORDEN N&deg; ..." style="font-weight:800; color:#0f172a; border:1.5px solid #0284c7;" />
+              <label for="cs_documento_referencia" style="color:#334155;">DOCUMENTO DE REFERENCIA / SUSTENTO *</label>
+              <input id="cs_documento_referencia" type="text" placeholder="Ej. MEMOR&Aacute;NDUM N&deg; ..., OFICIO N&deg; ..., ORDEN N&deg; ..." style="font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1;" />
             </div>
             <div class="field" style="grid-column: span 4;">
-              <label for="cs_tipo_movimiento">TIPO DE MOVIMIENTO (LISTA MOVIMIENTOS)</label>
-              <select id="cs_tipo_movimiento" style="font-weight:800; color:#0369a1;">
+              <label for="cs_tipo_movimiento" style="color:#334155;">TIPO DE MOVIMIENTO</label>
+              <select id="cs_tipo_movimiento" style="font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1;">
                 <option value="CAMBIO DE REVISTA">CAMBIO DE LISTA DE REVISTA</option>
                 <option value="INCORPORACI&Oacute;N">INCORPORACI&Oacute;N</option>
                 <option value="DESTAQUE">DESTAQUE</option>
@@ -6599,8 +6597,8 @@
             </div>
 
             <div class="field" style="grid-column: span 5;">
-              <label for="cs_motivo_select">MOTIVO DEL CAMBIO (LISTA DE MOVIMIENTOS) *</label>
-              <select id="cs_motivo_select" onchange="onChangeCambioSubunidadMotivo(this.value)" style="font-weight:800; color:#065f46;">
+              <label for="cs_motivo_select" style="color:#334155;">MOTIVO DEL CAMBIO *</label>
+              <select id="cs_motivo_select" onchange="onChangeCambioSubunidadMotivo(this.value)" style="font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1;">
                 <option value="NECESIDAD DEL SERVICIO">NECESIDAD DEL SERVICIO</option>
                 <option value="DISPOSICI&Oacute;N DEL COMANDO">DISPOSICI&Oacute;N DEL COMANDO</option>
                 <option value="A SU SOLICITUD">A SU SOLICITUD</option>
@@ -6610,32 +6608,32 @@
                 <option value="CUMPLIMIENTO DE ORDEN SUPERIOR">CUMPLIMIENTO DE ORDEN SUPERIOR</option>
                 <option value="__OTRO__">OTRO MOTIVO (ESPECIFICAR)...</option>
               </select>
-              <input id="cs_motivo_otro" type="text" placeholder="Escriba el motivo espec&iacute;fico..." style="display:none; margin-top:6px; font-weight:700;" />
+              <input id="cs_motivo_otro" type="text" placeholder="Escriba el motivo espec&iacute;fico..." style="display:none; margin-top:6px; font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1;" />
             </div>
 
             <div class="field" style="grid-column: span 7;">
-              <label for="cs_observacion">OBSERVACI&Oacute;N / DETALLE ADICIONAL (OPCIONAL)</label>
-              <input id="cs_observacion" type="text" placeholder="Ej. Pasa a prestar servicios de patrullaje / investigaci&oacute;n..." />
+              <label for="cs_observacion" style="color:#334155;">OBSERVACI&Oacute;N / DETALLE ADICIONAL (OPCIONAL)</label>
+              <input id="cs_observacion" type="text" placeholder="Ej. Pasa a prestar servicios de patrullaje / investigaci&oacute;n..." style="font-weight:600; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1;" />
             </div>
           </div>
         </div>
 
-        <!-- 4. VISTA PREVIA EN VIVO DEL HISTORIAL DE MOVIMIENTOS DEL EFECTIVO -->
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+        <!-- 4. VISTA PREVIA DEL HISTORIAL DE MOVIMIENTOS DEL EFECTIVO -->
+        <div style="background:#ffffff; border:1px solid #d5e0d8; border-radius:10px; padding:12px 16px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span style="font-size:12px; font-weight:900; color:#0369a1;">&#128203; &Uacute;LTIMOS MOVIMIENTOS REGISTRADOS DE ESTE EFECTIVO</span>
-            <button type="button" class="secondary" onclick="openMovimientosFromCambioSubunidad()" style="font-size:11px; padding:3px 9px; min-height:25px; background:#e0f2fe; color:#0369a1; border-color:#7dd3fc; font-weight:800;">Ver / Editar Historial Completo</button>
+            <span style="font-size:11.5px; font-weight:900; color:#214b38; text-transform:uppercase;">&#128203; &Uacute;ltimos Movimientos Registrados del Efectivo</span>
+            <button type="button" class="secondary" onclick="openMovimientosFromCambioSubunidad()" style="font-size:11px; padding:4px 10px; min-height:26px; font-weight:700;">Ver / Editar Historial Completo</button>
           </div>
-          <div style="border:1px solid #cbd5e1; border-radius:8px; overflow:hidden; background:#ffffff; max-height:155px; overflow-y:auto;">
+          <div style="border:1px solid #d5e0d8; border-radius:8px; overflow:hidden; background:#ffffff; max-height:150px; overflow-y:auto;">
             <table style="width:100%; border-collapse:collapse; font-size:11.5px; text-align:left;">
-              <thead style="background:#e0f2fe; color:#0369a1; border-bottom:1px solid #bae6fd;">
+              <thead style="background:#eef6ef; color:#214b38; border-bottom:1px solid #d5e0d8;">
                 <tr>
-                  <th style="padding:6px 10px;">#</th>
-                  <th style="padding:6px 10px;">Fecha</th>
-                  <th style="padding:6px 10px;">Tipo</th>
-                  <th style="padding:6px 10px;">Lista de Revista</th>
-                  <th style="padding:6px 10px;">Doc. Sustento / Ref.</th>
-                  <th style="padding:6px 10px;">Motivo</th>
+                  <th style="padding:7px 10px;">#</th>
+                  <th style="padding:7px 10px;">Fecha</th>
+                  <th style="padding:7px 10px;">Tipo</th>
+                  <th style="padding:7px 10px;">Lista de Revista</th>
+                  <th style="padding:7px 10px;">Doc. Sustento / Ref.</th>
+                  <th style="padding:7px 10px;">Motivo</th>
                 </tr>
               </thead>
               <tbody id="cs_historial_mini_tbody">
@@ -6646,11 +6644,11 @@
         </div>
       </div>
 
-      <div class="footer" style="justify-content:space-between; background:#f8fafc; border-top:1px solid #e2e8f0;">
-        <span style="font-size:11.5px; color:#475569; font-weight:600;">* Al guardar se actualiza la ficha del efectivo y se a&ntilde;ade el movimiento al historial.</span>
+      <div class="footer" style="justify-content:space-between;">
+        <span style="font-size:11.5px; color:#64748b; font-weight:600;">* Se actualizar&aacute; la Lista de Revista del efectivo y se registrar&aacute; en su Historial de Movimientos.</span>
         <div style="display:flex; gap:8px;">
           <button type="button" class="secondary" onclick="closeCambioSubunidadModal()">Cancelar</button>
-          <button id="btnGuardarCambioSubunidad" type="button" class="primary" onclick="guardarCambioSubunidad()" style="background:linear-gradient(135deg, #065f46, #047857); font-weight:800; padding:8px 18px;">&#128190; Guardar Cambio de Subunidad y Registrar Movimiento</button>
+          <button id="btnGuardarCambioSubunidad" type="button" class="primary" onclick="guardarCambioSubunidad()" style="padding:8px 18px; font-weight:800;">&#128190; Guardar Cambio de Subunidad</button>
         </div>
       </div>
     </div>
@@ -12333,11 +12331,11 @@ MOTIVO: ${motivoText}`;
         return;
       }
       tbody.innerHTML = movs.slice(0, 6).map((m, i) => `
-        <tr style="border-bottom:1px solid #e2e8f0; ${i === 0 ? 'background:#f0fdf4;' : ''}">
-          <td style="padding:6px 10px; font-weight:800; color:#64748b;">${i + 1}${i === 0 ? ' <span style="background:#16a34a;color:#fff;padding:1px 5px;border-radius:4px;font-size:9px;">ACTUAL</span>' : ''}</td>
-          <td style="padding:6px 10px; font-weight:700; white-space:nowrap;">${esc(formatDateDisplay(m.fecha) || '\u2014')}</td>
-          <td style="padding:6px 10px; font-weight:800; color:#0369a1;">${esc(m.tipo_movimiento || 'CAMBIO REVISTA')}</td>
-          <td style="padding:6px 10px; font-weight:800; color:#065f46;">${esc(m.lista_de_revista || '\u2014')}</td>
+        <tr style="border-bottom:1px solid #e9efeb; ${i === 0 ? 'background:#f8fbf8;' : ''}">
+          <td style="padding:6px 10px; font-weight:800; color:#64748b;">${i + 1}${i === 0 ? ' <span style="background:#0b5a3c;color:#fff;padding:1px 5px;border-radius:4px;font-size:9px;">ACTUAL</span>' : ''}</td>
+          <td style="padding:6px 10px; font-weight:700; color:#1e293b; white-space:nowrap;">${esc(formatDateDisplay(m.fecha) || '\u2014')}</td>
+          <td style="padding:6px 10px; font-weight:800; color:#214b38;">${esc(m.tipo_movimiento || 'CAMBIO REVISTA')}</td>
+          <td style="padding:6px 10px; font-weight:800; color:#0f172a;">${esc(m.lista_de_revista || '\u2014')}</td>
           <td style="padding:6px 10px; color:#334155;">${esc(m.documento_referencia || '\u2014')}</td>
           <td style="padding:6px 10px; color:#475569;">${esc(m.motivo || '\u2014')}${m.unidad_anterior ? ` <small style="color:#64748b;">(Ant: ${esc(m.unidad_anterior)})</small>` : ''}</td>
         </tr>
