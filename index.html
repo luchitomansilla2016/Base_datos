@@ -6535,7 +6535,7 @@
             <span id="cs_unidades_count_badge" style="background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:800;">0 unidades disponibles</span>
           </div>
 
-          <div class="field" style="position:relative; margin-bottom:0;">
+          <div id="cs_unidad_field_wrap" class="field" style="position:relative; margin-bottom:0;">
             <label for="cs_nueva_lista_revista">LISTA DE UNIDADES / NUEVA LISTA DE REVISTA (SELECCIONE DE LA LISTA O ESCRIBA / EDITE) *</label>
             <div style="position:relative; display:flex; align-items:center;">
               <input
@@ -6545,19 +6545,22 @@
                 placeholder="Haga clic para ver la lista de unidades o escriba / edite directamente..."
                 oninput="filterCambioSubunidadDropdown(this, false)"
                 onfocus="showCambioSubunidadDropdown(false)"
+                onclick="event.stopPropagation(); showCambioSubunidadDropdown(false)"
                 onkeydown="navigateCambioSubunidadDropdown(event, this)"
                 style="width:100%; padding-right:86px; font-weight:900; color:#065f46; background:#ffffff; border:1.5px solid #059669; min-height:40px;"
               />
               <button
                 type="button"
                 title="Limpiar campo"
-                onmousedown="event.preventDefault(); clearCambioSubunidadInput();"
+                onmousedown="event.preventDefault();"
+                onclick="event.stopPropagation(); clearCambioSubunidadInput();"
                 style="position:absolute; right:44px; background:transparent; border:none; color:#64748b; font-size:13px; font-weight:900; padding:4px 8px; cursor:pointer;"
               >&#10005;</button>
               <button
                 type="button"
                 title="Desplegar todas las unidades de la tabla unidades"
-                onmousedown="event.preventDefault(); toggleCambioSubunidadDropdown();"
+                onmousedown="event.preventDefault();"
+                onclick="event.stopPropagation(); toggleCambioSubunidadDropdown();"
                 style="position:absolute; right:6px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; border-radius:6px; font-size:11px; font-weight:900; padding:5px 9px; cursor:pointer;"
               >&#9660;</button>
             </div>
@@ -11846,7 +11849,8 @@ MOTIVO: ${motivoText}`;
       document.querySelectorAll('.autocomplete-dropdown').forEach(d => {
         const inputId = d.id.replace('_dropdown', '');
         const inputEl = document.getElementById(inputId);
-        if (e.target !== inputEl && !d.contains(e.target)) {
+        const fieldWrap = d.closest('.field');
+        if (e.target !== inputEl && !d.contains(e.target) && !(fieldWrap && fieldWrap.contains(e.target))) {
           d.style.display = 'none';
         }
       });
@@ -12182,10 +12186,13 @@ MOTIVO: ${motivoText}`;
     }
 
     function showCambioSubunidadDropdown(forceAll = false) {
+      if (_suppressNextCsFocusOpen) return;
       const inputEl = document.getElementById('cs_nueva_lista_revista');
       if (!inputEl) return;
       filterCambioSubunidadDropdown(inputEl, forceAll);
     }
+
+    let _suppressNextCsFocusOpen = false;
 
     function toggleCambioSubunidadDropdown() {
       const inputEl = document.getElementById('cs_nueva_lista_revista');
@@ -12194,7 +12201,9 @@ MOTIVO: ${motivoText}`;
       if (dropEl.style.display === 'block') {
         dropEl.style.display = 'none';
       } else {
+        _suppressNextCsFocusOpen = true;
         inputEl.focus();
+        _suppressNextCsFocusOpen = false;
         filterCambioSubunidadDropdown(inputEl, true);
       }
     }
@@ -12203,7 +12212,9 @@ MOTIVO: ${motivoText}`;
       const inputEl = document.getElementById('cs_nueva_lista_revista');
       if (!inputEl) return;
       inputEl.value = '';
+      _suppressNextCsFocusOpen = true;
       inputEl.focus();
+      _suppressNextCsFocusOpen = false;
       filterCambioSubunidadDropdown(inputEl, true);
     }
 
@@ -12243,7 +12254,7 @@ MOTIVO: ${motivoText}`;
         const highlighted = regex ? safeText.replace(regex, '<span class="highlight">$1</span>') : safeText;
         const encDenom = encodeURIComponent(it.denom);
         const encOrigen = encodeURIComponent(it.origen || '');
-        return `<div class="autocomplete-item" data-val="${encDenom}" data-origen="${encOrigen}" onmousedown="event.preventDefault(); selectCambioSubunidadOption('${encDenom}', '${encOrigen}')">${highlighted}</div>`;
+        return `<div class="autocomplete-item" data-val="${encDenom}" data-origen="${encOrigen}" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); selectCambioSubunidadOption('${encDenom}', '${encOrigen}')">${highlighted}</div>`;
       }).join('');
 
       dropEl.style.display = 'block';
@@ -12255,15 +12266,17 @@ MOTIVO: ${motivoText}`;
       const origInp = document.getElementById('cs_nueva_unidad_origen');
       const val = decodeURIComponent(encodedVal || '');
       const origen = decodeURIComponent(encodedOrigen || '');
+      if (dropEl) {
+        dropEl.style.display = 'none';
+      }
       if (inputEl) {
         inputEl.value = val;
+        _suppressNextCsFocusOpen = true;
         inputEl.focus();
+        _suppressNextCsFocusOpen = false;
       }
       if (origInp && origen) {
         origInp.value = origen;
-      }
-      if (dropEl) {
-        dropEl.style.display = 'none';
       }
       const allItems = getListaUnidadesTablaUnidades();
       const badge = document.getElementById('cs_unidades_count_badge');
