@@ -3552,6 +3552,7 @@
           <button id="menuIncorpDestacados" class="side-sub-btn" onclick="switchTable('incorporados_destacados')">↳ Destacados</button>
         </div>
         <button id="menuUnidades" class="side-btn" onclick="switchTable('unidades')">&#9635; Unidades</button>
+        <button id="menuCambioSubunidad" class="side-btn" onclick="switchTable('cambio_subunidad')">&#9635; Cambio de subunidad</button>
         <button id="menuAuditoria" class="side-btn admin-only" onclick="openAuditPanel()" style="display:none">&#9635; Auditor&iacute;a</button>
       </div>
       <div class="side-section-title">Opciones</div>
@@ -6477,6 +6478,189 @@
     </div>
   </div>
 
+  <!-- Modal Piloto: Cambio de Subunidad y Registro Automatico en Movimientos -->
+  <div id="cambioSubunidadModal" class="modal" style="z-index: 195;" onclick="if(event.target===this) closeCambioSubunidadModal()">
+    <div class="dialog" style="max-width: 920px; width: 96%; border-top: 5px solid #065f46;">
+      <div class="dialog-header" style="background: linear-gradient(135deg, #06351f 0%, #065f46 100%); color: #fff;">
+        <div>
+          <h2 style="color:#fff; margin:0; font-size:17.5px; display:flex; align-items:center; gap:8px;">
+            <span>&#128260;</span> <span>Cambio de Subunidad / Lista de Revista</span>
+          </h2>
+          <div style="font-size:11.5px; color:#d8b23f; font-weight:700; margin-top:2px;">
+            Actualiza la Lista de Revista del efectivo y registra el cambio autom&aacute;ticamente en su Historial de Movimientos
+          </div>
+        </div>
+        <button class="close" onclick="closeCambioSubunidadModal()" style="color:#fff;">&#10005;</button>
+      </div>
+
+      <div class="dialog-body" style="padding: 16px 20px; max-height: calc(88vh - 130px); overflow-y: auto; display:flex; flex-direction:column; gap:14px;">
+        <input type="hidden" id="cs_record_id" value="" />
+        <input type="hidden" id="cs_cip" value="" />
+
+        <!-- 1. SITUACION ACTUAL DEL EFECTIVO (DATOS ACTUALES QUE MUESTRA LA BUSQUEDA) -->
+        <div style="background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #7dd3fc; border-radius: 10px; padding: 12px 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+            <div>
+              <span style="font-size:10.5px; font-weight:900; color:#0369a1; text-transform:uppercase; letter-spacing:0.5px;">&#128110; EFECTIVO POLICIAL SELECCIONADO</span>
+              <div id="cs_efectivo_titulo" style="font-size:16px; font-weight:900; color:#0c4a6e; margin-top:1px;">&mdash;</div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <span id="cs_efectivo_cip_badge" style="background:#0284c7; color:#fff; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:800;">CIP: &mdash;</span>
+              <span id="cs_efectivo_sit_badge" style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:3px 10px; border-radius:999px; font-size:11.5px; font-weight:800;">PRESENTE</span>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:10px; background:#ffffff; border:1px solid #bae6fd; border-radius:8px; padding:10px 12px;">
+            <div>
+              <div style="font-size:10.5px; font-weight:800; color:#64748b; text-transform:uppercase;">&#127963;&#65039; Lista de Revista Actual (Pasa a Unidad Anterior)</div>
+              <div id="cs_actual_revista" style="font-size:12.5px; font-weight:900; color:#0369a1; margin-top:2px; word-break:break-word;">&mdash;</div>
+            </div>
+            <div>
+              <div style="font-size:10.5px; font-weight:800; color:#64748b; text-transform:uppercase;">&#128197; Fecha de Incorporaci&oacute;n Actual</div>
+              <div id="cs_actual_fecha" style="font-size:12.5px; font-weight:800; color:#0f172a; margin-top:2px;">&mdash;</div>
+            </div>
+            <div>
+              <div style="font-size:10.5px; font-weight:800; color:#64748b; text-transform:uppercase;">&#128196; Documento que Sustenta Actual</div>
+              <div id="cs_actual_documento" style="font-size:12.5px; font-weight:800; color:#334155; margin-top:2px; word-break:break-word;">&mdash;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. SELECCION DE NUEVA SUBUNIDAD / UNIDAD (DESDE TABLA UNIDADES) -->
+        <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:14px 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div style="font-size:12.5px; font-weight:900; color:#06351f; text-transform:uppercase; letter-spacing:0.3px;">
+              &#127963;&#65039; 1. Seleccionar Nueva Unidad / Subunidad (Cat&aacute;logo Oficial de Unidades)
+            </div>
+            <span id="cs_unidades_count_badge" style="background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:800;">0 unidades disponibles</span>
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(12, 1fr); gap:10px;">
+            <div class="field" style="grid-column: span 4;">
+              <label for="cs_filtro_division">FILTRAR POR DIVISI&Oacute;N (NIVEL 1)</label>
+              <select id="cs_filtro_division" onchange="filterCambioSubunidadUnidades()">
+                <option value="">-- TODAS LAS DIVISIONES --</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column: span 4;">
+              <label for="cs_filtro_tipo_unidad">FILTRAR POR CLASIFICACI&Oacute;N</label>
+              <select id="cs_filtro_tipo_unidad" onchange="filterCambioSubunidadUnidades()">
+                <option value="ALL">TODAS (DIVISIONES + DUE SEC + COMISAR&Iacute;AS)</option>
+                <option value="DIVISION">&#127970; SOLO DIVISIONES / DEPARTAMENTOS</option>
+                <option value="SECCION_ESP">&#9889; SOLO SECCIONES ESPECIALIZADAS (DUE SEC)</option>
+                <option value="COMISARIA">&#128660; SOLO COMISAR&Iacute;AS (COM)</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column: span 4;">
+              <label for="cs_buscar_unidad_input">&#128269; BUSCAR UNIDAD / SUBUNIDAD</label>
+              <input id="cs_buscar_unidad_input" type="text" placeholder="Escriba nombre, sigla, comisar&iacute;a o secci&oacute;n..." oninput="filterCambioSubunidadUnidades()" />
+            </div>
+
+            <div class="field" style="grid-column: span 12;">
+              <label for="cs_select_unidad">LISTA DE UNIDADES / SUBUNIDADES (SELECCIONE EL DESTINO) *</label>
+              <select id="cs_select_unidad" onchange="onSelectCambioSubunidadUnidad(this.value)" style="font-weight:800; color:#06351f; background:#ffffff; border:1.5px solid #059669; min-height:38px;">
+                <option value="">-- Seleccione una Unidad / Subunidad de la lista --</option>
+              </select>
+            </div>
+
+            <div class="field" style="grid-column: span 8;">
+              <label for="cs_nueva_lista_revista">&#128204; NUEVA LISTA DE REVISTA (SE ACTUALIZAR&Aacute; EN EL EFECTIVO) *</label>
+              <input id="cs_nueva_lista_revista" type="text" placeholder="Seleccione arriba o edite manualmente la nueva Lista de Revista..." style="font-weight:900; color:#065f46; background:#ecfdf5; border:1.5px solid #10b981;" />
+            </div>
+            <div class="field" style="grid-column: span 4;">
+              <label for="cs_nueva_unidad_origen">UNIDAD DE ORIGEN (NIVEL 1)</label>
+              <input id="cs_nueva_unidad_origen" type="text" placeholder="Unidad de origen / Divisi&oacute;n..." style="font-weight:700; color:#334155; background:#f1f5f9;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. DATOS DEL CAMBIO Y REGISTRO EN HISTORIAL DE MOVIMIENTOS -->
+        <div style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:10px; padding:14px 16px;">
+          <div style="font-size:12.5px; font-weight:900; color:#0369a1; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:10px;">
+            &#128221; 2. Datos del Cambio de Subunidad (Se grabar&aacute;n en el Efectivo y en su Historial de Movimientos)
+          </div>
+
+          <div style="display:grid; grid-template-columns: repeat(12, 1fr); gap:10px;">
+            <div class="field" style="grid-column: span 3;">
+              <label for="cs_fecha_cambio">&#128197; FECHA DE CAMBIO / INCORP. *</label>
+              <input id="cs_fecha_cambio" type="date" style="font-weight:800; color:#0f172a; border:1.5px solid #0284c7;" />
+            </div>
+            <div class="field" style="grid-column: span 5;">
+              <label for="cs_documento_referencia">&#128196; DOCUMENTO DE REFERENCIA / SUSTENTO *</label>
+              <input id="cs_documento_referencia" type="text" placeholder="Ej. MEMOR&Aacute;NDUM N&deg; ..., OFICIO N&deg; ..., ORDEN N&deg; ..." style="font-weight:800; color:#0f172a; border:1.5px solid #0284c7;" />
+            </div>
+            <div class="field" style="grid-column: span 4;">
+              <label for="cs_tipo_movimiento">TIPO DE MOVIMIENTO (LISTA MOVIMIENTOS)</label>
+              <select id="cs_tipo_movimiento" style="font-weight:800; color:#0369a1;">
+                <option value="CAMBIO DE REVISTA">CAMBIO DE LISTA DE REVISTA</option>
+                <option value="INCORPORACI&Oacute;N">INCORPORACI&Oacute;N</option>
+                <option value="DESTAQUE">DESTAQUE</option>
+                <option value="APOYO">APOYO</option>
+                <option value="CURSO">CURSO</option>
+                <option value="REFERIDO">REFERIDO</option>
+                <option value="REASIGNADO">REASIGNADO</option>
+                <option value="OTRO">OTRO MOVIMIENTO</option>
+              </select>
+            </div>
+
+            <div class="field" style="grid-column: span 5;">
+              <label for="cs_motivo_select">MOTIVO DEL CAMBIO (LISTA DE MOVIMIENTOS) *</label>
+              <select id="cs_motivo_select" onchange="onChangeCambioSubunidadMotivo(this.value)" style="font-weight:800; color:#065f46;">
+                <option value="NECESIDAD DEL SERVICIO">NECESIDAD DEL SERVICIO</option>
+                <option value="DISPOSICI&Oacute;N DEL COMANDO">DISPOSICI&Oacute;N DEL COMANDO</option>
+                <option value="A SU SOLICITUD">A SU SOLICITUD</option>
+                <option value="ROTACI&Oacute;N INTERNA DE SUBUNIDAD">ROTACI&Oacute;N INTERNA DE SUBUNIDAD</option>
+                <option value="PERMUTA">PERMUTA</option>
+                <option value="REASIGNACI&Oacute;N DE CARGO">REASIGNACI&Oacute;N DE CARGO</option>
+                <option value="CUMPLIMIENTO DE ORDEN SUPERIOR">CUMPLIMIENTO DE ORDEN SUPERIOR</option>
+                <option value="__OTRO__">OTRO MOTIVO (ESPECIFICAR)...</option>
+              </select>
+              <input id="cs_motivo_otro" type="text" placeholder="Escriba el motivo espec&iacute;fico..." style="display:none; margin-top:6px; font-weight:700;" />
+            </div>
+
+            <div class="field" style="grid-column: span 7;">
+              <label for="cs_observacion">OBSERVACI&Oacute;N / DETALLE ADICIONAL (OPCIONAL)</label>
+              <input id="cs_observacion" type="text" placeholder="Ej. Pasa a prestar servicios de patrullaje / investigaci&oacute;n..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. VISTA PREVIA EN VIVO DEL HISTORIAL DE MOVIMIENTOS DEL EFECTIVO -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:12px; font-weight:900; color:#0369a1;">&#128203; &Uacute;LTIMOS MOVIMIENTOS REGISTRADOS DE ESTE EFECTIVO</span>
+            <button type="button" class="secondary" onclick="openMovimientosFromCambioSubunidad()" style="font-size:11px; padding:3px 9px; min-height:25px; background:#e0f2fe; color:#0369a1; border-color:#7dd3fc; font-weight:800;">Ver / Editar Historial Completo</button>
+          </div>
+          <div style="border:1px solid #cbd5e1; border-radius:8px; overflow:hidden; background:#ffffff; max-height:155px; overflow-y:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:11.5px; text-align:left;">
+              <thead style="background:#e0f2fe; color:#0369a1; border-bottom:1px solid #bae6fd;">
+                <tr>
+                  <th style="padding:6px 10px;">#</th>
+                  <th style="padding:6px 10px;">Fecha</th>
+                  <th style="padding:6px 10px;">Tipo</th>
+                  <th style="padding:6px 10px;">Lista de Revista</th>
+                  <th style="padding:6px 10px;">Doc. Sustento / Ref.</th>
+                  <th style="padding:6px 10px;">Motivo</th>
+                </tr>
+              </thead>
+              <tbody id="cs_historial_mini_tbody">
+                <tr><td colspan="6" style="text-align:center; padding:12px; color:#94a3b8;">Sin movimientos previos</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer" style="justify-content:space-between; background:#f8fafc; border-top:1px solid #e2e8f0;">
+        <span style="font-size:11.5px; color:#475569; font-weight:600;">* Al guardar se actualiza la ficha del efectivo y se a&ntilde;ade el movimiento al historial.</span>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="secondary" onclick="closeCambioSubunidadModal()">Cancelar</button>
+          <button id="btnGuardarCambioSubunidad" type="button" class="primary" onclick="guardarCambioSubunidad()" style="background:linear-gradient(135deg, #065f46, #047857); font-weight:800; padding:8px 18px;">&#128190; Guardar Cambio de Subunidad y Registrar Movimiento</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script>
@@ -6744,7 +6928,8 @@
       detenidos_sin_sentencia: { title: 'DETENIDOS', api: API_DETENIDOS, menu: 'menuDetenidos', fallbackApi: API_PERSONAL, optValue: 'DETENID', optLabel: 'DETENIDOS' },
       incorporados_reasignados: { title: 'INCORP. POR REASIGNACIÓN', api: API_INCORPORADOS_REASIGNADOS, menu: 'menuIncorpReasignados', optValue: '', optLabel: 'INCORP. REASIGNACIÓN' },
       incorporados_destacados: { title: 'INCORP. POR DESTAQUE', api: API_INCORPORADOS_DESTACADOS, menu: 'menuIncorpDestacados', optValue: 'PRESENTE', optLabel: 'PRESENTES' },
-      unidades: { title: 'UNIDADES POR DIVISI\u00d3N', api: API_UNIDADES, menu: 'menuUnidades', optValue: '', optLabel: 'TODAS LAS DIVISIONES' }
+      unidades: { title: 'UNIDADES POR DIVISI\u00d3N', api: API_UNIDADES, menu: 'menuUnidades', optValue: '', optLabel: 'TODAS LAS DIVISIONES' },
+      cambio_subunidad: { title: 'CAMBIO DE SUBUNIDAD', api: API_PERSONAL, menu: 'menuCambioSubunidad', optValue: '', optLabel: 'TODAS LAS SUBUNIDADES' }
     };
 
     function tableConfig(name = currentTable) { return tableConfigs[name] || tableConfigs.personal; }
@@ -7656,6 +7841,28 @@
     }
 
     function ordenarRegistros(lista) {
+      if (currentTable === 'cambio_subunidad') {
+        const divOrder = [
+          'JEFATURA',
+          'ESTADO MAYOR',
+          'UNIADM (UE - HUANUCO)',
+          'DIVREINT',
+          'DIVINCRI',
+          'DIVPOCOM',
+          'DIVOPUS HUANUCO',
+          'DIVOPUS LEONCIO PRADO',
+          'DIVOPUS PUERTO INCA',
+          'DIVCUD HUANUCO'
+        ];
+        const dynamicDivs = [...new Set((unidadesCatalog || []).map(u => String(u.nivel_1 || '').trim()).filter(Boolean))];
+        dynamicDivs.forEach(d => { if (!divOrder.includes(d)) divOrder.push(d); });
+        const prevVal = select.value;
+        select.innerHTML = `<option value="">TODAS LAS DIVISIONES / UNIDADES</option>` +
+          divOrder.map(d => `<option value="${esc(d)}">DIVISI\u00d3N: ${esc(d)}</option>`).join('');
+        select.value = divOrder.includes(prevVal) ? prevVal : '';
+        return;
+      }
+
       if (currentTable === 'unidades') {
         return lista.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
       }
@@ -7686,7 +7893,7 @@
         const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
 
         const fetchRowsPromise = (async () => {
-          if (tableSnapshot === 'personal') {
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
             const [p0, p1, p2] = await Promise.all([
               req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
               req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
@@ -7752,7 +7959,7 @@
         let loadedRows = [];
         {
           const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
-          if (tableSnapshot === 'personal') {
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
             const initialPages = await Promise.all([
               req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
               req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
@@ -8012,6 +8219,12 @@
         filtersPanel.style.display = (!isGenericModule() && _advancedSearchOpen) ? 'grid' : 'none';
       }
 
+      const qInput = document.getElementById('q');
+      if (qInput) {
+        qInput.placeholder = (tableName === 'cambio_subunidad')
+          ? 'Buscar efectivo por CIP, DNI, Apellidos y Nombres, Lista de Revista o Documento...'
+          : 'Buscar por nombres, DNI, CIP, unidad, curso, destino...';
+      }
       configureModuleStatusSelect();
       updatePrimaryActionButton();
       setTableHeaders();
@@ -8039,6 +8252,8 @@
         headRow.innerHTML = `<th>CIP</th><th>GRADO</th><th>APELLIDOS Y NOMBRES</th><th>UNIDAD ORIGEN</th><th>LISTA REVISTA</th><th>FECHA INCORP.</th><th>CONDICIÓN</th><th>SITUACIÓN ACTUAL</th><th>DOC. REFERENCIA</th><th>FECHA DOCUMENTO</th><th>FECHA REINCORP.</th><th>DOC. REINCORP.</th><th>N° INCLUSIÓN</th><th>FECHA INCLUSIÓN</th><th>DESTINO</th><th>OBSERVACIÓN</th>`;
       } else if (currentTable === 'incorporados_reasignados') {
         headRow.innerHTML = `<th>CIP</th><th>GRADO</th><th>APELLIDOS Y NOMBRES</th><th>LISTA REVISTA ANT.</th><th>SITUACIÓN</th><th>F. INCORP REGPOL</th><th>TIPO INCORP</th><th>MOTIVO</th><th>DOC. REFERENCIA</th><th>A MÉRITO</th><th>UNIDAD ORIGEN ACTUAL</th><th>LISTA REVISTA NUEVA</th><th>N° INCLUSIÓN</th><th>F. INCLUSIÓN</th><th>DOC. PONE DISP.</th><th>F. DOC</th><th>OBSERVACIÓN</th>`;
+      } else if (currentTable === 'cambio_subunidad') {
+        headRow.innerHTML = `<th style="width:88px;">CIP</th><th style="width:95px;">GRADO</th><th>APELLIDOS Y NOMBRES</th><th>LISTA DE REVISTA ACTUAL (SUBUNIDAD)</th><th style="width:135px;">FECHA INCORPORACI&Oacute;N</th><th>DOCUMENTO QUE SUSTENTA</th><th style="width:215px;text-align:center;">ACCI&Oacute;N</th>`;
       } else if (currentTable === 'unidades') {
         headRow.innerHTML = `<th style="width:48px;">N&deg;</th><th style="width:155px;">CLASIFICACI&Oacute;N</th><th>DPTO / COMISAR&Iacute;A (NIVEL 2)</th><th>SECCI&Oacute;N (NIVEL 3)</th><th>&Aacute;REA (NIVEL 4)</th><th>DENOMINACI&Oacute;N OFICIAL (LISTA DE REVISTA)</th><th style="width:105px;text-align:center;">ACCI&Oacute;N</th>`;
       } else if (currentTable === 'incorporados_destacados') {
@@ -8989,6 +9204,42 @@
         const situacion = esc(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion', 'estado']) || '—');
         const obs = firstValue(r, ['observacion', 'OBSERVACION', 'observaciones', 'OBSERVACIONES', 'detalle', 'motivo']);
 
+        if (currentTable === 'cambio_subunidad') {
+          const listaRevistaActual = esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '\u2014');
+          const unidadAnterior = esc(firstValue(r, ['unidad_anterior', 'UNIDAD ANTERIOR']) || '');
+          const fIncorpRaw = firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACI\u00d3N', 'FECHA INCORPORACION', 'fecha_incorporacion']);
+          const fIncorpFmt = esc(formatDateDisplay(fIncorpRaw) || '\u2014');
+          const tiempoEnSub = fIncorpRaw ? tiempoTranscurrido(fIncorpRaw) : '';
+          const docSustenta = esc(firstValue(r, ['documento_que_sustenta', 'DOCUMENTO QUE SUSTENTA', 'documento_referencia']) || '\u2014');
+          const movsCount = getMovimientosPorCip(firstValue(r, ['cip', 'CIP'])).length;
+
+          return `
+            <tr class="data-row" onclick="openCambioSubunidadModal('${id}')">
+              <td style="font-weight:800; color:#0f172a;">${cip}</td>
+              <td><span class="pill">${grado}</span></td>
+              <td>
+                <div style="font-weight:800; color:#06351f;">${nombres}</div>
+                <div style="font-size:10.5px; color:#64748b;">Situaci&oacute;n: <b>${situacion}</b>${unidadAnterior ? ` &middot; Ant: ${unidadAnterior}` : ''}</div>
+              </td>
+              <td>
+                <div style="font-weight:800; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; padding:4px 9px; border-radius:7px; display:inline-block;">&#127963;&#65039; ${listaRevistaActual}</div>
+              </td>
+              <td style="white-space:nowrap;">
+                <div style="font-weight:800; color:#0f172a;">&#128197; ${fIncorpFmt}</div>
+                ${tiempoEnSub ? `<div style="font-size:10.5px; color:#059669; font-weight:700;">${esc(tiempoEnSub)}</div>` : ''}
+              </td>
+              <td>
+                <div style="font-weight:700; color:#334155; background:#f8fafc; border:1px solid #e2e8f0; padding:4px 8px; border-radius:6px;">&#128196; ${docSustenta}</div>
+              </td>
+              <td style="text-align:center; white-space:nowrap;">
+                <div style="display:inline-flex; gap:6px; align-items:center;">
+                  <button type="button" class="primary" onclick="event.stopPropagation(); openCambioSubunidadModal('${id}')" style="background:linear-gradient(135deg, #065f46, #047857); padding:5px 11px; min-height:29px; font-size:11.5px; font-weight:800; border-radius:7px;">&#128260; Cambiar Subunidad</button>
+                  <button type="button" class="secondary" onclick="event.stopPropagation(); openMovimientosById('${id}')" style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; padding:5px 9px; min-height:29px; font-size:11.5px; font-weight:800; border-radius:7px;" title="Ver historial de movimientos">&#128203; Movimientos${movsCount > 0 ? ` (${movsCount})` : ''}</button>
+                </div>
+              </td>
+            </tr>`;
+        }
+
         if (currentTable === 'referidos') {
           return `
             <tr class="data-row" onclick="openForm('${id}')">
@@ -9307,6 +9558,19 @@
             if (moduloFiltro === 'DETENIDO') return sitActual.includes('detenid');
             return true;
           }
+          if (currentTable === 'cambio_subunidad') {
+            const divTarget = String(moduloFiltro).trim().toUpperCase();
+            if (!divTarget) return true;
+            const revActual = String(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA']) || '').trim().toUpperCase();
+            const uOrigActual = String(firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN']) || '').trim().toUpperCase();
+            const divUnitsSet = new Set(
+              (unidadesCatalog || [])
+                .filter(u => String(u.nivel_1 || '').trim().toUpperCase() === divTarget)
+                .map(u => String(u.nivel_4_nombre || u.nivel_3_nombre || u.nivel_2_nombre || u.nivel_1_nombre || '').trim().toUpperCase())
+                .filter(Boolean)
+            );
+            return divUnitsSet.has(revActual) || revActual.includes(divTarget) || uOrigActual.includes(divTarget);
+          }
           if (currentTable === 'unidades') {
             return String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase() === String(moduloFiltro).trim().toUpperCase();
           }
@@ -9524,6 +9788,36 @@
       if (window.innerWidth > 900) return;
       const box = document.getElementById('mobileCards');
       if (!box) return;
+      if (currentTable === 'cambio_subunidad') {
+        if (!filtered || !filtered.length) {
+          box.innerHTML = '<div class="person-card"><h3>Sin registros</h3><div class="meta">Busque por CIP, DNI o Apellidos para realizar el Cambio de Subunidad.</div></div>';
+          return;
+        }
+        box.innerHTML = filtered.slice(0, 80).map(r => {
+          const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
+          const id = esc(rawId);
+          const cip = esc(firstValue(r, ['cip', 'CIP']) || '\u2014');
+          const grado = esc(firstValue(r, ['grado', 'GRADO']) || '');
+          const nombres = esc(firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']) || '\u2014');
+          const rev = esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '\u2014');
+          const fInc = esc(formatDateDisplay(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACI\u00d3N', 'FECHA INCORPORACION'])) || '\u2014');
+          const docSust = esc(firstValue(r, ['documento_que_sustenta', 'DOCUMENTO QUE SUSTENTA']) || '\u2014');
+          return `
+            <article class="person-card" onclick="openCambioSubunidadModal('${id}')">
+              <h3>${grado} ${nombres} <small style="color:#0369a1;">(CIP: ${cip})</small></h3>
+              <div class="meta">
+                <div style="grid-column:1/-1;"><b>Lista de Revista Actual</b><span style="color:#0369a1; font-weight:800;">${rev}</span></div>
+                <div><b>Fecha Incorporaci&oacute;n</b>${fInc}</div>
+                <div style="grid-column:1/-1;"><b>Documento que Sustenta</b>${docSust}</div>
+              </div>
+              <div class="actions">
+                <button class="primary" onclick="event.stopPropagation(); openCambioSubunidadModal('${id}')" style="background:linear-gradient(135deg, #065f46, #047857);">&#128260; Cambiar Subunidad</button>
+                <button class="secondary" onclick="event.stopPropagation(); openMovimientosById('${id}')" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">&#128203; Movimientos</button>
+              </div>
+            </article>`;
+        }).join('');
+        return;
+      }
       if (currentTable === 'unidades') {
         const allGlobalValid = (rows || []).filter(r => String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
         const validRows = (filtered || []).filter(r => String(r.NIVEL1 || r.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
@@ -11675,6 +11969,18 @@ MOTIVO: ${motivoText}`;
     }
 
     function handlePrimaryAction() {
+      if (currentTable === 'cambio_subunidad') {
+        if (lastFilteredRows && lastFilteredRows.length === 1) {
+          const r = lastFilteredRows[0];
+          const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
+          openCambioSubunidadModal(rawId);
+        } else {
+          const qEl = document.getElementById('q');
+          if (qEl) qEl.focus();
+          toast('Busque y seleccione un efectivo de la lista para realizar su Cambio de Subunidad', 'info');
+        }
+        return;
+      }
       if (currentTable === 'unidades') {
         const currentDiv = document.getElementById('filterModuloEstado')?.value || '';
         openUnidadModal(null, currentDiv);
@@ -11686,7 +11992,13 @@ MOTIVO: ${motivoText}`;
     function updatePrimaryActionButton() {
       const btn = document.getElementById('newRecordBtn');
       if (!btn) return;
-      btn.textContent = (currentTable === 'unidades') ? '+ Nueva unidad' : '+ Nuevo registro';
+      if (currentTable === 'unidades') {
+        btn.textContent = '+ Nueva unidad';
+      } else if (currentTable === 'cambio_subunidad') {
+        btn.innerHTML = '&#128260; Cambiar Subunidad';
+      } else {
+        btn.textContent = '+ Nuevo registro';
+      }
       btn.style.display = canEdit() ? '' : 'none';
     }
 
@@ -11737,6 +12049,376 @@ MOTIVO: ${motivoText}`;
 
     function closeUnidadModal() {
       document.getElementById('unidadModal')?.classList.remove('open');
+    }
+
+    // =========================================================================
+    // MODULO PILOTO: CAMBIO DE SUBUNIDAD + REGISTRO EN MOVIMIENTOS
+    // =========================================================================
+    let _currentCambioSubunidadRecord = null;
+
+    function _getDenomOficialUnidad(u) {
+      return String(u.nivel_4_nombre || u.nivel_3_nombre || u.nivel_2_nombre || u.nivel_1_nombre || u.EXACTO4 || u.EXACTO3 || u.EXACTO2 || u.EXACTO1 || '').trim();
+    }
+
+    function _getJerarquiaCortaUnidad(u) {
+      const n1 = String(u.nivel_1 || u.NIVEL1 || '').trim();
+      const n2 = String(u.nivel_2 || u.NIVEL2 || '').trim();
+      const n3 = String(u.nivel_3 || u.NIVEL3 || '').trim();
+      const n4 = String(u.nivel_4 || u.NIVEL4 || '').trim();
+      const parts = [n2, n3, n4].filter(Boolean);
+      const uniqueParts = [];
+      parts.forEach(p => { if (!uniqueParts.includes(p)) uniqueParts.push(p); });
+      return uniqueParts.length ? `${n1} > ${uniqueParts.join(' > ')}` : n1;
+    }
+
+    async function openCambioSubunidadModal(id) {
+      const r = findRecordById(id);
+      if (!r) {
+        toast('No se encontr\u00f3 el registro del efectivo policial', 'warning');
+        return;
+      }
+      _currentCambioSubunidadRecord = r;
+
+      if (!unidadesCatalog || !unidadesCatalog.length) {
+        await loadUnidadesCatalog();
+      }
+
+      const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
+      const cip = firstValue(r, ['cip', 'CIP']) || '';
+      const grado = firstValue(r, ['grado', 'GRADO']) || '';
+      const nombres = firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombres', 'apellidos_nombre']) || '';
+      const sit = firstValue(r, ['situacion_actual', 'SITUACI\u00d3N ACTUAL', 'SITUACION ACTUAL']) || 'PRESENTE';
+      const revActual = firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '\u2014';
+      const uOrigenActual = firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_origen']) || '';
+      const fIncorpActualRaw = firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACI\u00d3N', 'FECHA INCORPORACION', 'fecha_incorporacion']);
+      const docSustActual = firstValue(r, ['documento_que_sustenta', 'DOCUMENTO QUE SUSTENTA', 'documento_referencia']) || '\u2014';
+
+      document.getElementById('cs_record_id').value = rawId;
+      document.getElementById('cs_cip').value = cip;
+      document.getElementById('cs_efectivo_titulo').textContent = `${grado} ${nombres}`.trim();
+      document.getElementById('cs_efectivo_cip_badge').textContent = `CIP: ${cip || '\u2014'}`;
+      document.getElementById('cs_efectivo_sit_badge').textContent = sit;
+
+      document.getElementById('cs_actual_revista').textContent = revActual;
+      const tTrans = fIncorpActualRaw ? tiempoTranscurrido(fIncorpActualRaw) : '';
+      document.getElementById('cs_actual_fecha').textContent = (formatDateDisplay(fIncorpActualRaw) || '\u2014') + (tTrans ? ` (${tTrans})` : '');
+      document.getElementById('cs_actual_documento').textContent = docSustActual;
+
+      // Poblar selector de Divisiones en el modal
+      const divOrder = [
+        'JEFATURA',
+        'ESTADO MAYOR',
+        'UNIADM (UE - HUANUCO)',
+        'DIVREINT',
+        'DIVINCRI',
+        'DIVPOCOM',
+        'DIVOPUS HUANUCO',
+        'DIVOPUS LEONCIO PRADO',
+        'DIVOPUS PUERTO INCA',
+        'DIVCUD HUANUCO'
+      ];
+      const validUnidades = (unidadesCatalog || []).filter(u => String(u.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
+      validUnidades.forEach(u => {
+        const d = String(u.nivel_1 || '').trim();
+        if (d && !divOrder.includes(d)) divOrder.push(d);
+      });
+
+      const selDiv = document.getElementById('cs_filtro_division');
+      if (selDiv) {
+        selDiv.innerHTML = `<option value="">-- TODAS LAS DIVISIONES (${divOrder.length}) --</option>` +
+          divOrder.map(d => `<option value="${esc(d)}">DIVISI\u00d3N: ${esc(d)}</option>`).join('');
+        selDiv.value = '';
+      }
+
+      const selTipo = document.getElementById('cs_filtro_tipo_unidad');
+      if (selTipo) selTipo.value = 'ALL';
+
+      const searchInp = document.getElementById('cs_buscar_unidad_input');
+      if (searchInp) searchInp.value = '';
+
+      filterCambioSubunidadUnidades();
+
+      // Inicializar campos del cambio
+      document.getElementById('cs_nueva_lista_revista').value = '';
+      document.getElementById('cs_nueva_unidad_origen').value = uOrigenActual || '';
+      document.getElementById('cs_fecha_cambio').value = getTodayPeruYMD();
+      document.getElementById('cs_documento_referencia').value = '';
+      document.getElementById('cs_tipo_movimiento').value = 'CAMBIO DE REVISTA';
+
+      const motSelect = document.getElementById('cs_motivo_select');
+      if (motSelect) {
+        const extraMotivos = (catalogos && Array.isArray(catalogos['motivo'])) ? catalogos['motivo'] : [];
+        extraMotivos.forEach(m => {
+          const mUp = String(m || '').trim().toUpperCase();
+          if (mUp && !Array.from(motSelect.options).some(o => o.value.toUpperCase() === mUp)) {
+            const opt = document.createElement('option');
+            opt.value = mUp;
+            opt.textContent = mUp;
+            motSelect.insertBefore(opt, motSelect.querySelector('option[value="__OTRO__"]'));
+          }
+        });
+        motSelect.value = 'NECESIDAD DEL SERVICIO';
+      }
+      const motOtro = document.getElementById('cs_motivo_otro');
+      if (motOtro) {
+        motOtro.style.display = 'none';
+        motOtro.value = '';
+      }
+      document.getElementById('cs_observacion').value = '';
+
+      await renderMiniHistorialCambioSubunidad(cip);
+      document.getElementById('cambioSubunidadModal')?.classList.add('open');
+    }
+
+    function closeCambioSubunidadModal() {
+      document.getElementById('cambioSubunidadModal')?.classList.remove('open');
+    }
+
+    function onChangeCambioSubunidadMotivo(val) {
+      const otroInp = document.getElementById('cs_motivo_otro');
+      if (!otroInp) return;
+      if (val === '__OTRO__') {
+        otroInp.style.display = 'block';
+        otroInp.focus();
+      } else {
+        otroInp.style.display = 'none';
+        otroInp.value = '';
+      }
+    }
+
+    function filterCambioSubunidadUnidades() {
+      const divFilter = String(document.getElementById('cs_filtro_division')?.value || '').trim().toUpperCase();
+      const tipoFilter = String(document.getElementById('cs_filtro_tipo_unidad')?.value || 'ALL').trim().toUpperCase();
+      const q = normalizeText(document.getElementById('cs_buscar_unidad_input')?.value || '');
+
+      const validUnidades = (unidadesCatalog || []).filter(u => String(u.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
+
+      const filteredU = validUnidades.filter(u => {
+        const d = String(u.nivel_1 || '').trim().toUpperCase();
+        if (divFilter && d !== divFilter) return false;
+        if (tipoFilter !== 'ALL') {
+          const t = clasificarTipoUnidad(u);
+          if (t !== tipoFilter) return false;
+        }
+        if (q) {
+          const blob = normalizeText([
+            u.nivel_1, u.nivel_1_nombre,
+            u.nivel_2, u.nivel_2_nombre,
+            u.nivel_3, u.nivel_3_nombre,
+            u.nivel_4, u.nivel_4_nombre
+          ].join(' '));
+          if (!blob.includes(q)) return false;
+        }
+        return true;
+      });
+
+      const badge = document.getElementById('cs_unidades_count_badge');
+      if (badge) badge.textContent = `${filteredU.length} unidades disponibles`;
+
+      const sel = document.getElementById('cs_select_unidad');
+      if (!sel) return;
+
+      const byDiv = new Map();
+      filteredU.forEach(u => {
+        const d = String(u.nivel_1 || 'OTRAS').trim();
+        if (!byDiv.has(d)) byDiv.set(d, []);
+        byDiv.get(d).push(u);
+      });
+
+      let html = `<option value="">-- Seleccione una Unidad / Subunidad (${filteredU.length} encontradas) --</option>`;
+      for (const [dName, items] of byDiv.entries()) {
+        const opts = items.map(u => {
+          const denom = _getDenomOficialUnidad(u);
+          const jer = _getJerarquiaCortaUnidad(u);
+          const t = clasificarTipoUnidad(u);
+          const tag = t === 'COMISARIA' ? '[COM]' : (t === 'SECCION_ESP' ? '[DUE SEC]' : '[DIV]');
+          return `<option value="${esc(u.id)}">${tag} ${esc(jer)}  &mdash;  (${esc(denom)})</option>`;
+        }).join('');
+        html += `<optgroup label="DIVISI\u00d3N: ${esc(dName)} (${items.length})">${opts}</optgroup>`;
+      }
+      sel.innerHTML = html;
+
+      // Si al buscar solo queda 1 unidad, facilitar preseleccion
+      if (q && filteredU.length === 1) {
+        sel.value = String(filteredU[0].id);
+        onSelectCambioSubunidadUnidad(sel.value);
+      }
+    }
+
+    function onSelectCambioSubunidadUnidad(unidadId) {
+      if (!unidadId) return;
+      const u = (unidadesCatalog || []).find(item => String(item.id) === String(unidadId));
+      if (!u) return;
+      const denomFinal = _getDenomOficialUnidad(u);
+      const origenNivel1 = String(u.nivel_1_nombre || u.nivel_1 || '').trim();
+
+      const revInp = document.getElementById('cs_nueva_lista_revista');
+      if (revInp) revInp.value = denomFinal;
+
+      const origInp = document.getElementById('cs_nueva_unidad_origen');
+      if (origInp && origenNivel1) origInp.value = origenNivel1;
+    }
+
+    async function renderMiniHistorialCambioSubunidad(cip) {
+      const tbody = document.getElementById('cs_historial_mini_tbody');
+      if (!tbody) return;
+      const movs = await fetchMovimientosSupabase(cip);
+      if (!movs || !movs.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:12px; color:#94a3b8; font-style:italic;">No registra movimientos previos en el historial.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = movs.slice(0, 6).map((m, i) => `
+        <tr style="border-bottom:1px solid #e2e8f0; ${i === 0 ? 'background:#f0fdf4;' : ''}">
+          <td style="padding:6px 10px; font-weight:800; color:#64748b;">${i + 1}${i === 0 ? ' <span style="background:#16a34a;color:#fff;padding:1px 5px;border-radius:4px;font-size:9px;">ACTUAL</span>' : ''}</td>
+          <td style="padding:6px 10px; font-weight:700; white-space:nowrap;">${esc(formatDateDisplay(m.fecha) || '\u2014')}</td>
+          <td style="padding:6px 10px; font-weight:800; color:#0369a1;">${esc(m.tipo_movimiento || 'CAMBIO REVISTA')}</td>
+          <td style="padding:6px 10px; font-weight:800; color:#065f46;">${esc(m.lista_de_revista || '\u2014')}</td>
+          <td style="padding:6px 10px; color:#334155;">${esc(m.documento_referencia || '\u2014')}</td>
+          <td style="padding:6px 10px; color:#475569;">${esc(m.motivo || '\u2014')}${m.unidad_anterior ? ` <small style="color:#64748b;">(Ant: ${esc(m.unidad_anterior)})</small>` : ''}</td>
+        </tr>
+      `).join('');
+    }
+
+    function openMovimientosFromCambioSubunidad() {
+      if (!_currentCambioSubunidadRecord) return;
+      openMovimientosModal(_currentCambioSubunidadRecord);
+    }
+
+    async function guardarCambioSubunidad() {
+      if (!canEdit()) {
+        toast('No tiene permisos de edici\u00f3n para realizar el cambio de subunidad', 'warning');
+        return;
+      }
+      if (!_currentCambioSubunidadRecord) return;
+
+      const r = _currentCambioSubunidadRecord;
+      const cip = firstValue(r, ['cip', 'CIP']) || document.getElementById('cs_cip')?.value || '';
+      const grado = firstValue(r, ['grado', 'GRADO']) || '';
+      const nombres = firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombres', 'apellidos_nombre']) || '';
+      const revistaAnterior = String(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '').trim();
+      const origenAnterior = String(firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_origen']) || '').trim();
+
+      const nuevaRevista = String(document.getElementById('cs_nueva_lista_revista')?.value || '').trim().toUpperCase();
+      const nuevaUnidadOrigen = String(document.getElementById('cs_nueva_unidad_origen')?.value || origenAnterior || '').trim().toUpperCase();
+      const fechaCambio = String(document.getElementById('cs_fecha_cambio')?.value || '').trim() || getTodayPeruYMD();
+      const docReferencia = String(document.getElementById('cs_documento_referencia')?.value || '').trim().toUpperCase();
+      const tipoMovimiento = String(document.getElementById('cs_tipo_movimiento')?.value || 'CAMBIO DE REVISTA').trim().toUpperCase();
+
+      const motSelectVal = document.getElementById('cs_motivo_select')?.value || 'NECESIDAD DEL SERVICIO';
+      const motivoFinal = (motSelectVal === '__OTRO__')
+        ? String(document.getElementById('cs_motivo_otro')?.value || '').trim().toUpperCase()
+        : String(motSelectVal).trim().toUpperCase();
+
+      const observacion = String(document.getElementById('cs_observacion')?.value || '').trim().toUpperCase();
+
+      if (!nuevaRevista) {
+        toast('Seleccione o ingrese la Nueva Lista de Revista / Subunidad de destino', 'warning');
+        document.getElementById('cs_select_unidad')?.focus();
+        return;
+      }
+      if (!docReferencia) {
+        toast('Ingrese el Documento de Referencia / Sustento del cambio de subunidad', 'warning');
+        document.getElementById('cs_documento_referencia')?.focus();
+        return;
+      }
+      if (!motivoFinal) {
+        toast('Seleccione o especifique el Motivo del cambio', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btnGuardarCambioSubunidad');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Guardando cambio y movimiento...';
+      }
+
+      try {
+        const sample = tableSampleRows['personal'] || tableSampleRows['cambio_subunidad'] || r;
+        const kListaRevista = getDbColumnKey('LISTA DE REVISTA', sample);
+        const kUnidadOrigen = getDbColumnKey('UNIDAD DE ORIGEN', sample);
+        const kUnidadAnterior = getDbColumnKey('UNIDAD ANTERIOR', sample);
+        const kFechaIncorp = getDbColumnKey('FECHA INCORPORACIÃ“N', sample);
+        const kDocSustenta = getDbColumnKey('DOCUMENTO QUE SUSTENTA', sample);
+
+        const patchPayload = {
+          [kListaRevista]: nuevaRevista,
+          [kFechaIncorp]: fechaCambio,
+          [kDocSustenta]: docReferencia
+        };
+        if (nuevaUnidadOrigen) {
+          patchPayload[kUnidadOrigen] = nuevaUnidadOrigen;
+        }
+        if (revistaAnterior && revistaAnterior !== '\u2014') {
+          patchPayload[kUnidadAnterior] = revistaAnterior;
+        }
+
+        const hasValidId = (r.id !== undefined && r.id !== null && r.id !== '');
+        const filterUrl = hasValidId
+          ? `${API_PERSONAL}?id=eq.${encodeURIComponent(r.id)}`
+          : `${API_PERSONAL}?CIP=eq.${encodeURIComponent(cip)}`;
+
+        await req(filterUrl, {
+          method: 'PATCH',
+          body: JSON.stringify(patchPayload)
+        });
+
+        // Actualizar el registro en memoria inmediatamente
+        Object.assign(r, patchPayload);
+        r['LISTA DE REVISTA'] = nuevaRevista;
+        r['lista_de_revista'] = nuevaRevista;
+        r['FECHA INCORPORACIÃ“N'] = fechaCambio;
+        r['fecha_de_incorporacion'] = fechaCambio;
+        r['DOCUMENTO QUE SUSTENTA'] = docReferencia;
+        r['documento_que_sustenta'] = docReferencia;
+        if (nuevaUnidadOrigen) {
+          r['UNIDAD DE ORIGEN'] = nuevaUnidadOrigen;
+          r['unidad_de_origen'] = nuevaUnidadOrigen;
+        }
+        if (revistaAnterior) {
+          r['UNIDAD ANTERIOR'] = revistaAnterior;
+          r['unidad_anterior'] = revistaAnterior;
+        }
+        _preindexRow(r);
+
+        // Registrar automaticamente en el Historial de Movimientos del efectivo
+        const obsCompleta = [
+          revistaAnterior ? `DE: ${revistaAnterior}` : '',
+          observacion
+        ].filter(Boolean).join(' | ');
+
+        await registrarMovimientoEfectivo({
+          cip,
+          grado,
+          apellidos_nombres: nombres,
+          tipo_movimiento: tipoMovimiento,
+          fecha: fechaCambio,
+          lista_de_revista: nuevaRevista,
+          unidad_de_origen: nuevaUnidadOrigen || origenAnterior,
+          unidad_anterior: revistaAnterior,
+          documento_referencia: docReferencia,
+          motivo: motivoFinal,
+          observacion: obsCompleta,
+          modulo_origen: 'cambio_subunidad'
+        });
+
+        // Refrescar datos visuales del modal y de la tabla principal
+        document.getElementById('cs_actual_revista').textContent = nuevaRevista;
+        document.getElementById('cs_actual_fecha').textContent = formatDateDisplay(fechaCambio) || fechaCambio;
+        document.getElementById('cs_actual_documento').textContent = docReferencia;
+
+        await renderMiniHistorialCambioSubunidad(cip);
+        render();
+
+        toast(`Cambio de subunidad guardado y registrado en Movimientos (${grado} ${nombres})`, 'success');
+      } catch (err) {
+        console.error('Error guardando cambio de subunidad:', err);
+        toast('Error al guardar el cambio de subunidad: ' + (err.message || err), 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '&#128190; Guardar Cambio de Subunidad y Registrar Movimiento';
+        }
+      }
     }
 
     function onUnidadDivisionInput(keepExacto1 = false) {
@@ -20630,7 +21312,7 @@ REGLAS CRÍTICAS:
         let loadedRows = [];
         {
           const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
-          if (tableSnapshot === 'personal') {
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
             const initialPages = await Promise.all([
               req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
               req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
