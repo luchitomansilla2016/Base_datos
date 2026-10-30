@@ -6526,51 +6526,43 @@
           </div>
         </div>
 
-        <!-- 2. SELECCION DE NUEVA SUBUNIDAD / UNIDAD (DESDE TABLA UNIDADES) -->
+        <!-- 2. SELECCION DE NUEVA SUBUNIDAD / UNIDAD (LISTA EDITABLE DE TABLA UNIDADES) -->
         <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:14px 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
             <div style="font-size:12.5px; font-weight:900; color:#06351f; text-transform:uppercase; letter-spacing:0.3px;">
-              &#127963;&#65039; 1. Seleccionar Nueva Unidad / Subunidad (Cat&aacute;logo Oficial de Unidades)
+              &#127963;&#65039; 1. Nueva Unidad / Subunidad (Lista de Unidades)
             </div>
             <span id="cs_unidades_count_badge" style="background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:800;">0 unidades disponibles</span>
           </div>
 
-          <div style="display:grid; grid-template-columns: repeat(12, 1fr); gap:10px;">
-            <div class="field" style="grid-column: span 4;">
-              <label for="cs_filtro_division">FILTRAR POR DIVISI&Oacute;N (NIVEL 1)</label>
-              <select id="cs_filtro_division" onchange="filterCambioSubunidadUnidades()">
-                <option value="">-- TODAS LAS DIVISIONES --</option>
-              </select>
+          <div class="field" style="position:relative; margin-bottom:0;">
+            <label for="cs_nueva_lista_revista">LISTA DE UNIDADES / NUEVA LISTA DE REVISTA (SELECCIONE DE LA LISTA O ESCRIBA / EDITE) *</label>
+            <div style="position:relative; display:flex; align-items:center;">
+              <input
+                id="cs_nueva_lista_revista"
+                type="text"
+                autocomplete="off"
+                placeholder="Haga clic para ver la lista de unidades o escriba / edite directamente..."
+                oninput="filterCambioSubunidadDropdown(this, false)"
+                onfocus="showCambioSubunidadDropdown(false)"
+                onkeydown="navigateCambioSubunidadDropdown(event, this)"
+                style="width:100%; padding-right:86px; font-weight:900; color:#065f46; background:#ffffff; border:1.5px solid #059669; min-height:40px;"
+              />
+              <button
+                type="button"
+                title="Limpiar campo"
+                onmousedown="event.preventDefault(); clearCambioSubunidadInput();"
+                style="position:absolute; right:44px; background:transparent; border:none; color:#64748b; font-size:13px; font-weight:900; padding:4px 8px; cursor:pointer;"
+              >&#10005;</button>
+              <button
+                type="button"
+                title="Desplegar todas las unidades de la tabla unidades"
+                onmousedown="event.preventDefault(); toggleCambioSubunidadDropdown();"
+                style="position:absolute; right:6px; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; border-radius:6px; font-size:11px; font-weight:900; padding:5px 9px; cursor:pointer;"
+              >&#9660;</button>
             </div>
-            <div class="field" style="grid-column: span 4;">
-              <label for="cs_filtro_tipo_unidad">FILTRAR POR CLASIFICACI&Oacute;N</label>
-              <select id="cs_filtro_tipo_unidad" onchange="filterCambioSubunidadUnidades()">
-                <option value="ALL">TODAS (DIVISIONES + DUE SEC + COMISAR&Iacute;AS)</option>
-                <option value="DIVISION">&#127970; SOLO DIVISIONES / DEPARTAMENTOS</option>
-                <option value="SECCION_ESP">&#9889; SOLO SECCIONES ESPECIALIZADAS (DUE SEC)</option>
-                <option value="COMISARIA">&#128660; SOLO COMISAR&Iacute;AS (COM)</option>
-              </select>
-            </div>
-            <div class="field" style="grid-column: span 4;">
-              <label for="cs_buscar_unidad_input">&#128269; BUSCAR UNIDAD / SUBUNIDAD</label>
-              <input id="cs_buscar_unidad_input" type="text" placeholder="Escriba nombre, sigla, comisar&iacute;a o secci&oacute;n..." oninput="filterCambioSubunidadUnidades()" />
-            </div>
-
-            <div class="field" style="grid-column: span 12;">
-              <label for="cs_select_unidad">LISTA DE UNIDADES / SUBUNIDADES (SELECCIONE EL DESTINO) *</label>
-              <select id="cs_select_unidad" onchange="onSelectCambioSubunidadUnidad(this.value)" style="font-weight:800; color:#06351f; background:#ffffff; border:1.5px solid #059669; min-height:38px;">
-                <option value="">-- Seleccione una Unidad / Subunidad de la lista --</option>
-              </select>
-            </div>
-
-            <div class="field" style="grid-column: span 8;">
-              <label for="cs_nueva_lista_revista">&#128204; NUEVA LISTA DE REVISTA (SE ACTUALIZAR&Aacute; EN EL EFECTIVO) *</label>
-              <input id="cs_nueva_lista_revista" type="text" placeholder="Seleccione arriba o edite manualmente la nueva Lista de Revista..." style="font-weight:900; color:#065f46; background:#ecfdf5; border:1.5px solid #10b981;" />
-            </div>
-            <div class="field" style="grid-column: span 4;">
-              <label for="cs_nueva_unidad_origen">UNIDAD DE ORIGEN (NIVEL 1)</label>
-              <input id="cs_nueva_unidad_origen" type="text" placeholder="Unidad de origen / Divisi&oacute;n..." style="font-weight:700; color:#334155; background:#f1f5f9;" />
-            </div>
+            <div id="cs_nueva_lista_revista_dropdown" class="autocomplete-dropdown" style="display:none; max-height:280px;"></div>
+            <input type="hidden" id="cs_nueva_unidad_origen" value="" />
           </div>
         </div>
 
@@ -12107,43 +12099,16 @@ MOTIVO: ${motivoText}`;
       document.getElementById('cs_actual_fecha').textContent = (formatDateDisplay(fIncorpActualRaw) || '\u2014') + (tTrans ? ` (${tTrans})` : '');
       document.getElementById('cs_actual_documento').textContent = docSustActual;
 
-      // Poblar selector de Divisiones en el modal
-      const divOrder = [
-        'JEFATURA',
-        'ESTADO MAYOR',
-        'UNIADM (UE - HUANUCO)',
-        'DIVREINT',
-        'DIVINCRI',
-        'DIVPOCOM',
-        'DIVOPUS HUANUCO',
-        'DIVOPUS LEONCIO PRADO',
-        'DIVOPUS PUERTO INCA',
-        'DIVCUD HUANUCO'
-      ];
-      const validUnidades = (unidadesCatalog || []).filter(u => String(u.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
-      validUnidades.forEach(u => {
-        const d = String(u.nivel_1 || '').trim();
-        if (d && !divOrder.includes(d)) divOrder.push(d);
-      });
+      // Inicializar campos del cambio y lista de unidades de la tabla unidades
+      const listaTablaUnidades = getListaUnidadesTablaUnidades();
+      const badge = document.getElementById('cs_unidades_count_badge');
+      if (badge) badge.textContent = `${listaTablaUnidades.length} unidades disponibles`;
 
-      const selDiv = document.getElementById('cs_filtro_division');
-      if (selDiv) {
-        selDiv.innerHTML = `<option value="">-- TODAS LAS DIVISIONES (${divOrder.length}) --</option>` +
-          divOrder.map(d => `<option value="${esc(d)}">DIVISI\u00d3N: ${esc(d)}</option>`).join('');
-        selDiv.value = '';
-      }
-
-      const selTipo = document.getElementById('cs_filtro_tipo_unidad');
-      if (selTipo) selTipo.value = 'ALL';
-
-      const searchInp = document.getElementById('cs_buscar_unidad_input');
-      if (searchInp) searchInp.value = '';
-
-      filterCambioSubunidadUnidades();
-
-      // Inicializar campos del cambio
       document.getElementById('cs_nueva_lista_revista').value = '';
       document.getElementById('cs_nueva_unidad_origen').value = uOrigenActual || '';
+      const dropEl = document.getElementById('cs_nueva_lista_revista_dropdown');
+      if (dropEl) dropEl.style.display = 'none';
+
       document.getElementById('cs_fecha_cambio').value = getTodayPeruYMD();
       document.getElementById('cs_documento_referencia').value = '';
       document.getElementById('cs_tipo_movimiento').value = 'CAMBIO DE REVISTA';
@@ -12174,6 +12139,8 @@ MOTIVO: ${motivoText}`;
     }
 
     function closeCambioSubunidadModal() {
+      const dropEl = document.getElementById('cs_nueva_lista_revista_dropdown');
+      if (dropEl) dropEl.style.display = 'none';
       document.getElementById('cambioSubunidadModal')?.classList.remove('open');
     }
 
@@ -12189,77 +12156,159 @@ MOTIVO: ${motivoText}`;
       }
     }
 
-    function filterCambioSubunidadUnidades() {
-      const divFilter = String(document.getElementById('cs_filtro_division')?.value || '').trim().toUpperCase();
-      const tipoFilter = String(document.getElementById('cs_filtro_tipo_unidad')?.value || 'ALL').trim().toUpperCase();
-      const q = normalizeText(document.getElementById('cs_buscar_unidad_input')?.value || '');
-
+    // Obtener la lista Ãºnica de unidades que se encuentran en la tabla `unidades`
+    function getListaUnidadesTablaUnidades() {
       const validUnidades = (unidadesCatalog || []).filter(u => String(u.nivel_1 || '').trim().toUpperCase() !== 'TODOS');
-
-      const filteredU = validUnidades.filter(u => {
-        const d = String(u.nivel_1 || '').trim().toUpperCase();
-        if (divFilter && d !== divFilter) return false;
-        if (tipoFilter !== 'ALL') {
-          const t = clasificarTipoUnidad(u);
-          if (t !== tipoFilter) return false;
+      const mapDenom = new Map();
+      validUnidades.forEach(u => {
+        const denom = _getDenomOficialUnidad(u);
+        if (!denom) return;
+        const key = denom.toUpperCase();
+        if (!mapDenom.has(key)) {
+          mapDenom.set(key, {
+            denom: denom,
+            origen: String(u.nivel_1_nombre || u.nivel_1 || '').trim(),
+            searchBlob: normalizeText([
+              denom,
+              u.nivel_1, u.nivel_1_nombre,
+              u.nivel_2, u.nivel_2_nombre,
+              u.nivel_3, u.nivel_3_nombre,
+              u.nivel_4, u.nivel_4_nombre
+            ].join(' '))
+          });
         }
-        if (q) {
-          const blob = normalizeText([
-            u.nivel_1, u.nivel_1_nombre,
-            u.nivel_2, u.nivel_2_nombre,
-            u.nivel_3, u.nivel_3_nombre,
-            u.nivel_4, u.nivel_4_nombre
-          ].join(' '));
-          if (!blob.includes(q)) return false;
-        }
-        return true;
       });
+      return Array.from(mapDenom.values());
+    }
 
-      const badge = document.getElementById('cs_unidades_count_badge');
-      if (badge) badge.textContent = `${filteredU.length} unidades disponibles`;
+    function showCambioSubunidadDropdown(forceAll = false) {
+      const inputEl = document.getElementById('cs_nueva_lista_revista');
+      if (!inputEl) return;
+      filterCambioSubunidadDropdown(inputEl, forceAll);
+    }
 
-      const sel = document.getElementById('cs_select_unidad');
-      if (!sel) return;
-
-      const byDiv = new Map();
-      filteredU.forEach(u => {
-        const d = String(u.nivel_1 || 'OTRAS').trim();
-        if (!byDiv.has(d)) byDiv.set(d, []);
-        byDiv.get(d).push(u);
-      });
-
-      let html = `<option value="">-- Seleccione una Unidad / Subunidad (${filteredU.length} encontradas) --</option>`;
-      for (const [dName, items] of byDiv.entries()) {
-        const opts = items.map(u => {
-          const denom = _getDenomOficialUnidad(u);
-          const jer = _getJerarquiaCortaUnidad(u);
-          const t = clasificarTipoUnidad(u);
-          const tag = t === 'COMISARIA' ? '[COM]' : (t === 'SECCION_ESP' ? '[DUE SEC]' : '[DIV]');
-          return `<option value="${esc(u.id)}">${tag} ${esc(jer)}  &mdash;  (${esc(denom)})</option>`;
-        }).join('');
-        html += `<optgroup label="DIVISI\u00d3N: ${esc(dName)} (${items.length})">${opts}</optgroup>`;
-      }
-      sel.innerHTML = html;
-
-      // Si al buscar solo queda 1 unidad, facilitar preseleccion
-      if (q && filteredU.length === 1) {
-        sel.value = String(filteredU[0].id);
-        onSelectCambioSubunidadUnidad(sel.value);
+    function toggleCambioSubunidadDropdown() {
+      const inputEl = document.getElementById('cs_nueva_lista_revista');
+      const dropEl = document.getElementById('cs_nueva_lista_revista_dropdown');
+      if (!inputEl || !dropEl) return;
+      if (dropEl.style.display === 'block') {
+        dropEl.style.display = 'none';
+      } else {
+        inputEl.focus();
+        filterCambioSubunidadDropdown(inputEl, true);
       }
     }
 
-    function onSelectCambioSubunidadUnidad(unidadId) {
-      if (!unidadId) return;
-      const u = (unidadesCatalog || []).find(item => String(item.id) === String(unidadId));
-      if (!u) return;
-      const denomFinal = _getDenomOficialUnidad(u);
-      const origenNivel1 = String(u.nivel_1_nombre || u.nivel_1 || '').trim();
+    function clearCambioSubunidadInput() {
+      const inputEl = document.getElementById('cs_nueva_lista_revista');
+      if (!inputEl) return;
+      inputEl.value = '';
+      inputEl.focus();
+      filterCambioSubunidadDropdown(inputEl, true);
+    }
 
-      const revInp = document.getElementById('cs_nueva_lista_revista');
-      if (revInp) revInp.value = denomFinal;
+    function filterCambioSubunidadDropdown(inputEl, forceAll = false) {
+      const dropEl = document.getElementById('cs_nueva_lista_revista_dropdown');
+      if (!dropEl || !inputEl) return;
 
+      const allItems = getListaUnidadesTablaUnidades();
+      const rawVal = String(inputEl.value || '').trim();
+      const q = forceAll ? '' : normalizeText(rawVal);
+
+      // Si el texto escrito coincide exactamente con una unidad del catÃ¡logo, sincronizar su unidad de origen
+      const exactMatch = allItems.find(it => it.denom.toUpperCase() === rawVal.toUpperCase());
+      if (exactMatch && exactMatch.origen) {
+        const origInp = document.getElementById('cs_nueva_unidad_origen');
+        if (origInp) origInp.value = exactMatch.origen;
+      }
+
+      const filtered = q
+        ? allItems.filter(it => it.searchBlob.includes(q) || normalizeText(it.denom).includes(q))
+        : allItems;
+
+      const badge = document.getElementById('cs_unidades_count_badge');
+      if (badge) badge.textContent = `${filtered.length} de ${allItems.length} unidades`;
+
+      if (!filtered.length) {
+        dropEl.innerHTML = `<div class="autocomplete-empty">Sin coincidencias en la tabla unidades &mdash; se guardar&aacute; el texto escrito/editado manualmente</div>`;
+        dropEl.style.display = 'block';
+        return;
+      }
+
+      const escapedVal = rawVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = (!forceAll && escapedVal) ? new RegExp(`(${escapedVal})`, 'gi') : null;
+
+      dropEl.innerHTML = filtered.map(it => {
+        const safeText = esc(it.denom);
+        const highlighted = regex ? safeText.replace(regex, '<span class="highlight">$1</span>') : safeText;
+        const encDenom = encodeURIComponent(it.denom);
+        const encOrigen = encodeURIComponent(it.origen || '');
+        return `<div class="autocomplete-item" data-val="${encDenom}" data-origen="${encOrigen}" onmousedown="event.preventDefault(); selectCambioSubunidadOption('${encDenom}', '${encOrigen}')">${highlighted}</div>`;
+      }).join('');
+
+      dropEl.style.display = 'block';
+    }
+
+    function selectCambioSubunidadOption(encodedVal, encodedOrigen) {
+      const inputEl = document.getElementById('cs_nueva_lista_revista');
+      const dropEl = document.getElementById('cs_nueva_lista_revista_dropdown');
       const origInp = document.getElementById('cs_nueva_unidad_origen');
-      if (origInp && origenNivel1) origInp.value = origenNivel1;
+      const val = decodeURIComponent(encodedVal || '');
+      const origen = decodeURIComponent(encodedOrigen || '');
+      if (inputEl) {
+        inputEl.value = val;
+        inputEl.focus();
+      }
+      if (origInp && origen) {
+        origInp.value = origen;
+      }
+      if (dropEl) {
+        dropEl.style.display = 'none';
+      }
+      const allItems = getListaUnidadesTablaUnidades();
+      const badge = document.getElementById('cs_unidades_count_badge');
+      if (badge) badge.textContent = `${allItems.length} unidades disponibles`;
+    }
+
+    function navigateCambioSubunidadDropdown(e, inputEl) {
+      const dropEl = document.getElementById('cs_nueva_lista_revista_dropdown');
+      if (!dropEl || dropEl.style.display === 'none') {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          filterCambioSubunidadDropdown(inputEl, true);
+        }
+        return;
+      }
+      const items = dropEl.querySelectorAll('.autocomplete-item');
+      if (!items.length) return;
+
+      let activeIndex = -1;
+      items.forEach((item, idx) => {
+        if (item.classList.contains('active')) activeIndex = idx;
+      });
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex + 1) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+        activeIndex = (activeIndex - 1 + items.length) % items.length;
+        items[activeIndex].classList.add('active');
+        items[activeIndex].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        if (activeIndex >= 0 && items[activeIndex]) {
+          e.preventDefault();
+          const encVal = items[activeIndex].getAttribute('data-val');
+          const encOrigen = items[activeIndex].getAttribute('data-origen');
+          selectCambioSubunidadOption(encVal, encOrigen);
+        }
+      } else if (e.key === 'Escape') {
+        dropEl.style.display = 'none';
+      }
     }
 
     async function renderMiniHistorialCambioSubunidad(cip) {
@@ -12316,7 +12365,7 @@ MOTIVO: ${motivoText}`;
 
       if (!nuevaRevista) {
         toast('Seleccione o ingrese la Nueva Lista de Revista / Subunidad de destino', 'warning');
-        document.getElementById('cs_select_unidad')?.focus();
+        document.getElementById('cs_nueva_lista_revista')?.focus();
         return;
       }
       if (!docReferencia) {
