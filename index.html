@@ -12404,7 +12404,7 @@ MOTIVO: ${motivoText}`;
         const kListaRevista = getDbColumnKey('LISTA DE REVISTA', sample);
         const kUnidadOrigen = getDbColumnKey('UNIDAD DE ORIGEN', sample);
         const kUnidadAnterior = getDbColumnKey('UNIDAD ANTERIOR', sample);
-        const kFechaIncorp = getDbColumnKey('FECHA INCORPORACIÃ“N', sample);
+        const kFechaIncorp = getDbColumnKey('FECHA INCORPORACION', sample);
         const kDocSustenta = getDbColumnKey('DOCUMENTO QUE SUSTENTA', sample);
 
         const patchPayload = {
@@ -12433,7 +12433,8 @@ MOTIVO: ${motivoText}`;
         Object.assign(r, patchPayload);
         r['LISTA DE REVISTA'] = nuevaRevista;
         r['lista_de_revista'] = nuevaRevista;
-        r['FECHA INCORPORACIÃ“N'] = fechaCambio;
+        r['FECHA INCORPORACI\u00d3N'] = fechaCambio;
+        r['FECHA INCORPORACION'] = fechaCambio;
         r['fecha_de_incorporacion'] = fechaCambio;
         r['DOCUMENTO QUE SUSTENTA'] = docReferencia;
         r['documento_que_sustenta'] = docReferencia;
