@@ -4803,7 +4803,7 @@
   </div>
 
   <!-- Modal de Registro e Historial de Movimientos del Efectivo -->
-  <div id="movimientosModal" class="modal" style="z-index: 190;">
+  <div id="movimientosModal" class="modal" style="z-index: 220;" onclick="if(event.target===this) closeMovimientosModal(event)">
     <div class="dialog" style="max-width: 900px; border-top: 5px solid #0284c7;">
       <header style="background: linear-gradient(90deg, #ffffff 0%, #e0f2fe 100%);">
         <div>
@@ -10192,6 +10192,10 @@
     function closeMovimientosModal(e) {
       if (e) e.preventDefault();
       document.getElementById('movimientosModal').classList.remove('open');
+      if (document.getElementById('cambioSubunidadModal')?.classList.contains('open') && _currentCambioSubunidadRecord) {
+        const cip = firstValue(_currentCambioSubunidadRecord, ['CIP', 'cip']);
+        if (cip) renderMiniHistorialCambioSubunidad(cip);
+      }
     }
 
     function openMovimientosFromCurrent(e) {
