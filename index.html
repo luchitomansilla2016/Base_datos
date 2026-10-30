@@ -7841,28 +7841,6 @@
     }
 
     function ordenarRegistros(lista) {
-      if (currentTable === 'cambio_subunidad') {
-        const divOrder = [
-          'JEFATURA',
-          'ESTADO MAYOR',
-          'UNIADM (UE - HUANUCO)',
-          'DIVREINT',
-          'DIVINCRI',
-          'DIVPOCOM',
-          'DIVOPUS HUANUCO',
-          'DIVOPUS LEONCIO PRADO',
-          'DIVOPUS PUERTO INCA',
-          'DIVCUD HUANUCO'
-        ];
-        const dynamicDivs = [...new Set((unidadesCatalog || []).map(u => String(u.nivel_1 || '').trim()).filter(Boolean))];
-        dynamicDivs.forEach(d => { if (!divOrder.includes(d)) divOrder.push(d); });
-        const prevVal = select.value;
-        select.innerHTML = `<option value="">TODAS LAS DIVISIONES / UNIDADES</option>` +
-          divOrder.map(d => `<option value="${esc(d)}">DIVISI\u00d3N: ${esc(d)}</option>`).join('');
-        select.value = divOrder.includes(prevVal) ? prevVal : '';
-        return;
-      }
-
       if (currentTable === 'unidades') {
         return lista.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
       }
@@ -7929,6 +7907,9 @@
         rows = (loadedRows || []).map(_preindexRow);
         tableSampleRows[tableSnapshot] = (rows && rows[0]) ? rows[0] : null;
         ordenarRegistros(rows);
+        if (currentTable === 'unidades' || currentTable === 'cambio_subunidad') {
+          configureModuleStatusSelect();
+        }
         buildAdvancedFilters();
         setTableHeaders();
         render();
@@ -8094,6 +8075,28 @@
           <option value="">TODOS</option>
         `;
         select.value = 'PRESENTE';
+        return;
+      }
+
+      if (currentTable === 'cambio_subunidad') {
+        const divOrder = [
+          'JEFATURA',
+          'ESTADO MAYOR',
+          'UNIADM (UE - HUANUCO)',
+          'DIVREINT',
+          'DIVINCRI',
+          'DIVPOCOM',
+          'DIVOPUS HUANUCO',
+          'DIVOPUS LEONCIO PRADO',
+          'DIVOPUS PUERTO INCA',
+          'DIVCUD HUANUCO'
+        ];
+        const dynamicDivs = [...new Set((unidadesCatalog || []).map(u => String(u.nivel_1 || '').trim()).filter(Boolean))];
+        dynamicDivs.forEach(d => { if (!divOrder.includes(d)) divOrder.push(d); });
+        const prevVal = select.value;
+        select.innerHTML = `<option value="">TODAS LAS SUBUNIDADES</option>` +
+          divOrder.map(d => `<option value="${esc(d)}">DIVISI\u00d3N: ${esc(d)}</option>`).join('');
+        select.value = divOrder.includes(prevVal) ? prevVal : '';
         return;
       }
 
