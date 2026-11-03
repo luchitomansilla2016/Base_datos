@@ -6674,8 +6674,8 @@
             <div class="field" style="grid-column:span 4;"><label for="ocs_siglas">SIGLAS</label><input id="ocs_siglas" type="text" /></div>
             <div class="field" style="grid-column:span 6;"><label for="ocs_lugar">LUGAR DONDE SE DIRIGE</label><input id="ocs_lugar" type="text" /></div>
             <div class="field" style="grid-column:span 2;"><label for="ocs_hora">HORA</label><input id="ocs_hora" type="text" placeholder="08:00" /></div>
-            <div class="field" style="grid-column:span 4;"><label for="ocs_vacaciones">VACACIONES</label><input id="ocs_vacaciones" type="text" placeholder="Ej. NO REGISTRA / PENDIENTE 2025" /></div>
-            <div class="field" style="grid-column:span 6;"><label for="ocs_domicilio">DOMICILIO ACTUAL</label><input id="ocs_domicilio" type="text" /></div>
+            <div class="field" style="grid-column:span 6;"><label for="ocs_vacaciones">VACACIONES</label><input id="ocs_vacaciones" type="text" placeholder="Ej. NO REGISTRA / PENDIENTE 2025" /></div>
+            <div class="field" style="grid-column:span 6;"><label for="ocs_observaciones">OBSERVACIONES</label><input id="ocs_observaciones" type="text" placeholder="Observaciones adicionales..." /></div>
             <div class="field" style="grid-column:span 6;"><label for="ocs_firmante">QUI&Eacute;N FIRMA</label><select id="ocs_firmante"></select></div>
           </div>
         </div>
@@ -6725,7 +6725,7 @@
         <button type="button" class="primary" onclick="imprimirOrdenCambioSubunidad()">&#128424; Imprimir / PDF A4</button>
       </div>
       <div style="background:#e5e7eb; padding:18px; max-height:calc(85vh - 150px); overflow:auto;">
-        <div id="ocsSheet" contenteditable="true" spellcheck="false" style="width:21cm; min-height:29.7cm; margin:0 auto; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,0.25); padding:1.2cm 1.6cm; box-sizing:border-box; outline:none;"></div>
+        <div id="ocsSheet" contenteditable="true" spellcheck="false" style="width:21cm; min-height:29.7cm; margin:0 auto; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,0.25); padding:0.8cm 0.5cm; box-sizing:border-box; outline:none;"></div>
       </div>
     </div>
   </div>
@@ -12640,7 +12640,7 @@ MOTIVO: ${motivoText}`;
       document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
       document.getElementById('ocs_lugar').value = nuevaRevista;
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
-      document.getElementById('ocs_domicilio').value = domicilio;
+      document.getElementById('ocs_observaciones').value = '';
       document.getElementById('ocs_vacaciones').value = document.getElementById('ocs_vacaciones').value || '';
 
       const sel = document.getElementById('ocs_firmante');
@@ -12681,8 +12681,8 @@ MOTIVO: ${motivoText}`;
         siglas: String(document.getElementById('ocs_siglas').value || '').trim().toUpperCase(),
         lugar: String(document.getElementById('ocs_lugar').value || '').trim().toUpperCase(),
         hora: String(document.getElementById('ocs_hora').value || '').trim(),
-        domicilio: String(document.getElementById('ocs_domicilio').value || '').trim().toUpperCase(),
         vacaciones: String(document.getElementById('ocs_vacaciones').value || '').trim().toUpperCase(),
+        observaciones: String(document.getElementById('ocs_observaciones').value || '').trim().toUpperCase(),
         firmante: j ? {
           cip: String(j.CIP || j.cip || '').trim(),
           nombre: formatNombrePostFirma(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || ''),
@@ -12705,24 +12705,23 @@ MOTIVO: ${motivoText}`;
 
     function _csOrdenCopiaHtml(d) {
       const e = s => esc(String(s || ''));
-      const L = 'width:4.6cm; padding:5px 0 2px 0; font-family:Arial, sans-serif; font-size:9pt; white-space:nowrap; vertical-align:bottom;';
-      const S = 'width:0.4cm; padding:5px 0 2px 0; font-family:Arial, sans-serif; font-size:9pt; vertical-align:bottom;';
-      const V = 'padding:5px 4px 2px 4px; font-family:Arial, sans-serif; font-size:9pt; font-weight:bold; border-bottom:1px solid #000; vertical-align:bottom;';
+      const L = 'width:5.2cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:9pt; white-space:nowrap; vertical-align:top;';
+      const S = 'width:0.4cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:9pt; vertical-align:top;';
+      const V = 'padding:3px 4px 3px 4px; font-family:Arial, sans-serif; font-size:9pt; font-weight:bold; vertical-align:top;';
       const row = (lbl, val) => `<tr><td style="${L}">${lbl}</td><td style="${S}">:</td><td colspan="3" style="${V}">${e(val)}</td></tr>`;
       const f = d.firmante || { cip: '', nombre: '', grado: '', cargo: '' };
       const nroTxt = d.nro || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
       return `
-        <div class="ocs-copia" style="font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm;">
-          <table style="width:100%; border-collapse:collapse;"><tr>
-            <td style="width:2cm; vertical-align:middle;" class="ocs-screen-only"><img src="escudo_header_regpol.png" style="height:1.6cm;" alt="" onerror="this.style.display='none'" /></td>
-            <td style="vertical-align:middle;">
-              <p style="margin:0; font-size:9pt; font-weight:bold;">POLIC&Iacute;A NACIONAL DEL PER&Uacute;</p>
-              <p style="margin:0; font-size:9pt; font-weight:bold;">REGI&Oacute;N POLICIAL HU&Aacute;NUCO</p>
-              <p style="margin:0; font-size:8.5pt;">OFAD - &Aacute;REA DE RECURSOS HUMANOS</p>
-            </td>
-          </tr></table>
-          <p style="text-align:center; margin:10px 0 8px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:12pt; font-weight:normal; text-decoration:underline;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${e(d.nro) || nroTxt} - ${e(d.siglas)}</p>
-          <table style="width:100%; border-collapse:collapse;">
+        <div class="ocs-copia" style="font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm; padding:0 0.5cm; box-sizing:border-box;">
+          <div style="display:inline-block; text-align:center; margin-bottom:6px;">
+            <p style="margin:0; font-family:Arial, sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">POLIC&Iacute;A NACIONAL DEL PER&Uacute;</p>
+            <p style="margin:0; font-family:Arial, sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">COMANDO OPERACIONES POLICIALES</p>
+            <p style="margin:0; font-family:Arial, sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">DIRECCI&Oacute;N NACIONAL DE ORDEN Y SEGURIDAD</p>
+            <p style="margin:0; font-family:Arial, sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">REGI&Oacute;N POLICIAL HU&Aacute;NUCO</p>
+            <p style="margin:0; font-family:Arial, sans-serif; font-size:7pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">OFAD - AREREHUM</p>
+          </div>
+          <p style="text-align:center; margin:8px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:12pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${e(d.nro) || nroTxt} - ${e(d.siglas)}</p>
+          <table style="width:100%; border-collapse:collapse; margin-bottom:6px;">
             ${row('CLASE Y NOMBRE', d.claseNombre)}
             ${row('UNIDAD DE PROCEDENCIA', d.procedencia)}
             ${row('UNIDAD DE DESTINO', d.destino)}
@@ -12730,25 +12729,25 @@ MOTIVO: ${motivoText}`;
             <tr>
               <td style="${L}">FECHA DE SALIDA</td><td style="${S}">:</td>
               <td style="${V} width:5cm;">${e(_csFechaCorta(d.fechaYmd))}</td>
-              <td style="padding:5px 4px 2px 12px; font-family:Arial, sans-serif; font-size:9pt; width:1.6cm; vertical-align:bottom;">HORA:</td>
+              <td style="padding:3px 4px 3px 12px; font-family:Arial, sans-serif; font-size:9pt; width:1.6cm; vertical-align:top;">HORA:</td>
               <td style="${V}">${e(d.hora)}</td>
             </tr>
             ${row('MOTIVO', d.motivo)}
             ${row('CARNET DE IDENTIDAD', d.carnet)}
-            ${row('DOMICILIO ACTUAL', d.domicilio)}
             ${row('VACACIONES', d.vacaciones)}
+            ${row('OBSERVACIONES', d.observaciones)}
           </table>
-          <p style="text-align:right; margin:10px 0 0 0; font-size:10pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
-          <table style="width:100%; border-collapse:collapse; margin-top:4px;"><tr>
-            <td style="width:50%; vertical-align:bottom;" class="ocs-screen-only"><img src="sello_ofad_regpol.png" style="height:2.4cm; opacity:0.85;" alt="" onerror="this.style.display='none'" /></td>
-            <td style="text-align:center; vertical-align:bottom; font-size:9pt; padding-top:1.1cm;">
-              <p style="margin:0;">______________________________</p>
-              <p style="margin:0;">${f.cip ? 'OA - ' + e(f.cip) : '&nbsp;'}</p>
-              <p style="margin:0; font-weight:bold;">${e(f.nombre)}</p>
-              <p style="margin:0;">${e(f.grado)}</p>
-              <p style="margin:0;">${e(f.cargo)}</p>
-            </td>
-          </tr></table>
+          <p style="text-align:right; margin:8px 0 0 0; font-family:'Arial Narrow', Arial, sans-serif; font-size:9.5pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
+          <div style="display:flex; justify-content:flex-end; align-items:flex-end; margin-top:20px;">
+            <div style="position:relative; display:inline-flex; flex-direction:column; align-items:center; min-width:240px; margin-right:15px;">
+              <img src="sello_ofad_regpol.png" class="ocs-screen-only" style="position:absolute; right:100%; top:50%; transform:translate(25%, -50%); width:3.0cm; height:3.0cm; max-width:3.0cm; max-height:3.0cm; object-fit:contain; pointer-events:none; z-index:2; opacity:0.88;" alt="" onerror="this.style.display='none'" />
+              <div style="width:100%; border-top:1.3px solid #000; margin-bottom:4px;"></div>
+              <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:9pt; line-height:1.2;">${f.cip ? 'OA - ' + e(f.cip) : '&nbsp;'}</p>
+              <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:9pt; font-weight:bold; line-height:1.2;">${e(f.nombre)}</p>
+              <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:9pt; line-height:1.2;">${e(f.grado)}</p>
+              <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:9pt; line-height:1.2;">${e(f.cargo)}</p>
+            </div>
+          </div>
         </div>`;
     }
 
@@ -12777,9 +12776,9 @@ MOTIVO: ${motivoText}`;
 <head><meta charset="utf-8"><title>Orden de Incorporacion</title>
 <\!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--\>
 <style>
-@page WordSection1 { size:21.0cm 29.7cm; margin:1.2cm 1.6cm 1.0cm 1.6cm; }
+@page WordSection1 { size:21.0cm 29.7cm; margin:0.8cm 0.5cm 0.6cm 0.5cm; }
 div.WordSection1 { page:WordSection1; }
-body { font-family:Arial, sans-serif; font-size:10.5pt; }
+body { font-family:Arial, sans-serif; font-size:9pt; }
 table { border-collapse:collapse; }
 p { margin:0; }
 </style></head>
@@ -12799,7 +12798,7 @@ p { margin:0; }
       const w = window.open('', '_blank');
       if (!w) { toast('Permita las ventanas emergentes para imprimir', 'warning'); return; }
       w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><base href="${location.href}"><title>${_csNombreArchivoOrden()}</title>
-<style>@page { size:A4 portrait; margin:1.2cm 1.6cm 1.0cm 1.6cm; } body { margin:0; font-family:Arial, sans-serif; } .ocs-copia { min-height:12.6cm; }</style>
+<style>@page { size:A4 portrait; margin:0.8cm 0.5cm 0.6cm 0.5cm; } body { margin:0; font-family:Arial, sans-serif; } .ocs-copia { min-height:12.6cm; }</style>
 </head><body>${content}<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); };<\/script></body></html>`);
       w.document.close();
     }
