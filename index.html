@@ -6648,8 +6648,84 @@
         <span style="font-size:11.5px; color:#64748b; font-weight:600;">* Se actualizar&aacute; la Lista de Revista del efectivo y se registrar&aacute; en su Historial de Movimientos.</span>
         <div style="display:flex; gap:8px;">
           <button type="button" class="secondary" onclick="closeCambioSubunidadModal()">Cancelar</button>
-          <button id="btnGuardarCambioSubunidad" type="button" class="primary" onclick="guardarCambioSubunidad()" style="padding:8px 18px; font-weight:800;">&#128190; Guardar Cambio de Subunidad</button>
+          <button id="btnGuardarCambioSubunidad" type="button" class="primary" onclick="abrirOpcionesGuardarCambioSubunidad()" style="padding:8px 18px; font-weight:800;">&#128190; Guardar Cambio de Subunidad</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILOTO: Opciones de guardado del Cambio de Subunidad (Guardar sin documento / Guardar y generar Orden de Incorporacion) -->
+  <div id="opcionesGuardarCambioSubunidadModal" class="modal" style="z-index: 230;">
+    <div class="dialog" style="max-width: 640px; border-top: 5px solid #0b5a3c; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f5e9 100%);">
+        <div>
+          <h1 style="color:#0b5a3c; font-size:17px; display:flex; align-items:center; gap:8px;">&#128190; Guardar Cambio de Subunidad</h1>
+          <div class="sub">Seleccione c&oacute;mo desea guardar el cambio</div>
+        </div>
+        <button class="close-btn" onclick="cerrarOpcionesGuardarCambioSubunidad()" title="Cerrar">&times;</button>
+      </header>
+      <div style="padding:14px 20px; display:flex; flex-direction:column; gap:12px; max-height:calc(85vh - 120px); overflow-y:auto;">
+        <div id="ocs_resumen" style="background:#f1f8f3; border:1px solid #c8e6c9; border-radius:8px; padding:10px 14px; font-size:12.5px; color:#1b5e20; line-height:1.5;"></div>
+
+        <div style="border:1px solid #d5e0d8; border-radius:8px; padding:10px 14px; background:#fff;">
+          <div style="font-size:11.5px; font-weight:900; color:#06351f; text-transform:uppercase; margin-bottom:8px;">&#128221; Datos complementarios para la Orden de Incorporaci&oacute;n</div>
+          <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:8px;">
+            <div class="field" style="grid-column:span 2;"><label for="ocs_nro">NRO. DE ORDEN</label><input id="ocs_nro" type="text" placeholder="Ej. 001-2026" /></div>
+            <div class="field" style="grid-column:span 4;"><label for="ocs_siglas">SIGLAS</label><input id="ocs_siglas" type="text" /></div>
+            <div class="field" style="grid-column:span 6;"><label for="ocs_lugar">LUGAR DONDE SE DIRIGE</label><input id="ocs_lugar" type="text" /></div>
+            <div class="field" style="grid-column:span 2;"><label for="ocs_hora">HORA</label><input id="ocs_hora" type="text" placeholder="08:00" /></div>
+            <div class="field" style="grid-column:span 4;"><label for="ocs_vacaciones">VACACIONES</label><input id="ocs_vacaciones" type="text" placeholder="Ej. NO REGISTRA / PENDIENTE 2025" /></div>
+            <div class="field" style="grid-column:span 6;"><label for="ocs_domicilio">DOMICILIO ACTUAL</label><input id="ocs_domicilio" type="text" /></div>
+            <div class="field" style="grid-column:span 6;"><label for="ocs_firmante">QUI&Eacute;N FIRMA</label><select id="ocs_firmante"></select></div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button type="button" id="ocs_btn_generar" class="primary" onclick="ejecutarGuardadoCambioSubunidad(true)" style="background:linear-gradient(135deg, #0b5a3c, #0a6370); padding:13px 16px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; text-align:left; border:none; cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:22px;">&#128196;</span>
+              <div>
+                <div style="font-size:14px; color:#fff; font-weight:800;">Guardar y Generar Ord. Incorporaci&oacute;n</div>
+                <div style="font-size:11.5px; color:#e8f5e9; font-weight:normal;">Guarda el cambio y abre la Orden (2 formatos en 1 hoja A4) para descargar en Word o imprimir</div>
+              </div>
+            </div>
+            <span style="font-size:18px; color:#fff;">&#10132;</span>
+          </button>
+          <button type="button" id="ocs_btn_sin_doc" class="primary" onclick="ejecutarGuardadoCambioSubunidad(false)" style="background:linear-gradient(135deg, #475569, #334155); padding:13px 16px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; text-align:left; border:none; cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:22px;">&#128190;</span>
+              <div>
+                <div style="font-size:14px; color:#fff; font-weight:800;">Guardar sin Generar Documento</div>
+                <div style="font-size:11.5px; color:#f1f5f9; font-weight:normal;">Actualiza la Lista de Revista y registra el movimiento sin generar documento</div>
+              </div>
+            </div>
+            <span style="font-size:18px; color:#fff;">&#10004;</span>
+          </button>
+        </div>
+      </div>
+      <div class="footer" style="display:flex; justify-content:flex-end;">
+        <button type="button" class="secondary" onclick="cerrarOpcionesGuardarCambioSubunidad()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILOTO: Vista previa editable Orden de Incorporacion (Cambio de Subunidad) - 2 formatos en 1 hoja A4 -->
+  <div id="ordenCambioSubunidadPreviewModal" class="modal" style="z-index: 240;">
+    <div class="dialog" style="max-width: 920px; border-top: 5px solid #0b5a3c;">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f2ec 100%);">
+        <div>
+          <h1 style="color:#0b5a3c; font-size:17px;">&#128196; Orden de Incorporaci&oacute;n &middot; 2 formatos en 1 hoja A4 (Piloto)</h1>
+          <div class="sub">Puede hacer clic sobre el documento y editar cualquier texto antes de descargar o imprimir</div>
+        </div>
+        <button class="close-btn" onclick="cerrarOrdenCambioSubunidadPreview()" title="Cerrar">&times;</button>
+      </header>
+      <div style="display:flex; justify-content:flex-end; gap:8px; padding:10px 20px; background:#f7faf7; border-bottom:1px solid #d5e0d8;">
+        <button type="button" class="secondary" onclick="regenerarOrdenCambioSubunidad()" title="Volver a cargar los datos originales">&#8635; Restablecer</button>
+        <button type="button" class="primary" onclick="descargarOrdenCambioSubunidadWord()" style="background:linear-gradient(135deg, #1d4ed8, #1e3a8a);">&#128221; Descargar Word (.doc)</button>
+        <button type="button" class="primary" onclick="imprimirOrdenCambioSubunidad()">&#128424; Imprimir / PDF A4</button>
+      </div>
+      <div style="background:#e5e7eb; padding:18px; max-height:calc(85vh - 150px); overflow:auto;">
+        <div id="ocsSheet" contenteditable="true" spellcheck="false" style="width:21cm; min-height:29.7cm; margin:0 auto; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,0.25); padding:1.2cm 1.6cm; box-sizing:border-box; outline:none;"></div>
       </div>
     </div>
   </div>
@@ -12478,15 +12554,254 @@ MOTIVO: ${motivoText}`;
         render();
 
         toast(`Cambio de subunidad guardado y registrado en Movimientos (${grado} ${nombres})`, 'success');
+        return true;
       } catch (err) {
         console.error('Error guardando cambio de subunidad:', err);
         toast('Error al guardar el cambio de subunidad: ' + (err.message || err), 'error');
+        return false;
       } finally {
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = '&#128190; Guardar Cambio de Subunidad y Registrar Movimiento';
         }
       }
+    }
+
+    // ========================================================
+    // PILOTO: OPCIONES DE GUARDADO + ORDEN DE INCORPORACION (CAMBIO DE SUBUNIDAD)
+    // 2 formatos identicos en 1 sola hoja A4, editable, descargable en Word
+    // ========================================================
+    let _csOrdenData = null;
+
+    function _csFechaCorta(ymd) {
+      const m = String(ymd || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+      return m ? `${m[3]}/${m[2]}/${m[1]}` : String(ymd || '');
+    }
+    function _csFechaLarga(ymd) {
+      const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+      const m = String(ymd || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!m) return '';
+      return `Hu\u00e1nuco, ${parseInt(m[3], 10)} de ${meses[parseInt(m[2], 10) - 1]} de ${m[1]}`;
+    }
+
+    function abrirOpcionesGuardarCambioSubunidad() {
+      if (!canEdit()) {
+        toast('No tiene permisos de edici\u00f3n para realizar el cambio de subunidad', 'warning');
+        return;
+      }
+      const r = _currentCambioSubunidadRecord;
+      if (!r) return;
+
+      const nuevaRevista = String(document.getElementById('cs_nueva_lista_revista')?.value || '').trim().toUpperCase();
+      const docReferencia = String(document.getElementById('cs_documento_referencia')?.value || '').trim().toUpperCase();
+      const motSelectVal = document.getElementById('cs_motivo_select')?.value || 'NECESIDAD DEL SERVICIO';
+      const motivoFinal = (motSelectVal === '__OTRO__')
+        ? String(document.getElementById('cs_motivo_otro')?.value || '').trim().toUpperCase()
+        : String(motSelectVal).trim().toUpperCase();
+      const fechaCambio = String(document.getElementById('cs_fecha_cambio')?.value || '').trim() || getTodayPeruYMD();
+
+      if (!nuevaRevista) {
+        toast('Seleccione o ingrese la Nueva Lista de Revista / Subunidad de destino', 'warning');
+        document.getElementById('cs_nueva_lista_revista')?.focus();
+        return;
+      }
+      if (!docReferencia) {
+        toast('Ingrese el Documento de Referencia / Sustento del cambio de subunidad', 'warning');
+        document.getElementById('cs_documento_referencia')?.focus();
+        return;
+      }
+      if (!motivoFinal) {
+        toast('Seleccione o especifique el Motivo del cambio', 'warning');
+        return;
+      }
+
+      // Capturar datos ANTES de guardar (luego la lista de revista actual cambia)
+      const grado = String(firstValue(r, ['grado', 'GRADO']) || '').trim();
+      const nombres = String(firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombres', 'apellidos_nombre']) || '').trim();
+      const cip = String(firstValue(r, ['cip', 'CIP']) || '').trim();
+      const dni = String(firstValue(r, ['dni', 'DNI']) || '').trim();
+      const domicilio = String(firstValue(r, ['DOMICILIO ACTUAL', 'domicilio_actual', 'DOMICILIO', 'domicilio', 'DIRECCION', 'direccion', 'DIRECCI\u00d3N']) || '').trim().toUpperCase();
+      const procedencia = String(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '').trim();
+
+      _csOrdenData = {
+        claseNombre: [grado, nombres].filter(Boolean).join(' '),
+        procedencia,
+        destino: nuevaRevista,
+        fechaYmd: fechaCambio,
+        motivo: [motivoFinal, docReferencia].filter(Boolean).join(' - '),
+        carnet: [cip ? `CIP N\u00b0 ${cip}` : '', dni ? `DNI N\u00b0 ${dni}` : ''].filter(Boolean).join(' / '),
+        domicilio
+      };
+
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('ocs_nro').value = '';
+      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+      document.getElementById('ocs_lugar').value = nuevaRevista;
+      document.getElementById('ocs_hora').value = `${hh}:${mi}`;
+      document.getElementById('ocs_domicilio').value = domicilio;
+      document.getElementById('ocs_vacaciones').value = document.getElementById('ocs_vacaciones').value || '';
+
+      const sel = document.getElementById('ocs_firmante');
+      const prev = sel.value;
+      sel.innerHTML = (jefesList || []).map((j, idx) => {
+        const nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
+        const grd = j.GRADO || j.grado || '';
+        const crg = j.CARGO || j.cargo || '';
+        return `<option value="${idx}">${esc(grd)} ${esc(nom)} - ${esc(crg)}</option>`;
+      }).join('') || '<option value="-1">(Sin firmantes registrados)</option>';
+      if (prev !== '' && sel.querySelector(`option[value="${prev}"]`)) {
+        sel.value = prev;
+      } else {
+        const ofadIdx = (jefesList || []).findIndex(j => String(j.CARGO || j.cargo || '').toUpperCase().includes('OFAD'));
+        if (ofadIdx >= 0) sel.value = String(ofadIdx);
+      }
+
+      document.getElementById('ocs_resumen').innerHTML = `
+        <div style="font-weight:800; font-size:13.5px; margin-bottom:4px;">${esc(_csOrdenData.claseNombre)}</div>
+        <div><b>De:</b> ${esc(procedencia || '\u2014')}</div>
+        <div><b>A:</b> ${esc(nuevaRevista)}</div>
+        <div><b>Fecha:</b> ${esc(_csFechaCorta(fechaCambio))} &nbsp;&middot;&nbsp; <b>Motivo:</b> ${esc(motivoFinal)}</div>
+        <div><b>Documento:</b> ${esc(docReferencia)}</div>`;
+
+      document.getElementById('opcionesGuardarCambioSubunidadModal').classList.add('open');
+    }
+
+    function cerrarOpcionesGuardarCambioSubunidad() {
+      document.getElementById('opcionesGuardarCambioSubunidadModal').classList.remove('open');
+    }
+
+    async function ejecutarGuardadoCambioSubunidad(generarOrden) {
+      if (!_csOrdenData) return;
+      const idx = parseInt(document.getElementById('ocs_firmante')?.value, 10);
+      const j = (jefesList || [])[idx] || null;
+      Object.assign(_csOrdenData, {
+        nro: String(document.getElementById('ocs_nro').value || '').trim().toUpperCase(),
+        siglas: String(document.getElementById('ocs_siglas').value || '').trim().toUpperCase(),
+        lugar: String(document.getElementById('ocs_lugar').value || '').trim().toUpperCase(),
+        hora: String(document.getElementById('ocs_hora').value || '').trim(),
+        domicilio: String(document.getElementById('ocs_domicilio').value || '').trim().toUpperCase(),
+        vacaciones: String(document.getElementById('ocs_vacaciones').value || '').trim().toUpperCase(),
+        firmante: j ? {
+          cip: String(j.CIP || j.cip || '').trim(),
+          nombre: formatNombrePostFirma(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || ''),
+          grado: j.GRADO || j.grado || '',
+          cargo: j.CARGO || j.cargo || ''
+        } : null
+      });
+
+      const btns = [document.getElementById('ocs_btn_generar'), document.getElementById('ocs_btn_sin_doc')];
+      btns.forEach(b => { if (b) b.disabled = true; });
+      try {
+        const ok = await guardarCambioSubunidad();
+        if (!ok) return;
+        cerrarOpcionesGuardarCambioSubunidad();
+        if (generarOrden) regenerarOrdenCambioSubunidad(true);
+      } finally {
+        btns.forEach(b => { if (b) b.disabled = false; });
+      }
+    }
+
+    function _csOrdenCopiaHtml(d) {
+      const e = s => esc(String(s || ''));
+      const L = 'width:4.6cm; padding:5px 0 2px 0; font-size:10.5pt; white-space:nowrap; vertical-align:bottom;';
+      const S = 'width:0.4cm; padding:5px 0 2px 0; font-size:10.5pt; vertical-align:bottom;';
+      const V = 'padding:5px 4px 2px 4px; font-size:10.5pt; font-weight:bold; border-bottom:1px solid #000; vertical-align:bottom;';
+      const row = (lbl, val) => `<tr><td style="${L}">${lbl}</td><td style="${S}">:</td><td colspan="3" style="${V}">${e(val)}</td></tr>`;
+      const f = d.firmante || { cip: '', nombre: '', grado: '', cargo: '' };
+      const nroTxt = d.nro || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+      return `
+        <div class="ocs-copia" style="font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm;">
+          <table style="width:100%; border-collapse:collapse;"><tr>
+            <td style="width:2cm; vertical-align:middle;" class="ocs-screen-only"><img src="escudo_header_regpol.png" style="height:1.6cm;" alt="" onerror="this.style.display='none'" /></td>
+            <td style="vertical-align:middle;">
+              <p style="margin:0; font-size:9pt; font-weight:bold;">POLIC&Iacute;A NACIONAL DEL PER&Uacute;</p>
+              <p style="margin:0; font-size:9pt; font-weight:bold;">REGI&Oacute;N POLICIAL HU&Aacute;NUCO</p>
+              <p style="margin:0; font-size:8.5pt;">OFAD - &Aacute;REA DE RECURSOS HUMANOS</p>
+            </td>
+          </tr></table>
+          <p style="text-align:center; margin:10px 0 8px 0; font-size:12pt; font-weight:bold; text-decoration:underline;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${e(d.nro) || nroTxt} - ${e(d.siglas)}</p>
+          <table style="width:100%; border-collapse:collapse;">
+            ${row('CLASE Y NOMBRE', d.claseNombre)}
+            ${row('UNIDAD DE PROCEDENCIA', d.procedencia)}
+            ${row('UNIDAD DE DESTINO', d.destino)}
+            ${row('LUGAR DONDE SE DIRIGE', d.lugar)}
+            <tr>
+              <td style="${L}">FECHA DE SALIDA</td><td style="${S}">:</td>
+              <td style="${V} width:5cm;">${e(_csFechaCorta(d.fechaYmd))}</td>
+              <td style="padding:5px 4px 2px 12px; font-size:10.5pt; width:1.6cm; vertical-align:bottom;">HORA:</td>
+              <td style="${V}">${e(d.hora)}</td>
+            </tr>
+            ${row('MOTIVO', d.motivo)}
+            ${row('CARNET DE IDENTIDAD', d.carnet)}
+            ${row('DOMICILIO ACTUAL', d.domicilio)}
+            ${row('VACACIONES', d.vacaciones)}
+          </table>
+          <p style="text-align:right; margin:10px 0 0 0; font-size:10pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
+          <table style="width:100%; border-collapse:collapse; margin-top:4px;"><tr>
+            <td style="width:50%; vertical-align:bottom;" class="ocs-screen-only"><img src="sello_ofad_regpol.png" style="height:2.4cm; opacity:0.85;" alt="" onerror="this.style.display='none'" /></td>
+            <td style="text-align:center; vertical-align:bottom; font-size:9pt; padding-top:1.1cm;">
+              <p style="margin:0;">______________________________</p>
+              <p style="margin:0;">${f.cip ? 'OA - ' + e(f.cip) : '&nbsp;'}</p>
+              <p style="margin:0; font-weight:bold;">${e(f.nombre)}</p>
+              <p style="margin:0;">${e(f.grado)}</p>
+              <p style="margin:0;">${e(f.cargo)}</p>
+            </td>
+          </tr></table>
+        </div>`;
+    }
+
+    function regenerarOrdenCambioSubunidad(abrir) {
+      if (!_csOrdenData) return;
+      const copia = _csOrdenCopiaHtml(_csOrdenData);
+      const corte = `<p class="ocs-corte" style="margin:0.5cm 0; border-top:1px dashed #888; text-align:center; font-size:7pt; color:#888; font-family:Arial;">- - - cortar aqu&iacute; - - -</p>`;
+      document.getElementById('ocsSheet').innerHTML = copia + corte + copia;
+      if (abrir === true) document.getElementById('ordenCambioSubunidadPreviewModal').classList.add('open');
+    }
+
+    function cerrarOrdenCambioSubunidadPreview() {
+      document.getElementById('ordenCambioSubunidadPreviewModal').classList.remove('open');
+    }
+
+    function _csNombreArchivoOrden() {
+      const n = String(_csOrdenData?.claseNombre || 'EFECTIVO').replace(/[^A-Za-z0-9\u00d1\u00f1 ]/g, '').trim().replace(/\s+/g, '_');
+      return `ORDEN_INCORPORACION_${n}_${_csOrdenData?.fechaYmd || ''}`;
+    }
+
+    function descargarOrdenCambioSubunidadWord() {
+      const clone = document.getElementById('ocsSheet').cloneNode(true);
+      clone.querySelectorAll('.ocs-screen-only').forEach(el => el.remove());
+      clone.querySelectorAll('.ocs-copia').forEach(el => { el.style.minHeight = ''; });
+      const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>Orden de Incorporacion</title>
+<\!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--\>
+<style>
+@page WordSection1 { size:21.0cm 29.7cm; margin:1.2cm 1.6cm 1.0cm 1.6cm; }
+div.WordSection1 { page:WordSection1; }
+body { font-family:Arial, sans-serif; font-size:10.5pt; }
+table { border-collapse:collapse; }
+p { margin:0; }
+</style></head>
+<body><div class="WordSection1">${clone.innerHTML}</div></body></html>`;
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = _csNombreArchivoOrden() + '.doc';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      toast('Orden de Incorporaci\u00f3n descargada en formato Word', 'success');
+    }
+
+    function imprimirOrdenCambioSubunidad() {
+      const content = document.getElementById('ocsSheet').innerHTML;
+      const w = window.open('', '_blank');
+      if (!w) { toast('Permita las ventanas emergentes para imprimir', 'warning'); return; }
+      w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><base href="${location.href}"><title>${_csNombreArchivoOrden()}</title>
+<style>@page { size:A4 portrait; margin:1.2cm 1.6cm 1.0cm 1.6cm; } body { margin:0; font-family:Arial, sans-serif; } .ocs-copia { min-height:12.6cm; }</style>
+</head><body>${content}<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); };<\/script></body></html>`);
+      w.document.close();
     }
 
     function onUnidadDivisionInput(keepExacto1 = false) {
