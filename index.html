@@ -12713,14 +12713,10 @@ MOTIVO: ${motivoText}`;
       const nroTxt = d.nro || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
       return `
         <div class="ocs-copia" style="font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm; padding:0 0.5cm; box-sizing:border-box;">
-          <div style="display:inline-block; text-align:center; margin-bottom:6px;">
-            <p style="margin:0; font-family:Arial, sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">POLIC&Iacute;A NACIONAL DEL PER&Uacute;</p>
-            <p style="margin:0; font-family:Arial, sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">COMANDO OPERACIONES POLICIALES</p>
-            <p style="margin:0; font-family:Arial, sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">DIRECCI&Oacute;N NACIONAL DE ORDEN Y SEGURIDAD</p>
-            <p style="margin:0; font-family:Arial, sans-serif; font-size:7.5pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">REGI&Oacute;N POLICIAL HU&Aacute;NUCO</p>
-            <p style="margin:0; font-family:Arial, sans-serif; font-size:7pt; font-weight:bold; text-transform:uppercase; line-height:1.2;">OFAD - AREREHUM</p>
+          <div style="display:inline-block; margin-bottom:4px;">
+            <img src="escudo_header_regpol.png" style="width:165px; max-width:175px; height:auto; display:block;" alt="Policia Nacional del Peru - Region Policial Huanuco" onerror="this.style.display='none'" />
           </div>
-          <p style="text-align:center; margin:8px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:12pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${e(d.nro) || nroTxt} - ${e(d.siglas)}</p>
+          <p style="text-align:center; margin:6px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:12pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${e(d.nro) || nroTxt} - ${e(d.siglas)}</p>
           <table style="width:100%; border-collapse:collapse; margin-bottom:6px;">
             ${row('CLASE Y NOMBRE', d.claseNombre)}
             ${row('UNIDAD DE PROCEDENCIA', d.procedencia)}
