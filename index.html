@@ -12637,7 +12637,7 @@ MOTIVO: ${motivoText}`;
       const hh = String(now.getHours()).padStart(2, '0');
       const mi = String(now.getMinutes()).padStart(2, '0');
       document.getElementById('ocs_nro').value = '';
-      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM`;
+      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EMOFAD.AREREHUM.MP`;
       document.getElementById('ocs_lugar').value = nuevaRevista;
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
       document.getElementById('ocs_observaciones').value = '';
@@ -12710,14 +12710,15 @@ MOTIVO: ${motivoText}`;
       const V = 'padding:3px 4px 3px 4px; font-family:Arial, sans-serif; font-size:9pt; font-weight:bold; vertical-align:top;';
       const row = (lbl, val) => `<tr><td style="${L}">${lbl}</td><td style="${S}">:</td><td colspan="3" style="${V}">${e(val)}</td></tr>`;
       const f = d.firmante || { cip: '', nombre: '', grado: '', cargo: '' };
-      const nroTxt = d.nro || '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+      const nroVal = d.nro ? e(d.nro) : '01';
+      const siglasVal = d.siglas ? e(d.siglas) : `${(d.fechaYmd || '').slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EMOFAD.AREREHUM.MP`;
       return `
         <div class="ocs-copia" style="font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm; padding:0 0.3cm; box-sizing:border-box;">
           <div style="display:inline-block; margin-bottom:4px;">
             <img src="escudo_header_regpol.png" style="width:165px; max-width:175px; height:auto; display:block;" alt="Policia Nacional del Peru - Region Policial Huanuco" onerror="this.style.display='none'" />
           </div>
-          <p style="text-align:center; margin:6px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:16pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${e(d.nro) || nroTxt} - ${e(d.siglas)}</p>
-          <table style="width:calc(100% - 1.25cm); margin-left:1.25cm; border-collapse:collapse; margin-bottom:6px;">
+          <p style="text-align:center; margin:6px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:15pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${nroVal} - ${siglasVal}</p>
+          <table style="width:calc(100% - 3.75cm); margin-left:1.875cm; margin-right:1.875cm; border-collapse:collapse; margin-bottom:6px;">
             ${row('CLASE Y NOMBRE', d.claseNombre)}
             ${row('UNIDAD DE PROCEDENCIA', d.procedencia)}
             ${row('UNIDAD DE DESTINO', d.destino)}
