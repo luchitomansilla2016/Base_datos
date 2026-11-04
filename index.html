@@ -12450,7 +12450,6 @@ MOTIVO: ${motivoText}`;
       const origenAnterior = String(firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_origen']) || '').trim();
 
       const nuevaRevista = String(document.getElementById('cs_nueva_lista_revista')?.value || '').trim().toUpperCase();
-      const nuevaUnidadOrigen = String(document.getElementById('cs_nueva_unidad_origen')?.value || origenAnterior || '').trim().toUpperCase();
       const fechaCambio = String(document.getElementById('cs_fecha_cambio')?.value || '').trim() || getTodayPeruYMD();
       const docReferencia = String(document.getElementById('cs_documento_referencia')?.value || '').trim().toUpperCase();
       const tipoMovimiento = String(document.getElementById('cs_tipo_movimiento')?.value || 'CAMBIO DE REVISTA').trim().toUpperCase();
@@ -12486,7 +12485,6 @@ MOTIVO: ${motivoText}`;
       try {
         const sample = tableSampleRows['personal'] || tableSampleRows['cambio_subunidad'] || r;
         const kListaRevista = getDbColumnKey('LISTA DE REVISTA', sample);
-        const kUnidadOrigen = getDbColumnKey('UNIDAD DE ORIGEN', sample);
         const kUnidadAnterior = getDbColumnKey('UNIDAD ANTERIOR', sample);
         const kFechaIncorp = getDbColumnKey('FECHA INCORPORACION', sample);
         const kDocSustenta = getDbColumnKey('DOCUMENTO QUE SUSTENTA', sample);
@@ -12496,9 +12494,6 @@ MOTIVO: ${motivoText}`;
           [kFechaIncorp]: fechaCambio,
           [kDocSustenta]: docReferencia
         };
-        if (nuevaUnidadOrigen) {
-          patchPayload[kUnidadOrigen] = nuevaUnidadOrigen;
-        }
         if (revistaAnterior && revistaAnterior !== '\u2014') {
           patchPayload[kUnidadAnterior] = revistaAnterior;
         }
@@ -12522,10 +12517,6 @@ MOTIVO: ${motivoText}`;
         r['fecha_de_incorporacion'] = fechaCambio;
         r['DOCUMENTO QUE SUSTENTA'] = docReferencia;
         r['documento_que_sustenta'] = docReferencia;
-        if (nuevaUnidadOrigen) {
-          r['UNIDAD DE ORIGEN'] = nuevaUnidadOrigen;
-          r['unidad_de_origen'] = nuevaUnidadOrigen;
-        }
         if (revistaAnterior) {
           r['UNIDAD ANTERIOR'] = revistaAnterior;
           r['unidad_anterior'] = revistaAnterior;
@@ -12545,7 +12536,7 @@ MOTIVO: ${motivoText}`;
           tipo_movimiento: tipoMovimiento,
           fecha: fechaCambio,
           lista_de_revista: nuevaRevista,
-          unidad_de_origen: nuevaUnidadOrigen || origenAnterior,
+          unidad_de_origen: origenAnterior,
           unidad_anterior: revistaAnterior,
           documento_referencia: docReferencia,
           motivo: motivoFinal,
