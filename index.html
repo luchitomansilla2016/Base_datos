@@ -12451,7 +12451,6 @@ MOTIVO: ${motivoText}`;
 
       const nuevaRevista = String(document.getElementById('cs_nueva_lista_revista')?.value || '').trim().toUpperCase();
       const nuevaUnidadOrigen = String(document.getElementById('cs_nueva_unidad_origen')?.value || origenAnterior || '').trim().toUpperCase();
-      const tipoMovimiento = String(document.getElementById('cs_tipo_movimiento')?.value || 'CAMBIO DE REVISTA').trim().toUpperCase();
       const fechaCambio = String(document.getElementById('cs_fecha_cambio')?.value || '').trim() || getTodayPeruYMD();
       const docReferencia = String(document.getElementById('cs_documento_referencia')?.value || '').trim().toUpperCase();
       const tipoMovimiento = String(document.getElementById('cs_tipo_movimiento')?.value || 'CAMBIO DE REVISTA').trim().toUpperCase();
@@ -12625,7 +12624,6 @@ MOTIVO: ${motivoText}`;
       const motivoFinal = (motSelectVal === '__OTRO__')
         ? String(document.getElementById('cs_motivo_otro')?.value || '').trim().toUpperCase()
         : String(motSelectVal).trim().toUpperCase();
-      const tipoMovimiento = String(document.getElementById('cs_tipo_movimiento')?.value || 'CAMBIO DE REVISTA').trim().toUpperCase();
       const fechaCambio = String(document.getElementById('cs_fecha_cambio')?.value || '').trim() || getTodayPeruYMD();
 
       if (!nuevaRevista) {
@@ -12659,9 +12657,7 @@ MOTIVO: ${motivoText}`;
         destino: nuevaRevista,
         fechaYmd: fechaCambio,
         docReferencia,
-        tipoMovimiento,
-        motivoCambio: motivoFinal,
-        motivo: [tipoMovimiento, motivoFinal].filter(Boolean).join(' - '),
+        motivo: [motivoFinal, docReferencia].filter(Boolean).join(' - '),
         carnet: [cip ? `CIP N\u00b0 ${cip}` : '', dni ? `DNI N\u00b0 ${dni}` : ''].filter(Boolean).join(' / '),
         domicilio
       };
@@ -12670,7 +12666,7 @@ MOTIVO: ${motivoText}`;
       const hh = String(now.getHours()).padStart(2, '0');
       const mi = String(now.getMinutes()).padStart(2, '0');
       document.getElementById('ocs_nro').value = '';
-      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EMOFAD.AREREHUM.MP`;
       document.getElementById('ocs_lugar').value = docReferencia || '';
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
       const selObs = document.getElementById('ocs_obs_select');
@@ -12740,13 +12736,13 @@ MOTIVO: ${motivoText}`;
 
     function _csOrdenCopiaHtml(d, esCopiaInferior = false) {
       const e = s => esc(String(s || ''));
-      const L = 'width:5.2cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:8pt; white-space:nowrap; vertical-align:top;';
-      const S = 'width:0.4cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:8pt; vertical-align:top;';
-      const V = 'padding:3px 4px 3px 4px; font-family:Arial, sans-serif; font-size:8pt; font-weight:normal; vertical-align:top;';
+      const L = 'width:5.2cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:9pt; white-space:nowrap; vertical-align:top;';
+      const S = 'width:0.4cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:9pt; vertical-align:top;';
+      const V = 'padding:3px 4px 3px 4px; font-family:Arial, sans-serif; font-size:9pt; font-weight:bold; vertical-align:top;';
       const row = (lbl, val) => `<tr><td style="${L}">${lbl}</td><td style="${S}">:</td><td colspan="3" style="${V}">${e(val)}</td></tr>`;
       const f = d.firmante || { cip: '', nombre: '', grado: '', cargo: '' };
       const nroVal = d.nro ? e(d.nro) : '01';
-      const siglasVal = d.siglas ? e(d.siglas) : `${(d.fechaYmd || '').slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+      const siglasVal = d.siglas ? e(d.siglas) : `${(d.fechaYmd || '').slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EMOFAD.AREREHUM.MP`;
       const efNombres = e(d.nombres || '');
       const efGrado = e(d.grado || '');
 
@@ -12764,7 +12760,7 @@ MOTIVO: ${motivoText}`;
             <tr>
               <td style="${L}">FECHA DE SALIDA</td><td style="${S}">:</td>
               <td style="${V} width:5cm;">${e(_csFechaCorta(d.fechaYmd))}</td>
-              <td style="padding:3px 4px 3px 12px; font-family:Arial, sans-serif; font-size:8pt; width:1.6cm; vertical-align:top;">HORA:</td>
+              <td style="padding:3px 4px 3px 12px; font-family:Arial, sans-serif; font-size:9pt; width:1.6cm; vertical-align:top;">HORA:</td>
               <td style="${V}">${e(d.hora)}</td>
             </tr>
             ${row('MOTIVO', d.motivo)}
@@ -12772,7 +12768,7 @@ MOTIVO: ${motivoText}`;
             ${row('VACACIONES', d.vacaciones)}
             ${row('OBSERVACIONES', d.observaciones)}
           </table>
-          <p style="text-align:right; margin:8px 0 0 0; padding-right:50px; font-family:'Arial Narrow', Arial, sans-serif; font-size:8.5pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
+          <p style="text-align:right; margin:8px 0 0 0; padding-right:50px; font-family:'Arial Narrow', Arial, sans-serif; font-size:9.5pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
           <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:${esCopiaInferior ? '35px' : '75px'}; padding-left:1.875cm; padding-right:35px;">
             ${esCopiaInferior ? `
             <div style="display:inline-flex; align-items:flex-end; gap:12px;">
