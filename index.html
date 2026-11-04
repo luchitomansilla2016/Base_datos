@@ -4206,13 +4206,13 @@
             <label for="ref_servicio">EN EL SERVICIO</label>
             <input id="ref_servicio" type="text" placeholder="Ej. TRAUMATOLOGÍA / CARDIOLOGÍA / MEDICINA GENERAL..." style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" />
           </div>
-          <!-- Campos que se asignan automáticamente al generar el oficio (ocultos inicialmente) -->
-          <div class="field" style="display: none;">
-            <label for="ref_doc_pone_disposicion">N° DE OFICIO (SOLO PONER NUMERO)</label>
-            <input id="ref_doc_pone_disposicion" type="text" placeholder="Ej. 6630" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" onchange="formatReferidoOficioNumero()" onblur="formatReferidoOficioNumero()" />
+          <!-- Campos de documento que pone a disposición y fecha del doc solicitados encima de observación -->
+          <div class="field">
+            <label for="ref_doc_pone_disposicion">DOC QUE PONE A DISPOSICIÓN</label>
+            <input id="ref_doc_pone_disposicion" type="text" placeholder="Ej. OFICIO N° 123-2026..." style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" />
           </div>
-          <div class="field" style="display: none;">
-            <label for="ref_fecha_doc">FECHA DOC</label>
+          <div class="field">
+            <label for="ref_fecha_doc">FECHA DEL DOC</label>
             <input id="ref_fecha_doc" type="date" />
           </div>
           <div class="field wide" style="grid-column: span 2;">
