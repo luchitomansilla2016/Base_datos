@@ -12750,9 +12750,15 @@ MOTIVO: ${motivoText}`;
       const efGrado = e(d.grado || '');
 
       return `
-        <div class="ocs-copia" style="font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm; padding:0 0.3cm; box-sizing:border-box;">
-          <div style="display:inline-block; margin-bottom:4px;">
-            <img src="escudo_header_regpol.png" style="width:165px; max-width:175px; height:auto; display:block;" alt="Policia Nacional del Peru - Region Policial Huanuco" onerror="this.style.display='none'" />
+        <div class="ocs-copia" style="position:relative; font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm; padding:0 0.3cm; box-sizing:border-box;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+            <div style="display:inline-block;">
+              <img src="escudo_header_regpol.png" style="width:165px; max-width:175px; height:auto; display:block;" alt="Policia Nacional del Peru - Region Policial Huanuco" onerror="this.style.display='none'" />
+            </div>
+            ${esCopiaInferior ? `
+            <div style="display:inline-block; margin-top:2px;">
+              <img src="sello_cargo_regpol.png" style="width:115px; max-width:125px; height:auto; display:block;" alt="CARGO" onerror="this.style.display='none'" />
+            </div>` : '<div></div>'}
           </div>
           <p style="text-align:center; margin:6px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:15pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${nroVal} - ${siglasVal}</p>
           <table style="width:calc(100% - 1.875cm); margin-left:1.875cm; margin-right:0; border-collapse:collapse; margin-bottom:6px;">
@@ -12771,7 +12777,8 @@ MOTIVO: ${motivoText}`;
             ${row('VACACIONES', d.vacaciones)}
             ${row('OBSERVACIONES', d.observaciones)}
           </table>
-          <p style="text-align:right; margin:8px 0 0 0; padding-right:50px; font-family:'Arial Narrow', Arial, sans-serif; font-size:8.5pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
+          <div style="width:100%; border-top:1px solid #000; margin:6px 0 6px 0;"></div>
+          <p style="text-align:right; margin:0; padding-right:50px; font-family:'Arial Narrow', Arial, sans-serif; font-size:8.5pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
           <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:${esCopiaInferior ? '35px' : '75px'}; padding-left:1.875cm; padding-right:35px;">
             ${esCopiaInferior ? `
             <div style="display:inline-flex; align-items:flex-end; gap:12px;">
