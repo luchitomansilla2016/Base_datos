@@ -20958,7 +20958,7 @@ REGLAS CRÍTICAS:
       if (e) e.preventDefault();
       const checks = [...document.querySelectorAll('.export-check:checked')].map(c => c.value);
       if (!checks.length) { toast('Seleccione al menos un campo', 'warning'); return; }
-      const sourceRows = (typeof filteredRows !== 'undefined' && filteredRows.length) ? filteredRows : allRows;
+      const sourceRows = (lastFilteredRows && lastFilteredRows.length) ? lastFilteredRows : rows;
       if (!sourceRows || !sourceRows.length) { toast('No hay datos cargados para exportar', 'warning'); return; }
       let html = '<html><head><meta charset="utf-8"></head><body><table border="1"><thead><tr>' +
         checks.map(k => `<th style="background:#0b5a3c;color:#ffffff;font-weight:bold;">${esc(allFieldMeta[k]?.label || k)}</th>`).join('') +
@@ -21063,7 +21063,7 @@ REGLAS CRÍTICAS:
     }
 
     function backupAllData() {
-      const sourceRows = (typeof allRows !== 'undefined' && allRows.length) ? allRows : [];
+      const sourceRows = (rows && rows.length) ? rows : [];
       if (!sourceRows.length) { toast('No hay registros cargados para respaldar', 'warning'); return; }
       const sampleKeys = Object.keys(sourceRows[0]).filter(k => !k.startsWith('_'));
       const headers = sampleKeys.length ? sampleKeys : Object.keys(allFieldMeta);
