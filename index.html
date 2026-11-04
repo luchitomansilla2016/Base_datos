@@ -4844,6 +4844,7 @@
                 <option value="APOYO">APOYO</option>
                 <option value="CURSO">CURSO</option>
                 <option value="REFERIDO">REFERIDO</option>
+                <option value="LICENCIA POR GRAVIDEZ">LICENCIA POR GRAVIDEZ</option>
                 <option value="REASIGNADO">REASIGNADO</option>
                 <option value="SOMETIDO A LEY">SOMETIDO A LEY</option>
                 <option value="DISPONIBILIDAD">DISPONIBILIDAD</option>
@@ -6591,6 +6592,7 @@
                 <option value="APOYO">APOYO</option>
                 <option value="CURSO">CURSO</option>
                 <option value="REFERIDO">REFERIDO</option>
+                <option value="LICENCIA POR GRAVIDEZ">LICENCIA POR GRAVIDEZ</option>
                 <option value="REASIGNADO">REASIGNADO</option>
                 <option value="OTRO">OTRO MOVIMIENTO</option>
               </select>
@@ -10475,7 +10477,7 @@
         tbody.innerHTML = movs.map((m, idx) => {
           const isLatest = (idx === 0);
           const tm = String(m.tipo_movimiento || '').toUpperCase();
-          const esTemporal = tm.includes('CURSO') || tm.includes('REFER') || tm.includes('APOYO') || tm.includes('COMIS');
+          const esTemporal = tm.includes('CURSO') || tm.includes('REFER') || tm.includes('APOYO') || tm.includes('COMIS') || tm.includes('GRAVID') || tm.includes('MATERN');
           const esRetorno = tm.includes('RETORNO') || tm.includes('REINCORP');
           const badgeColor = esRetorno ? '#065f46; background:#d1fae5; border:1px solid #6ee7b7;' :
                              tm.includes('INCORP') ? '#166534; background:#dcfce7; border:1px solid #bbf7d0;' :
@@ -10483,6 +10485,7 @@
                              tm.includes('APOYO') ? '#0e7490; background:#cffafe; border:1px solid #a5f3fc;' :
                              tm.includes('CURSO') ? '#1e40af; background:#dbeafe; border:1px solid #bfdbfe;' :
                              tm.includes('REFER') ? '#991b1b; background:#fee2e2; border:1px solid #fecaca;' :
+                             (tm.includes('GRAVID') || tm.includes('MATERN')) ? '#9d174d; background:#fdf2f8; border:1px solid #fbcfe8;' :
                              tm.includes('REASIG') ? '#5b21b6; background:#ede9fe; border:1px solid #ddd6fe;' :
                              tm.includes('LEY') ? '#831843; background:#fce7f3; border:1px solid #fbcfe8;' :
                              (tm.includes('DISP') || tm.includes('RETIR')) ? '#9a3412; background:#ffedd5; border:1px solid #fed7aa;' :
