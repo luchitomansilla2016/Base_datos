@@ -6675,7 +6675,15 @@
             <div class="field" style="grid-column:span 6;"><label for="ocs_lugar">LUGAR DONDE SE DIRIGE</label><input id="ocs_lugar" type="text" /></div>
             <div class="field" style="grid-column:span 2;"><label for="ocs_hora">HORA</label><input id="ocs_hora" type="text" placeholder="08:00" /></div>
             <div class="field" style="grid-column:span 6;"><label for="ocs_vacaciones">VACACIONES</label><input id="ocs_vacaciones" type="text" placeholder="Ej. NO REGISTRA / PENDIENTE 2025" /></div>
-            <div class="field" style="grid-column:span 6;"><label for="ocs_observaciones">OBSERVACIONES</label><input id="ocs_observaciones" type="text" placeholder="Observaciones adicionales..." /></div>
+            <div class="field" style="grid-column:span 6;">
+              <label for="ocs_obs_select">OBSERVACIONES</label>
+              <select id="ocs_obs_select" onchange="onChangeOcsObservaciones(this.value)" style="font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1; margin-bottom:4px;">
+                <option value="OPCION_1">PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA</option>
+                <option value="OPCION_2">PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN Y/O HASTA EL PRONUNCIAMIENTO DE LA DIRREHUM PNP ENTORNO A SU SOLICITUD DE REASIGNACION, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA</option>
+                <option value="__OTRO__">OTRA OBSERVACI&Oacute;N (ESCRIBIR / EDITAR DIRECTAMENTE)...</option>
+              </select>
+              <textarea id="ocs_observaciones" rows="2" style="font-size:12px; font-weight:600; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; width:100%; box-sizing:border-box; resize:vertical;" placeholder="Observaciones adicionales..."></textarea>
+            </div>
             <div class="field" style="grid-column:span 6;"><label for="ocs_firmante">QUI&Eacute;N FIRMA</label><select id="ocs_firmante"></select></div>
           </div>
         </div>
@@ -12573,6 +12581,24 @@ MOTIVO: ${motivoText}`;
     // ========================================================
     let _csOrdenData = null;
 
+    const OCS_OBS_TEXTS = {
+      OPCION_1: 'PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA',
+      OPCION_2: 'PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN Y/O HASTA EL PRONUNCIAMIENTO DE LA DIRREHUM PNP ENTORNO A SU SOLICITUD DE REASIGNACION, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA'
+    };
+
+    function onChangeOcsObservaciones(val) {
+      const txtArea = document.getElementById('ocs_observaciones');
+      if (!txtArea) return;
+      if (val === 'OPCION_1') {
+        txtArea.value = OCS_OBS_TEXTS.OPCION_1;
+      } else if (val === 'OPCION_2') {
+        txtArea.value = OCS_OBS_TEXTS.OPCION_2;
+      } else if (val === '__OTRO__') {
+        txtArea.value = '';
+        txtArea.focus();
+      }
+    }
+
     function _csFechaCorta(ymd) {
       const m = String(ymd || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
       return m ? `${m[3]}/${m[2]}/${m[1]}` : String(ymd || '');
@@ -12642,7 +12668,9 @@ MOTIVO: ${motivoText}`;
       document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EMOFAD.AREREHUM.MP`;
       document.getElementById('ocs_lugar').value = nuevaRevista;
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
-      document.getElementById('ocs_observaciones').value = '';
+      const selObs = document.getElementById('ocs_obs_select');
+      if (selObs) selObs.value = 'OPCION_1';
+      document.getElementById('ocs_observaciones').value = OCS_OBS_TEXTS.OPCION_1;
       document.getElementById('ocs_vacaciones').value = document.getElementById('ocs_vacaciones').value || '';
 
       const sel = document.getElementById('ocs_firmante');
