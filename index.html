@@ -12740,8 +12740,19 @@ MOTIVO: ${motivoText}`;
             ${row('OBSERVACIONES', d.observaciones)}
           </table>
           <p style="text-align:right; margin:8px 0 0 0; padding-right:50px; font-family:'Arial Narrow', Arial, sans-serif; font-size:9.5pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
-          <div style="display:flex; justify-content:flex-end; align-items:flex-end; margin-top:40px; padding-right:35px;">
-            <div style="position:relative; display:inline-flex; flex-direction:column; align-items:center; width:max-content; max-width:100%; margin-top:35px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:35px; padding-left:1.875cm; padding-right:35px;">
+            ${esCopiaInferior ? `
+            <div style="display:inline-flex; align-items:flex-end; gap:12px;">
+              <div style="display:inline-flex; flex-direction:column; align-items:center; min-width:160px;">
+                <div style="width:100%; border-top:1.2px solid #000; margin-bottom:4px;"></div>
+                <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:8.5pt; font-weight:bold; line-height:1.2; text-align:center;">${efNombres}</p>
+                <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:8.5pt; line-height:1.2; text-align:center;">${efGrado}</p>
+              </div>
+              <div style="width:2.2cm; height:2.8cm; border:1.2px solid #000; display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px; box-sizing:border-box;">
+                <span style="font-family:'Arial Narrow', Arial, sans-serif; font-size:7pt; color:#333; text-transform:uppercase; text-align:center; line-height:1.1;">&Iacute;NDICE DERECHO</span>
+              </div>
+            </div>` : '<div></div>'}
+            <div style="position:relative; display:inline-flex; flex-direction:column; align-items:center; width:max-content; max-width:100%;">
               <div style="position:relative; width:100%; min-width:100%; border-top:1.3px solid #000; margin-bottom:4px;">
                 <img src="sello_ofad_regpol.png" class="ocs-screen-only" style="position:absolute; left:0; top:0; transform:translate(-98%, -50%); width:3.0cm; height:3.0cm; max-width:3.0cm; max-height:3.0cm; object-fit:contain; pointer-events:none; z-index:2; opacity:0.88;" alt="" onerror="this.style.display='none'" />
               </div>
@@ -12751,19 +12762,6 @@ MOTIVO: ${motivoText}`;
               <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:9pt; line-height:1.2; white-space:nowrap;">${e(f.cargo)}</p>
             </div>
           </div>
-          ${esCopiaInferior ? `
-          <div style="display:flex; justify-content:flex-start; align-items:flex-end; margin-top:18px; padding-left:1.875cm;">
-            <div style="display:inline-flex; align-items:center; gap:12px;">
-              <div style="display:inline-flex; flex-direction:column; align-items:center; min-width:160px;">
-                <div style="width:100%; border-top:1.2px solid #000; margin-bottom:4px;"></div>
-                <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:8.5pt; font-weight:bold; line-height:1.2; text-align:center;">${efNombres}</p>
-                <p style="margin:0; font-family:'Arial Narrow', Arial, sans-serif; font-size:8.5pt; line-height:1.2; text-align:center;">${efGrado}</p>
-              </div>
-              <div style="width:2.2cm; height:2.8cm; border:1.2px solid #000; display:flex; align-items:flex-end; justify-content:center; padding-bottom:4px; box-sizing:border-box;">
-                <span style="font-family:'Arial Narrow', Arial, sans-serif; font-size:7pt; color:#333; text-transform:uppercase; text-align:center; line-height:1.1;">&Iacute;NDICE DERECHO</span>
-              </div>
-            </div>
-          </div>` : ''}
         </div>`;
     }
 
