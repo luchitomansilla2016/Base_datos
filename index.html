@@ -7333,8 +7333,8 @@
       resolucion: { label: 'Resolución / Documento', type: 'text', cls: 'wide' },
       resolucion_memorandum: { label: 'Resolución / Memorándum', type: 'text', cls: 'wide' },
       motivo: { label: 'Motivo', type: 'text', cls: 'wide' },
-      fecha_salida: { label: 'Fecha salida', type: 'date' },
-      fecha_ingreso_o_salida: { label: 'Fecha salida', type: 'date' },
+      fecha_salida: { label: 'Fecha salida / Incorp.', type: 'date' },
+      fecha_ingreso_o_salida: { label: 'Fecha ingreso o salida', type: 'date' },
       fecha_documento: { label: 'Fecha documento', type: 'date' },
       causal: { label: 'Causal / Motivo', type: 'text', cls: 'wide' },
       delito: { label: 'Causa / Delito', type: 'text', cls: 'wide' },
@@ -10099,8 +10099,8 @@
       if (key === 'unidad_destino') return firstValue(r, ['unidad_destino', 'UNIDAD DESTINO', 'destino']);
       if (key === 'resolucion_memorandum') return firstValue(r, ['resolucion_memorandum', 'resolucion', 'documento_que_sustenta', 'documento']);
       if (key === 'motivo') return firstValue(r, ['motivo', 'causa', 'detalle']);
-      if (key === 'fecha_salida') return formatDateDisplay(firstValue(r, ['fecha_salida', 'FECHA SALIDA', 'fecha_ingreso_o_salida', 'fecha']));
-      if (key === 'fecha_ingreso_o_salida') return formatDateDisplay(firstValue(r, ['fecha_salida', 'fecha_ingreso_o_salida', 'fecha_ingreso_salida', 'fecha_de_incorporacion', 'fecha_documento', 'fecha']));
+      if (key === 'fecha_salida') return formatDateDisplay(firstValue(r, ['fecha_salida', 'FECHA SALIDA', 'fecha_ingreso_o_salida', 'fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'FECHA INCORPORACION', 'fecha_incorporacion', 'fecha']));
+      if (key === 'fecha_ingreso_o_salida') return formatDateDisplay(firstValue(r, ['FECHA INCORPORACIÓN', 'FECHA INCORPORACION', 'fecha_de_incorporacion', 'fecha_incorporacion', 'fecha_salida', 'FECHA SALIDA', 'fecha_ingreso_o_salida', 'fecha_ingreso_salida', 'fecha_documento', 'fecha']));
       if (key === 'observacion' || key === 'observaciones') return firstValue(r, ['observacion', 'OBSERVACION', 'observaciones', 'OBSERVACIONES', 'detalle', 'motivo']);
       if (key === 'numero_oficio_pone_disposición') return firstValue(r, ['doc_pone_a_disposicion', 'DOC PONE A DISPOSICION', 'numero_oficio_pone_disposición', 'numero_oficio_pone_disposicion']);
       if (key === 'constancia_exclusion') return firstValue(r, ['nro_exclusion', 'NRO EXCLUSION', 'constancia_exclusion']);
