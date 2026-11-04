@@ -6672,7 +6672,7 @@
           <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:8px;">
             <div class="field" style="grid-column:span 2;"><label for="ocs_nro">NRO. DE ORDEN</label><input id="ocs_nro" type="text" placeholder="Ej. 001-2026" /></div>
             <div class="field" style="grid-column:span 4;"><label for="ocs_siglas">SIGLAS</label><input id="ocs_siglas" type="text" /></div>
-            <div class="field" style="grid-column:span 6;"><label for="ocs_lugar">LUGAR DONDE SE DIRIGE</label><input id="ocs_lugar" type="text" /></div>
+            <div class="field" style="grid-column:span 6;"><label for="ocs_lugar">DOC DE REFERENCIA</label><input id="ocs_lugar" type="text" placeholder="Documento de referencia o sustento" /></div>
             <div class="field" style="grid-column:span 2;"><label for="ocs_hora">HORA</label><input id="ocs_hora" type="text" placeholder="08:00" /></div>
             <div class="field" style="grid-column:span 6;"><label for="ocs_vacaciones">VACACIONES</label><input id="ocs_vacaciones" type="text" placeholder="Ej. NO REGISTRA / PENDIENTE 2025" /></div>
             <div class="field" style="grid-column:span 6;">
@@ -12656,6 +12656,7 @@ MOTIVO: ${motivoText}`;
         procedencia,
         destino: nuevaRevista,
         fechaYmd: fechaCambio,
+        docReferencia,
         motivo: [motivoFinal, docReferencia].filter(Boolean).join(' - '),
         carnet: [cip ? `CIP N\u00b0 ${cip}` : '', dni ? `DNI N\u00b0 ${dni}` : ''].filter(Boolean).join(' / '),
         domicilio
@@ -12666,7 +12667,7 @@ MOTIVO: ${motivoText}`;
       const mi = String(now.getMinutes()).padStart(2, '0');
       document.getElementById('ocs_nro').value = '';
       document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EMOFAD.AREREHUM.MP`;
-      document.getElementById('ocs_lugar').value = nuevaRevista;
+      document.getElementById('ocs_lugar').value = docReferencia || '';
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
       const selObs = document.getElementById('ocs_obs_select');
       if (selObs) selObs.value = 'OPCION_1';
@@ -12709,7 +12710,7 @@ MOTIVO: ${motivoText}`;
       Object.assign(_csOrdenData, {
         nro: String(document.getElementById('ocs_nro').value || '').trim().toUpperCase(),
         siglas: String(document.getElementById('ocs_siglas').value || '').trim().toUpperCase(),
-        lugar: String(document.getElementById('ocs_lugar').value || '').trim().toUpperCase(),
+        docReferencia: String(document.getElementById('ocs_lugar').value || '').trim().toUpperCase(),
         hora: String(document.getElementById('ocs_hora').value || '').trim(),
         vacaciones: String(document.getElementById('ocs_vacaciones').value || '').trim().toUpperCase(),
         observaciones: String(document.getElementById('ocs_observaciones').value || '').trim().toUpperCase(),
@@ -12752,10 +12753,10 @@ MOTIVO: ${motivoText}`;
           </div>
           <p style="text-align:center; margin:6px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:15pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${nroVal} - ${siglasVal}</p>
           <table style="width:calc(100% - 1.875cm); margin-left:1.875cm; margin-right:0; border-collapse:collapse; margin-bottom:6px;">
-            ${row('CLASE Y NOMBRE', d.claseNombre)}
+            ${row('GRADO, APELLIDOS Y NOMBRES', d.claseNombre)}
             ${row('UNIDAD DE PROCEDENCIA', d.procedencia)}
             ${row('UNIDAD DE DESTINO', d.destino)}
-            ${row('LUGAR DONDE SE DIRIGE', d.lugar)}
+            ${row('DOC DE REFERENCIA', d.docReferencia || d.lugar)}
             <tr>
               <td style="${L}">FECHA DE SALIDA</td><td style="${S}">:</td>
               <td style="${V} width:5cm;">${e(_csFechaCorta(d.fechaYmd))}</td>
@@ -12768,7 +12769,7 @@ MOTIVO: ${motivoText}`;
             ${row('OBSERVACIONES', d.observaciones)}
           </table>
           <p style="text-align:right; margin:8px 0 0 0; padding-right:50px; font-family:'Arial Narrow', Arial, sans-serif; font-size:9.5pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
-          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:${esCopiaInferior ? '35px' : '55px'}; padding-left:1.875cm; padding-right:35px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:${esCopiaInferior ? '35px' : '75px'}; padding-left:1.875cm; padding-right:35px;">
             ${esCopiaInferior ? `
             <div style="display:inline-flex; align-items:flex-end; gap:12px;">
               <div style="display:inline-flex; flex-direction:column; align-items:center; min-width:160px;">
