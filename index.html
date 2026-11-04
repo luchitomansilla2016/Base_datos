@@ -7289,6 +7289,7 @@
       fecha_de_incorporacion: { label: 'Fecha de incorporación', type: 'date' },
       documento_que_sustenta: { label: 'Documento que sustenta', type: 'text', cls: 'full' },
       documento_referencia: { label: 'Doc. Referencia', type: 'text', cls: 'wide' },
+      tiempo_transcurrido: { label: 'Tiempo transcurrido', type: 'text' },
       diagnostico: { label: 'Diagnóstico', type: 'text', cls: 'wide' },
       unidad_anterior: { label: 'Unidad anterior', type: 'text', cls: 'wide' },
       nueva_unidad: { label: 'Nueva unidad asignada', type: 'text', cls: 'wide' },
@@ -10058,6 +10059,10 @@
       if (key === 'lista_de_revista' || key === 'lista_revista') return firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']);
       if (key === 'unidad_de_origen' || key === 'unidad_origen') return firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_origen']);
       if (key === 'descripcion_curso' || key === 'descripcion_del_curso') return firstValue(r, ['descripcion_del_curso', 'descripcion_curso', 'nombre_curso', 'curso']);
+      if (key === 'tiempo_transcurrido') {
+        const fRaw = firstValue(r, ['fecha_salida', 'FECHA SALIDA', 'fecha_ingreso_o_salida', 'fecha_ingreso_salida', 'fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'FECHA INCORPORACION', 'fecha_incorporacion', 'fecha_documento', 'fecha_de_oficio', 'fecha_oficio', 'f_inicio', 'fecha']);
+        return fRaw ? tiempoTranscurrido(fRaw) : '';
+      }
       if (key === 'tiempo_incorporacion') return tiempoTranscurrido(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'FECHA INCORPORACION', 'fecha_incorporacion']));
       if (key === 'edad_actual') return tiempoTranscurrido(firstValue(r, ['fecha_de_nacimiento', 'FECHA DE NACIMIENTO', 'fecha_nacimiento']));
       if (key === 'tiempo_servicio') return tiempoTranscurrido(firstValue(r, ['f_egreso_de_la_escuela', 'FECHA EGR. ESCUELA', 'FECHA EGR ESCUELA', 'fecha_egr_escuela', 'fecha_egreso_de_la_escuela']));
@@ -20831,18 +20836,20 @@ REGLAS CRÍTICAS:
       render();
       const box = document.getElementById('exportFields');
       let fieldList = Object.entries(allFieldMeta).map(([k, v]) => [k, v.label]);
-      if (currentTable === 'personal') {
+      if (currentTable === 'personal' || currentTable === 'cambio_subunidad') {
         fieldList = [
           ['cip', 'CIP'], ['dni', 'DNI'], ['tipo_dni', 'Tipo DNI'], ['codofin', 'CODOFIN'],
           ['grado', 'Grado'], ['apellidos_y_nombres', 'Apellidos y nombres'], ['sexo', 'Sexo'],
-          ['jerarquia', 'JerarquÃ­a'], ['especialidad', 'Especialidad'], ['cargo', 'Cargo'],
-          ['condicion', 'CondiciÃ³n'], ['situacion_actual', 'SituaciÃ³n actual'],
-          ['aptitud_psicosomatico', 'Aptitud psicosomÃ¡tico'],
+          ['jerarquia', 'Jerarquía'], ['especialidad', 'Especialidad'], ['cargo', 'Cargo'],
+          ['condicion', 'Condición'], ['situacion_actual', 'Situación actual'],
+          ['aptitud_psicosomatico', 'Aptitud psicosomático'],
           ['unidad_de_origen', 'Unidad de origen'], ['subunidad_curso_apoyo', 'Subunidad curso/apoyo'],
           ['lista_de_revista', 'Lista de revista'], ['documento_referencia', 'Documento referencia'],
-          ['fecha_ingreso_o_salida', 'Fecha ingreso o salida'], ['resolucion_memorandum', 'ResoluciÃ³n/MemorÃ¡ndum'],
+          ['fecha_ingreso_o_salida', 'Fecha ingreso o salida'],
+          ['tiempo_transcurrido', 'Tiempo transcurrido'],
+          ['resolucion_memorandum', 'Resolución/Memorándum'],
           ['motivo', 'Motivo'], ['observaciones', 'Observaciones'],
-          ['correo', 'Correo'], ['celular', 'Celular'], ['direccion', 'DirecciÃ³n'],
+          ['correo', 'Correo'], ['celular', 'Celular'], ['direccion', 'Dirección'],
           ['estado_civil', 'Estado civil'], ['hijos', 'Hijos'], ['fecha_nacimiento', 'Fecha nacimiento']
         ];
       } else if (currentTable === 'en_curso') {
@@ -20863,7 +20870,9 @@ REGLAS CRÍTICAS:
       } else if (currentTable === 'referidos') {
         fieldList = [
           ['cip', 'CIP'], ['grado', 'Grado'], ['apellidos_y_nombres', 'Apellidos y nombres'],
-          ['unidad_de_origen', 'Unidad de origen'], ['lista_de_revista', 'Lista de revista'], ['fecha_de_incorporacion', 'Fecha de incorporación'], ['situacion_actual', 'Situación actual'], ['condicion', 'Condición'],
+          ['unidad_de_origen', 'Unidad de origen'], ['lista_de_revista', 'Lista de revista'], ['fecha_de_incorporacion', 'Fecha de incorporación'],
+          ['tiempo_transcurrido', 'Tiempo transcurrido'],
+          ['situacion_actual', 'Situación actual'], ['condicion', 'Condición'],
           ['documento_referencia', 'Doc. Referencia'], ['diagnostico', 'Diagnóstico'], ['numero_oficio_pone_disposición', 'N° Oficio pone disposición'], ['fecha_de_oficio', 'Fecha de oficio'],
           ['constancia_exclusion', 'Constancia exclusión'], ['fecha_de_exclusion', 'Fecha exclusión'], ['fecha_de_retorno', 'Fecha de retorno'], ['documento_de_retorno', 'Documento retorno'], ['constancia_de_inclusion', 'Constancia inclusión'], ['fecha_de_inclusion', 'Fecha inclusión'], ['tipo_de_documento', 'Tipo de documento'], ['fecha_documento_retorno', 'Fecha doc retorno'], ['n_de_doc', 'N° Documento'],
           ['observaciones', 'Observaciones']
@@ -20872,7 +20881,9 @@ REGLAS CRÍTICAS:
         fieldList = [
           ['cip', 'CIP'], ['grado', 'Grado'], ['apellidos_nombres', 'Apellidos y nombres'],
           ['unidad_origen', 'Unidad de origen'], ['lista_revista', 'Lista revista'],
-          ['fecha_incorporacion', 'Fecha de incorporación'], ['situacion_actual', 'Situación actual'],
+          ['fecha_incorporacion', 'Fecha de incorporación'],
+          ['tiempo_transcurrido', 'Tiempo transcurrido'],
+          ['situacion_actual', 'Situación actual'],
           ['resolucion_memorandum', 'Resolución / Memorándum'], ['motivo', 'Motivo'],
           ['fecha_salida', 'Fecha de salida'], ['unidad_destino', 'Unidad de destino'],
           ['documento_referencia', 'Doc. Referencia'], ['numero_exclusion', 'N° Exclusión'],
