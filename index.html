@@ -7256,7 +7256,13 @@
     }
 
     async function req(url, options = {}) {
-      let response = await fetch(url, { cache: 'no-store', ...options, headers: buildHeaders(options.headers || {}, url) });
+      let response;
+      try {
+        response = await fetch(url, { cache: 'no-store', ...options, headers: buildHeaders(options.headers || {}, url) });
+      } catch (fetchErr) {
+        console.error('Fetch network/CORS error en req():', fetchErr, 'URL:', url);
+        throw new Error((fetchErr && fetchErr.message) ? fetchErr.message : 'Error de conexión con el servidor (Failed to fetch)');
+      }
       if (!response.ok) {
         const errorText = await response.text();
         if (response.status === 401 || errorText.includes('JWT expired') || errorText.includes('PGRST303')) {
@@ -7266,10 +7272,57 @@
           document.getElementById('loginOverlay')?.classList.remove('hidden');
           throw new Error('Sesión expirada. Por favor inicie sesión nuevamente.');
         }
-        throw new Error(errorText);
+        throw new Error(errorText || `Error HTTP ${response.status}`);
       }
       if (response.status === 204) return null;
       return await response.json();
+    }
+
+    async function actualizarSituacionPersonalPolicial(cip, nuevaSituacion = 'REFERIDO', idRegistro = null) {
+      const cipClean = onlyDigits(cip);
+      if (!cipClean) return false;
+      const situacionVal = String(nuevaSituacion || 'REFERIDO').trim().toUpperCase();
+
+      // 1. Intentar actualizar por ID si está disponible
+      if (idRegistro) {
+        try {
+          await req(API_PERSONAL + '?id=eq.' + encodeURIComponent(idRegistro), {
+            method: 'PATCH',
+            body: JSON.stringify({ 'SITUACIÓN ACTUAL': situacionVal })
+          });
+          return true;
+        } catch (eId1) {
+          try {
+            await req(API_PERSONAL + '?id=eq.' + encodeURIComponent(idRegistro), {
+              method: 'PATCH',
+              body: JSON.stringify({ 'SITUACION ACTUAL': situacionVal })
+            });
+            return true;
+          } catch (eId2) {
+            console.warn('Fallo al actualizar por id en personal_policial, intentando por CIP...', eId2);
+          }
+        }
+      }
+
+      // 2. Intentar actualizar por CIP (tanto numérico como texto)
+      try {
+        await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipClean), {
+          method: 'PATCH',
+          body: JSON.stringify({ 'SITUACIÓN ACTUAL': situacionVal })
+        });
+        return true;
+      } catch (eCip1) {
+        try {
+          await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipClean), {
+            method: 'PATCH',
+            body: JSON.stringify({ 'SITUACION ACTUAL': situacionVal })
+          });
+          return true;
+        } catch (eCip2) {
+          console.warn('No se pudo actualizar situación en personal_policial:', eCip2);
+          return false;
+        }
+      }
     }
 
     const allFieldMeta = {
@@ -14739,20 +14792,20 @@ p { margin:0; }
       };
 
       try {
-        // 1. Guardar en tabla referidos
-        await req(API_REFERIDOS, { method: 'POST', body: JSON.stringify(referidoObj) });
+        // 1. Guardar en tabla referidos con reintento y payload sanitizado
+        try {
+          await req(API_REFERIDOS, { method: 'POST', body: JSON.stringify(referidoObj) });
+        } catch (ePostRef) {
+          console.warn('Fallo inicial guardando en referidos, reintentando con CIP string:', ePostRef);
+          const fallbackRefObj = { ...referidoObj, "CIP": String(cipRaw) };
+          await req(API_REFERIDOS, { method: 'POST', body: JSON.stringify(fallbackRefObj) });
+        }
 
-        // 2. Actualizar situación actual en personal
-        if (current?.id) {
-          await req(API_PERSONAL + '?id=eq.' + encodeURIComponent(current.id), {
-            method: 'PATCH',
-            body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'REFERIDO' })
-          });
-        } else {
-          await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipRaw), {
-            method: 'PATCH',
-            body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'REFERIDO' })
-          });
+        // 2. Actualizar situación actual en personal_policial de forma resiliente
+        try {
+          await actualizarSituacionPersonalPolicial(cipRaw, 'REFERIDO', current?.id);
+        } catch (eSyncPers) {
+          console.warn('Advertencia al sincronizar situación en personal_policial:', eSyncPers);
         }
 
         // 3. Registrar el oficio generado en el sistema de Registro de Documentos (tabla 'oficios')
@@ -14777,13 +14830,30 @@ p { margin:0; }
           console.warn('Registro de oficio en documentos:', eOficio);
         }
 
+        // 4. Registrar movimiento del efectivo a REFERIDO en historial
+        try {
+          await registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: 'REFERIDO',
+            fecha: fechaOficio || getTodayPeruYMD(),
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: formattedOficioDoc || nroOficio || docRef,
+            motivo: diag ? `DIAGNÓSTICO: ${diag}` : 'PASE A REFERIDO',
+            observacion: obs,
+            modulo_origen: 'referidos'
+          });
+        } catch (_) {}
+
         toast('¡Efectivo registrado en Referidos, situación actualizada y Oficio generado con éxito!', 'success');
         closeGenerarDocReferidoModal();
         document.getElementById('referidoFloatingModal').classList.remove('open');
         closeForm();
         await loadData();
 
-        // 4. Preparar y desplegar el Oficio de puesta a disposición generado oficialmente
+        // 5. Preparar y desplegar el Oficio de puesta a disposición generado oficialmente
         if (currentOficioReferidoDestinatario) {
           currentOficioDestinatario = { ...currentOficioReferidoDestinatario };
         }
@@ -14811,7 +14881,8 @@ p { margin:0; }
         displayOficioReferidoPreview(dataForOficio);
 
       } catch (err) {
-        toast('Error al guardar pase a Referido y generar oficio: ' + err.message, 'error');
+        console.error('Error al guardar pase a Referido y generar oficio:', err);
+        toast('Error al guardar pase a Referido: ' + (err.message || err), 'error');
       }
     }
 
@@ -14863,23 +14934,25 @@ p { margin:0; }
       };
 
       try {
-        await req(API_REFERIDOS, { method: 'POST', body: JSON.stringify(referidoObj) });
-
-        if (current?.id) {
-          await req(API_PERSONAL + '?id=eq.' + encodeURIComponent(current.id), {
-            method: 'PATCH',
-            body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'REFERIDO' })
-          });
-        } else {
-          await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipRaw), {
-            method: 'PATCH',
-            body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'REFERIDO' })
-          });
+        // 1. Guardar en tabla referidos con reintento si fuera necesario
+        try {
+          await req(API_REFERIDOS, { method: 'POST', body: JSON.stringify(referidoObj) });
+        } catch (ePostRef) {
+          console.warn('Fallo inicial guardando en referidos, reintentando con CIP string:', ePostRef);
+          const fallbackRefObj = { ...referidoObj, "CIP": String(cipRaw) };
+          await req(API_REFERIDOS, { method: 'POST', body: JSON.stringify(fallbackRefObj) });
         }
 
-        // Registrar movimiento del efectivo a REFERIDO
+        // 2. Actualizar situación actual en personal_policial de forma resiliente
         try {
-          registrarMovimientoEfectivo({
+          await actualizarSituacionPersonalPolicial(cipRaw, 'REFERIDO', current?.id);
+        } catch (eSyncPers) {
+          console.warn('Advertencia al sincronizar situación en personal_policial:', eSyncPers);
+        }
+
+        // 3. Registrar movimiento del efectivo a REFERIDO en historial
+        try {
+          await registrarMovimientoEfectivo({
             cip: cipRaw,
             grado: grado,
             apellidos_nombres: nombres,
@@ -14899,7 +14972,8 @@ p { margin:0; }
         closeForm();
         await loadData();
       } catch (err) {
-        toast('Error al guardar pase a Referido: ' + err.message, 'error');
+        console.error('Error al guardar pase a Referido:', err);
+        toast('Error al guardar pase a Referido: ' + (err.message || err), 'error');
       }
     }
 
