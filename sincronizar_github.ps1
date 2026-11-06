@@ -81,3 +81,19 @@ Write-Host "=======================================================" -Foreground
 Write-Host " [OK] Todos los cambios fueron subidos a GitHub!" -ForegroundColor Green
 Write-Host " Commit: $($newCommit.sha.Substring(0, 7)) - $commitMsg" -ForegroundColor Cyan
 Write-Host "=======================================================" -ForegroundColor Green
+
+# SincronizaciÃ³n automÃ¡tica de respaldo local en la nube (OneDrive y Google Drive)
+$destinos = @(
+    "C:\Users\PC\OneDrive\PROTCTO DE PROGRAMAS\BASE DE DATOS DEL PERSONAL",
+    "G:\Mi unidad\PROGRAMAS\SISTEMA DE PERSONAL REGPOL HUANUCO"
+)
+
+foreach ($dest in $destinos) {
+    if (Test-Path $dest) {
+        Write-Host "Sincronizando copia de respaldo en: $dest ..." -ForegroundColor Yellow
+        Get-ChildItem -Path $dir -Exclude '.git' | ForEach-Object {
+            Copy-Item -Path $_.FullName -Destination $dest -Recurse -Force
+        }
+        Write-Host " [OK] Respaldo actualizado en $dest" -ForegroundColor Green
+    }
+}
