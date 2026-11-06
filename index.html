@@ -4347,15 +4347,14 @@
             <label for="cur_documento_de_referencia">DOCUMENTO DE REFERENCIA</label>
             <input id="cur_documento_de_referencia" type="text" placeholder="Ej. RESOLUCIÓN / MEMORÁNDUM / DIRECTIVA..." style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" />
           </div>
-          <div id="row_cur_oficio_info" style="grid-column: span 2; display: none; grid-template-columns: repeat(2, 1fr); gap: 12px; background: #e1f5fe; border: 1px solid #b3e5fc; border-radius: 8px; padding: 10px 12px;">
-            <div class="field" style="margin: 0;">
-              <label for="cur_numero_de_oficio" style="color: #01579b; font-weight: bold;">NÚMERO DE OFICIO QUE PONE A DISPOSICION</label>
-              <input id="cur_numero_de_oficio" type="text" placeholder="Se generará automáticamente al hacer clic en Registrar..." style="background: #fff; text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" />
-            </div>
-            <div class="field" style="margin: 0;">
-              <label for="cur_fecha_de_oficio" style="color: #01579b; font-weight: bold;">FECHA DE OFICIO</label>
-              <input id="cur_fecha_de_oficio" type="date" style="background: #fff;" />
-            </div>
+          <!-- Campos solicitados: DOC PONE A DISPOSICION y FECHA DOC encima de OBSERVACION -->
+          <div class="field">
+            <label for="cur_numero_de_oficio">DOC PONE A DISPOSICION</label>
+            <input id="cur_numero_de_oficio" type="text" placeholder="Ej. OFICIO N° 123-2026..." style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" />
+          </div>
+          <div class="field">
+            <label for="cur_fecha_de_oficio">FECHA DOC</label>
+            <input id="cur_fecha_de_oficio" type="date" />
           </div>
           <div class="field wide" style="grid-column: span 2;">
             <label for="cur_observacion">OBSERVACIÓN (Opcional)</label>
@@ -4397,6 +4396,8 @@
             <div style="grid-column: span 2;"><b>Curso:</b> <span id="genDocCurEfCurso">—</span></div>
             <div style="grid-column: span 2;"><b>Lugar:</b> <span id="genDocCurEfLugar">—</span></div>
             <div style="grid-column: span 2;"><b>Doc. Referencia:</b> <span id="genDocCurEfDocRef">—</span></div>
+            <div style="grid-column: span 2;"><b>Doc. Pone a Disposición:</b> <span id="genDocCurEfDocDisp">—</span></div>
+            <div><b>Fecha Doc:</b> <span id="genDocCurEfFechaDoc">—</span></div>
             <div style="grid-column: span 2;"><b>Unidad:</b> <span id="genDocCurEfUnidad">—</span></div>
             <div><b>Lista Revista:</b> <span id="genDocCurEfListaRevista">—</span></div>
             <div><b>Situación:</b> <span class="pill" style="background:#2e7d32;color:#fff;font-size:11px;">CURSO</span></div>
@@ -15006,10 +15007,11 @@ p { margin:0; }
       if (numOficioEl) {
         numOficioEl.value = '';
         numOficioEl.disabled = false;
-        numOficioEl.placeholder = 'Se generará automáticamente al hacer clic en Registrar...';
+        numOficioEl.placeholder = 'Ej. OFICIO N° 123-2026...';
       }
-      const rowOficio = document.getElementById('row_cur_oficio_info');
-      if (rowOficio) rowOficio.style.display = 'none';
+      if (fechaOficioEl) {
+        fechaOficioEl.value = new Date().toISOString().slice(0, 10);
+      }
 
       document.getElementById('cur_observacion').value = '';
 
@@ -15036,6 +15038,8 @@ p { margin:0; }
       const descCurso = document.getElementById('cur_descripcion_del_curso')?.value?.trim() || '—';
       const lugar = document.getElementById('cur_lugar')?.value?.trim() || '—';
       const docRef = document.getElementById('cur_documento_de_referencia')?.value?.trim() || '—';
+      const docDisp = document.getElementById('cur_numero_de_oficio')?.value?.trim() || '—';
+      const fechaDoc = document.getElementById('cur_fecha_de_oficio')?.value || new Date().toISOString().slice(0, 10);
 
       document.getElementById('genDocCurEfNombres').textContent = `${grado} ${nombres}`;
       document.getElementById('genDocCurEfCip').textContent = cip;
@@ -15043,6 +15047,10 @@ p { margin:0; }
       document.getElementById('genDocCurEfCurso').textContent = descCurso;
       document.getElementById('genDocCurEfLugar').textContent = lugar;
       document.getElementById('genDocCurEfDocRef').textContent = docRef;
+      const elGenDocDisp = document.getElementById('genDocCurEfDocDisp');
+      if (elGenDocDisp) elGenDocDisp.textContent = docDisp;
+      const elGenFechaDoc = document.getElementById('genDocCurEfFechaDoc');
+      if (elGenFechaDoc) elGenFechaDoc.textContent = fechaDoc;
       document.getElementById('genDocCurEfUnidad').textContent = unidad;
       document.getElementById('genDocCurEfListaRevista').textContent = listaRevista;
 
@@ -15158,17 +15166,11 @@ p { margin:0; }
         // 1. Guardar en tabla en_curso
         await req(API_EN_CURSO, { method: 'POST', body: JSON.stringify(cursoObj) });
 
-        // 2. Actualizar situación actual en personal
-        if (current?.id) {
-          await req(API_PERSONAL + '?id=eq.' + encodeURIComponent(current.id), {
-            method: 'PATCH',
-            body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'CURSO' })
-          });
-        } else {
-          await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipRaw), {
-            method: 'PATCH',
-            body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'CURSO' })
-          });
+        // 2. Actualizar situación actual en personal de forma segura y resiliente
+        try {
+          await actualizarSituacionPersonalPolicial(cipRaw, 'CURSO', current?.id);
+        } catch (eSyncPers) {
+          console.warn('Advertencia al sincronizar situación en personal_policial:', eSyncPers);
         }
 
         // 3. Registrar el oficio generado en el sistema de Registro de Documentos (tabla 'oficios')
@@ -15308,18 +15310,29 @@ p { margin:0; }
         // 1. Guardar en tabla en_curso
         await req(API_EN_CURSO, { method: 'POST', body: JSON.stringify(cursoObj) });
 
-        // 2. Actualizar situación actual en personal
-        if (current?.id) {
-          await req(API_PERSONAL + '?id=eq.' + encodeURIComponent(current.id), {
-            method: 'PATCH',
-            body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'CURSO' })
-          });
-        } else {
-          await req(API_PERSONAL + '?CIP=eq.' + encodeURIComponent(cipRaw), {
-            method: 'PATCH',
-            body: JSON.stringify({ 'SITUACIÓN ACTUAL': 'CURSO' })
-          });
+        // 2. Actualizar situación actual en personal de forma segura y resiliente
+        try {
+          await actualizarSituacionPersonalPolicial(cipRaw, 'CURSO', current?.id);
+        } catch (eSyncPers) {
+          console.warn('Advertencia al sincronizar situación en personal_policial:', eSyncPers);
         }
+
+        // 3. Registrar movimiento del efectivo a CURSO en historial
+        try {
+          registrarMovimientoEfectivo({
+            cip: cipRaw,
+            grado: grado,
+            apellidos_nombres: nombres,
+            tipo_movimiento: 'CURSO',
+            fecha: fechaOficio || getTodayPeruYMD(),
+            lista_de_revista: listaRevista,
+            unidad_de_origen: unidad,
+            documento_referencia: formattedOficio || nroOficio || docRef,
+            motivo: descCurso ? `CURSO: ${descCurso} (${lugar || 'SEDE'})` : 'PASE A CURSO',
+            observacion: obs,
+            modulo_origen: 'en_curso'
+          });
+        } catch (_) {}
 
         toast('¡Efectivo registrado en Curso y situación actualizada con éxito (sin generar Oficio)!', 'success');
         document.getElementById('cursoFloatingModal').classList.remove('open');
