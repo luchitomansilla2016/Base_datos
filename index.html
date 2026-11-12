@@ -7370,6 +7370,7 @@
       descripcion_curso: { label: 'Descripción del curso', type: 'text', cls: 'wide' },
       descripcion_del_curso: { label: 'Descripción del curso', type: 'text', cls: 'wide' },
       lugar: { label: 'Lugar / Sede', type: 'text', cls: 'wide' },
+      documento_de_referencia: { label: 'DOC REFERENCIA', type: 'text', cls: 'full' },
       numero_de_oficio: { label: 'Número de oficio que pone a disposición', type: 'text', cls: 'wide' },
       fecha_de_oficio: { label: 'Fecha de oficio', type: 'date' },
       fecha_incorp_salida: { label: 'Fecha Incorp / Salida', type: 'date' },
@@ -7646,7 +7647,7 @@
       en_curso: [
         { title: 'Datos del Efectivo', fields: ['cip','grado','apellidos_nombres'] },
         { title: 'Unidad y Situación', fields: ['lista_de_revista','condicion','situacion_actual'] },
-        { title: 'Detalles del Curso', fields: ['descripcion_del_curso','lugar','numero_de_oficio','fecha_de_oficio','n_exclusion_curso','fecha_exclusion_curso'] },
+        { title: 'Detalles del Curso', fields: ['descripcion_del_curso','lugar','numero_de_oficio','fecha_de_oficio','n_exclusion_curso','fecha_exclusion_curso','documento_de_referencia'] },
         { title: 'Observaciones', fields: ['observacion'] }
       ],
       destacados: [
@@ -19919,6 +19920,8 @@ REGLAS CRÍTICAS:
                   }
                 } else if (k === 'fecha_de_oficio' || k === 'fecha_oficio') {
                   val = firstValue(current, ['fecha_de_oficio', 'fecha_oficio', 'f_oficio']);
+                } else if (k === 'documento_de_referencia') {
+                  val = firstValue(current, ['documento_de_referencia', 'documento_referencia', 'doc_referencia']);
                 } else if (k === 'n_exclusion_curso') {
                   val = firstValue(current, ['n°_exclusion', 'numero_exclusion', 'nro_exclusion', 'exclusion', 'constancia_exclusion', 'n_exclusion', 'n_exclusion_curso']);
                 } else if (k === 'fecha_exclusion_curso') {
