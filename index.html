@@ -4341,7 +4341,7 @@
           </div>
           <div class="field wide" style="grid-column: span 2;">
             <label for="cur_lugar">LUGAR A REALIZAR EL CURSO</label>
-            <input id="cur_lugar" type="text" placeholder="Ej. ESCUELA DE POSGRADO PNP - LIMA" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" />
+            <input id="cur_lugar" type="text" value="LIMA" placeholder="Ej. ESCUELA DE POSGRADO PNP - LIMA" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()" />
           </div>
           <div class="field wide" style="grid-column: span 2;">
             <label for="cur_documento_de_referencia">DOCUMENTO DE REFERENCIA</label>
@@ -14999,7 +14999,7 @@ p { margin:0; }
       document.getElementById('curEfCondicion').textContent = condicion;
 
       document.getElementById('cur_descripcion_del_curso').value = '';
-      document.getElementById('cur_lugar').value = '';
+      document.getElementById('cur_lugar').value = 'LIMA';
       document.getElementById('cur_documento_de_referencia').value = '';
       
       const numOficioEl = document.getElementById('cur_numero_de_oficio');
