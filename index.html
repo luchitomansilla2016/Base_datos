@@ -3851,7 +3851,7 @@
               <span style="font-size: 22px;">📜</span>
               <div>
                 <div style="font-size: 14px; color: #fff;">Guardar y Generar Orden de Incorporación</div>
-                <div style="font-size: 11.5px; color: #e8f5e9; font-weight: normal;">Registra en el padrón, crea correlativo en 'orden_reincorporacion' y abre la Orden oficial (2 copias)</div>
+                <div style="font-size: 11.5px; color: #e8f5e9; font-weight: normal;">Permite ingresar el N&uacute;mero de Orden manual, guarda en el padr&oacute;n y genera la Orden oficial (2 formatos en 1 hoja A4)</div>
               </div>
             </div>
             <span style="font-size: 18px; color: #fff;">➔</span>
@@ -6662,8 +6662,8 @@
     <div class="dialog" style="max-width: 640px; border-top: 5px solid #0b5a3c; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
       <header style="background: linear-gradient(90deg, #ffffff 0%, #e8f5e9 100%);">
         <div>
-          <h1 style="color:#0b5a3c; font-size:17px; display:flex; align-items:center; gap:8px;">&#128190; Guardar Cambio de Subunidad</h1>
-          <div class="sub">Seleccione c&oacute;mo desea guardar el cambio</div>
+          <h1 id="ocs_modal_title" style="color:#0b5a3c; font-size:17px; display:flex; align-items:center; gap:8px;">&#128190; Guardar Cambio de Subunidad</h1>
+          <div id="ocs_modal_subtitle" class="sub">Seleccione c&oacute;mo desea guardar el cambio</div>
         </div>
         <button class="close-btn" onclick="cerrarOpcionesGuardarCambioSubunidad()" title="Cerrar">&times;</button>
       </header>
@@ -6673,7 +6673,7 @@
         <div style="border:1px solid #d5e0d8; border-radius:8px; padding:10px 14px; background:#fff;">
           <div style="font-size:11.5px; font-weight:900; color:#06351f; text-transform:uppercase; margin-bottom:8px;">&#128221; Datos complementarios para la Orden de Incorporaci&oacute;n</div>
           <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:8px;">
-            <div class="field" style="grid-column:span 2;"><label for="ocs_nro">NRO. DE ORDEN</label><input id="ocs_nro" type="text" placeholder="Ej. 001-2026" /></div>
+            <div class="field" style="grid-column:span 2;"><label for="ocs_nro" style="font-weight:900; color:#06351f;">NRO. DE ORDEN <span style="color:#dc2626;">*</span></label><input id="ocs_nro" type="text" placeholder="Ej. 001-2026" style="border:2px solid #059669; font-weight:800; color:#064e3b; background:#f0fdf4;" /></div>
             <div class="field" style="grid-column:span 4;"><label for="ocs_siglas">SIGLAS</label><input id="ocs_siglas" type="text" /></div>
             <div class="field" style="grid-column:span 6;"><label for="ocs_lugar">DOC DE REFERENCIA</label><input id="ocs_lugar" type="text" placeholder="Documento de referencia o sustento" /></div>
             <div class="field" style="grid-column:span 2;"><label for="ocs_hora">HORA</label><input id="ocs_hora" type="text" placeholder="08:00" /></div>
@@ -6683,6 +6683,7 @@
               <select id="ocs_obs_select" onchange="onChangeOcsObservaciones(this.value)" style="font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1; margin-bottom:4px;">
                 <option value="OPCION_1">PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA</option>
                 <option value="OPCION_2">PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN Y/O HASTA EL PRONUNCIAMIENTO DE LA DIRREHUM PNP ENTORNO A SU SOLICITUD DE REASIGNACION, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA</option>
+                <option value="OPCION_3">SE INCORPORA A LA REGPOL HUANUCO Y PASA A PRESTAR SERVICIOS EN SU UNIDAD DE DESTINO CONFORME A LO DISPUESTO EN EL DOCUMENTO DE LA REFERENCIA</option>
                 <option value="__OTRO__">OTRA OBSERVACI&Oacute;N (ESCRIBIR / EDITAR DIRECTAMENTE)...</option>
               </select>
               <textarea id="ocs_observaciones" rows="2" style="font-size:12px; font-weight:600; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; width:100%; box-sizing:border-box; resize:vertical;" placeholder="Observaciones adicionales..."></textarea>
@@ -7372,7 +7373,7 @@
       lugar: { label: 'Lugar / Sede', type: 'text', cls: 'wide' },
       documento_de_referencia: { label: 'DOC REFERENCIA', type: 'text', cls: 'full' },
       numero_de_oficio: { label: 'Número de oficio que pone a disposición', type: 'text', cls: 'wide' },
-      fecha_de_oficio: { label: 'Fecha de oficio', type: 'date' },
+      fecha_de_oficio: { label: 'Fecha de oficio', type: 'date', cls: 'wide' },
       fecha_incorp_salida: { label: 'Fecha Incorp / Salida', type: 'date' },
       destino: { label: 'Destino / Unidad apoyo', type: 'text', cls: 'wide' },
       numero_oficio_pone_disposicion: { label: 'Doc. que pone a disposición', type: 'text', cls: 'wide' },
@@ -7409,7 +7410,7 @@
       numero_exclusion: { label: 'N° Exclusión', type: 'text' },
       n_exclusion_curso: { label: 'N° EXCLUSION (SOLO INGRESAR N°)', type: 'text', cls: 'wide' },
       fecha_exclusion: { label: 'Fecha Exclusión', type: 'date' },
-      fecha_exclusion_curso: { label: 'FECHA EXCLUSION', type: 'date' },
+      fecha_exclusion_curso: { label: 'FECHA EXCLUSION', type: 'date', cls: 'wide' },
       lista_revista_anterior: { label: 'Lista revista anterior', type: 'text', cls: 'wide' },
       fecha_incorporacion_regpol: { label: 'Fecha Incorp. REGPOL', type: 'date' },
       tipo_incorporacion: { label: 'Tipo incorporación', type: 'text' },
@@ -12639,14 +12640,16 @@ MOTIVO: ${motivoText}`;
     }
 
     // ========================================================
-    // PILOTO: OPCIONES DE GUARDADO + ORDEN DE INCORPORACION (CAMBIO DE SUBUNIDAD)
+    // PILOTO: OPCIONES DE GUARDADO + ORDEN DE INCORPORACION (CAMBIO DE SUBUNIDAD Y NUEVO PERSONAL)
     // 2 formatos identicos en 1 sola hoja A4, editable, descargable en Word
     // ========================================================
     let _csOrdenData = null;
+    let _csOrdenModo = 'cambio_subunidad'; // 'cambio_subunidad' | 'nuevo_personal'
 
     const OCS_OBS_TEXTS = {
       OPCION_1: 'PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA',
-      OPCION_2: 'PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN Y/O HASTA EL PRONUNCIAMIENTO DE LA DIRREHUM PNP ENTORNO A SU SOLICITUD DE REASIGNACION, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA'
+      OPCION_2: 'PASA A PRESTAR SERVICIO EN CALIDAD DE APOYO Y HASTA NUEVA ORDEN Y/O HASTA EL PRONUNCIAMIENTO DE LA DIRREHUM PNP ENTORNO A SU SOLICITUD DE REASIGNACION, CONFORME A LO DISPUESTO POR EL JEFE DE LA REGPOL HUANUCO CON EL DOCUMENTO INDICADO EN LA REFERENCIA',
+      OPCION_3: 'SE INCORPORA A LA REGPOL HUANUCO Y PASA A PRESTAR SERVICIOS EN SU UNIDAD DE DESTINO CONFORME A LO DISPUESTO EN EL DOCUMENTO DE LA REFERENCIA'
     };
 
     function onChangeOcsObservaciones(val) {
@@ -12656,6 +12659,8 @@ MOTIVO: ${motivoText}`;
         txtArea.value = OCS_OBS_TEXTS.OPCION_1;
       } else if (val === 'OPCION_2') {
         txtArea.value = OCS_OBS_TEXTS.OPCION_2;
+      } else if (val === 'OPCION_3') {
+        txtArea.value = OCS_OBS_TEXTS.OPCION_3;
       } else if (val === '__OTRO__') {
         txtArea.value = '';
         txtArea.focus();
@@ -12680,6 +12685,12 @@ MOTIVO: ${motivoText}`;
       }
       const r = _currentCambioSubunidadRecord;
       if (!r) return;
+
+      _csOrdenModo = 'cambio_subunidad';
+      const titleEl = document.getElementById('ocs_modal_title');
+      if (titleEl) titleEl.innerHTML = '&#128190; Guardar Cambio de Subunidad';
+      const subEl = document.getElementById('ocs_modal_subtitle');
+      if (subEl) subEl.textContent = 'Seleccione c\u00f3mo desea guardar el cambio';
 
       const nuevaRevista = String(document.getElementById('cs_nueva_lista_revista')?.value || '').trim().toUpperCase();
       const docReferencia = String(document.getElementById('cs_documento_referencia')?.value || '').trim().toUpperCase();
@@ -12763,6 +12774,289 @@ MOTIVO: ${motivoText}`;
         <div><b>Documento:</b> ${esc(docReferencia)}</div>`;
 
       document.getElementById('opcionesGuardarCambioSubunidadModal').classList.add('open');
+      setTimeout(() => { document.getElementById('ocs_nro')?.focus(); }, 150);
+    }
+
+    async function abrirOpcionesGuardarOrdenNuevoPersonal(e) {
+      if (e) e.preventDefault();
+      if (!canEdit()) return;
+
+      const cipRaw = onlyDigits(document.getElementById('cip')?.value || (current ? firstValue(current, ['CIP', 'cip']) : ''));
+      if (!cipRaw || cipRaw.length < 6) {
+        toast('Ingrese un CIP v\u00e1lido (m\u00ednimo 6 d\u00edgitos)', 'warning');
+        return;
+      }
+      const dni = onlyDigits(document.getElementById('dni')?.value || '');
+      const dupCheck = await validarDuplicadosPersonal(cipRaw, dni, current ? current.id : null);
+      if (!dupCheck.valid) {
+        toast(dupCheck.message, 'error');
+        return;
+      }
+
+      closeGenerarDocNuevoPersonalModal();
+
+      _csOrdenModo = 'nuevo_personal';
+
+      const grado = document.getElementById('grado')?.value?.trim() || '';
+      const nombres = document.getElementById('apellidos_y_nombres')?.value?.trim() || '';
+      const condicion = String(document.getElementById('condicion')?.value || 'NATO').trim().toUpperCase();
+      const unidadOrigen = document.getElementById('unidad_de_origen')?.value?.trim() || 'REGPOL HU\u00c1NUCO';
+      const procedencia = document.getElementById('unidad_anterior')?.value?.trim() || 'DIRREHUM PNP';
+      const destino = document.getElementById('lista_de_revista')?.value?.trim() || 'OFAD REGPOL HUANUCO';
+      const fechaYmd = document.getElementById('fecha_de_incorporacion')?.value || getTodayPeruYMD();
+      const docSustenta = document.getElementById('documento_que_sustenta')?.value?.trim() || '---';
+      const domicilio = (document.getElementById('domicilio_actual')?.value || getFieldValue('domicilio_actual') || '').trim().toUpperCase();
+
+      const tipoIncorpVal = (condicion === 'DESTACADO')
+        ? (document.getElementById('dest_incorp_tipo_condicion')?.value || getFieldValue('dest_incorp_tipo_condicion') || 'DESTACADO').trim().toUpperCase()
+        : (document.getElementById('incorp_tipo_incorporacion')?.value || getFieldValue('incorp_tipo_incorporacion') || 'REASIGNACI\u00d3N').trim().toUpperCase();
+
+      const motIncorpVal = (condicion === 'DESTACADO')
+        ? (document.getElementById('dest_incorp_motivo')?.value || getFieldValue('dest_incorp_motivo') || 'NECESIDAD DEL SERVICIO').trim().toUpperCase()
+        : (document.getElementById('incorp_motivo')?.value || getFieldValue('incorp_motivo') || 'CAMBIO DE COLOCACI\u00d3N').trim().toUpperCase();
+
+      const aMeritoVal = (condicion === 'DESTACADO')
+        ? (document.getElementById('dest_incorp_a_merito')?.value || getFieldValue('dest_incorp_a_merito') || getFieldValue('dest_incorp_documento_referencia') || '').trim().toUpperCase()
+        : (document.getElementById('incorp_a_merito')?.value || getFieldValue('incorp_a_merito') || '').trim().toUpperCase();
+
+      let docRefComb = '';
+      if (docSustenta && docSustenta !== '---' && aMeritoVal) {
+        const cleanDoc = docSustenta.replace(/\s*-\s*$/, '');
+        docRefComb = cleanDoc.toLowerCase().includes(aMeritoVal.toLowerCase()) ? cleanDoc : `${cleanDoc} - ${aMeritoVal}`;
+      } else {
+        docRefComb = (docSustenta && docSustenta !== '---') ? docSustenta : (aMeritoVal || '---');
+      }
+
+      const motivoCombinado = (tipoIncorpVal && motIncorpVal) ? `${tipoIncorpVal} - ${motIncorpVal}` : (tipoIncorpVal || motIncorpVal);
+
+      _csOrdenData = {
+        cip: cipRaw,
+        dni: dni,
+        grado,
+        nombres,
+        claseNombre: [grado, nombres].filter(Boolean).join(' '),
+        procedencia,
+        destino,
+        unidadOrigen,
+        fechaYmd,
+        docReferencia: (docRefComb && docRefComb !== '---') ? docRefComb : '',
+        tipoMovimiento: (condicion === 'DESTACADO' ? 'DESTAQUE' : 'INCORPORACI\u00d3N'),
+        motivoCambio: motIncorpVal,
+        motivo: motivoCombinado,
+        carnet: [cipRaw ? `CIP N\u00b0 ${cipRaw}` : '', dni ? `DNI N\u00b0 ${dni}` : ''].filter(Boolean).join(' / '),
+        domicilio,
+        condicion,
+        tipoIncorpVal,
+        motIncorpVal,
+        aMeritoVal,
+        docRefComb
+      };
+
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+
+      // El usuario pone el número de orden
+      const ocsNroEl = document.getElementById('ocs_nro');
+      ocsNroEl.value = '';
+      ocsNroEl.placeholder = 'Ej. 001-2026';
+
+      document.getElementById('ocs_siglas').value = `${fechaYmd.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+      document.getElementById('ocs_lugar').value = _csOrdenData.docReferencia || '';
+      document.getElementById('ocs_hora').value = `${hh}:${mi}`;
+      document.getElementById('ocs_vacaciones').value = 'NO REGISTRA';
+
+      const selObs = document.getElementById('ocs_obs_select');
+      if (selObs) selObs.value = 'OPCION_3';
+      document.getElementById('ocs_observaciones').value = OCS_OBS_TEXTS.OPCION_3;
+
+      // Firmante
+      const sel = document.getElementById('ocs_firmante');
+      sel.innerHTML = (jefesList || []).map((j, idx) => {
+        const nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
+        const grd = j.GRADO || j.grado || '';
+        const crg = j.CARGO || j.cargo || '';
+        return `<option value="${idx}">${esc(grd)} ${esc(nom)} - ${esc(crg)}</option>`;
+      }).join('') || '<option value="-1">(Sin firmantes registrados)</option>';
+      const ofadIdx = (jefesList || []).findIndex(j => String(j.CARGO || j.cargo || '').toUpperCase().includes('OFAD'));
+      if (ofadIdx >= 0) sel.value = String(ofadIdx);
+
+      const titleEl = document.getElementById('ocs_modal_title');
+      if (titleEl) titleEl.innerHTML = '&#128221; Guardar y Generar Orden de Incorporaci&oacute;n &middot; Personal Nuevo';
+      const subEl = document.getElementById('ocs_modal_subtitle');
+      if (subEl) subEl.textContent = 'Ingrese el N\u00famero de Orden y datos complementarios para generar la orden oficial';
+
+      document.getElementById('ocs_resumen').innerHTML = `
+        <div style="font-weight:800; font-size:13.5px; margin-bottom:4px;">${esc(_csOrdenData.claseNombre)} <small style="color:#0369a1;">(CIP: ${cipRaw})</small></div>
+        <div><b>De:</b> ${esc(procedencia || 'DIRREHUM PNP')}</div>
+        <div><b>A:</b> ${esc(destino)}</div>
+        <div><b>Fecha Incorp.:</b> ${esc(_csFechaCorta(fechaYmd))} &nbsp;&middot;&nbsp; <b>Condici&oacute;n:</b> ${esc(condicion)} &nbsp;&middot;&nbsp; <b>Motivo:</b> ${esc(motivoCombinado)}</div>
+        <div><b>Doc. Sustento:</b> ${esc(_csOrdenData.docReferencia || '\u2014')}</div>`;
+
+      document.getElementById('opcionesGuardarCambioSubunidadModal').classList.add('open');
+      setTimeout(() => { ocsNroEl.focus(); }, 150);
+    }
+
+    async function guardarNuevoPersonalConOrden(d) {
+      const nroIngresado = String(document.getElementById('ocs_nro').value || '').trim().toUpperCase();
+      if (!nroIngresado) {
+        toast('Por favor ingrese el NRO. DE ORDEN (Ej. 001-2026)', 'warning');
+        document.getElementById('ocs_nro')?.focus();
+        return false;
+      }
+
+      d.nro = nroIngresado;
+      d.siglas = String(document.getElementById('ocs_siglas').value || '').trim().toUpperCase();
+      d.docReferencia = String(document.getElementById('ocs_lugar').value || '').trim().toUpperCase();
+      d.hora = String(document.getElementById('ocs_hora').value || '').trim();
+      d.vacaciones = String(document.getElementById('ocs_vacaciones').value || '').trim().toUpperCase();
+      d.observaciones = String(document.getElementById('ocs_observaciones').value || '').trim().toUpperCase();
+
+      const idx = parseInt(document.getElementById('ocs_firmante')?.value, 10);
+      const j = (jefesList || [])[idx] || null;
+      d.firmante = j ? {
+        cip: String(j.CIP || j.cip || '').trim(),
+        nombre: formatNombrePostFirma(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || ''),
+        grado: j.GRADO || j.grado || '',
+        cargo: j.CARGO || j.cargo || ''
+      } : null;
+
+      const nroOrdenDoc = `ORDEN DE INCORPORACION N\u00b0${d.nro} - ${d.siglas}`;
+
+      let sec = moduloFormFields.personal || [];
+      const obj = {};
+      sec.forEach(s => {
+        s.fields.forEach(k => {
+          const el = document.getElementById(k);
+          if (!el) return;
+          let v = el.value.trim();
+          const meta = allFieldMeta[k] || {};
+          if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
+          const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
+          const dbCol = personalDbColumnMap[k];
+          if (dbCol) obj[dbCol] = finalVal;
+        });
+      });
+
+      obj['DOCUMENTO QUE SUSTENTA'] = nroOrdenDoc;
+      obj['FECHA INCORPORACI\u00d3N'] = d.fechaYmd;
+      obj['LISTA DE REVISTA'] = d.destino;
+      obj['UNIDAD ANTERIOR'] = d.procedencia;
+      obj['UNIDAD DE ORIGEN'] = d.unidadOrigen || obj['UNIDAD DE ORIGEN'] || 'REGPOL HU\u00c1NUCO';
+      if (!obj['APTITUD PSICOSOM\u00c1TICO']) {
+        obj['APTITUD PSICOSOM\u00c1TICO'] = document.getElementById('aptitud_psicosomatico')?.value?.trim() || 'APTO CODIGO 0';
+      }
+
+      const cleanObj = buildCleanPersonalPayload(obj);
+
+      try {
+        toast('Guardando nuevo personal y Orden de Incorporaci\u00f3n...', 'info');
+        await req(API_PERSONAL, { method: 'POST', body: JSON.stringify(cleanObj) });
+
+        try {
+          const matchedSol = (solicitudesList || []).find(s => String(s.cip || '').trim() === String(d.cip).trim());
+          if (matchedSol && matchedSol.id) {
+            const apiBase = (window.location.protocol === 'http:' || window.location.protocol === 'https:') ? '' : `http://${SERVER_LOCAL_IP}:${SERVER_PORT}`;
+            await fetch(`${apiBase}/api/solicitudes?id=${encodeURIComponent(matchedSol.id)}`, { method: 'DELETE' });
+            solicitudesList = solicitudesList.filter(s => s.id !== matchedSol.id);
+            localStorage.setItem(QR_STORAGE_KEY, JSON.stringify(solicitudesList));
+            updateSolicitudesBadge();
+          }
+        } catch (_) {}
+
+        if (d.condicion === 'NATO') {
+          const incorpObj = {
+            "cip": d.cip,
+            "grado": d.grado || null,
+            "apellidos_nombres": d.nombres || null,
+            "lista_revista_anterior": d.procedencia || null,
+            "situacion": getFieldValue('incorp_situacion') || 'INCORPORADO',
+            "fecha_incorporacion_regpol": d.fechaYmd,
+            "tipo_incorporacion": d.tipoIncorpVal,
+            "motivo": d.motIncorpVal,
+            "documento_referencia": d.docReferencia || d.docRefComb || '---',
+            "a_merito": d.aMeritoVal || null,
+            "unidad_origen_actual": d.unidadOrigen || null,
+            "lista_revista_nueva": d.destino || null,
+            "numero_inclusion": getFieldValue('incorp_numero_inclusion') || null,
+            "fecha_inclusion": document.getElementById('incorp_fecha_inclusion')?.value || null,
+            "documento_pone_disposicion": nroOrdenDoc,
+            "fecha_documento": d.fechaYmd,
+            "observacion": d.observaciones || getFieldValue('incorp_observacion') || null
+          };
+          try {
+            await req(API_INCORPORADOS_REASIGNADOS, { method: 'POST', body: JSON.stringify(incorpObj) });
+          } catch (eIncorp) {
+            console.warn('Error sincronizando incorporados_reasignados:', eIncorp);
+          }
+        } else if (d.condicion === 'DESTACADO') {
+          const sitActualVal = (document.getElementById('situacion_actual')?.value || getFieldValue('situacion_actual') || obj['SITUACI\u00d3N ACTUAL'] || '').trim().toUpperCase();
+          await sincronizarDestaqueNuevoPersonal({
+            cip: d.cip,
+            grado: d.grado,
+            nombres: d.nombres,
+            unidadOrigen: d.unidadOrigen,
+            unidadAnterior: d.procedencia,
+            listaRevista: d.destino,
+            fechaIncorp: d.fechaYmd,
+            docSustenta: d.docReferencia || d.docRefComb || '---',
+            situacionActual: sitActualVal,
+            nroDocumentoGenerado: nroOrdenDoc,
+            fechaDocumentoGenerado: d.fechaYmd
+          });
+        }
+
+        try {
+          const descripcionOrden = `PONE A DISPOSICI\u00d3N AL ${d.claseNombre} POR HABER SIDO ${d.tipoIncorpVal} MOTIVO: ${d.motIncorpVal}`.replace(/\s+/g, ' ').trim().toUpperCase();
+          const quienOrdena = d.firmante ? `${d.firmante.grado} ${d.firmante.nombre} - ${d.firmante.cargo}` : 'JEFE OFAD REGPOL HUANUCO';
+
+          const docPayload = {
+            numero_documento: nroOrdenDoc,
+            fecha_documento: d.fechaYmd,
+            descripcion: descripcionOrden,
+            numero_orden_incorporacion_dirrehum: d.docReferencia || d.docRefComb || '---',
+            documento_referencia: d.docReferencia || d.docRefComb || '---',
+            destino: d.destino,
+            quien_ordena: quienOrdena,
+            usuario_registra: sessionStorage.getItem('pnp_user_fullname') || 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS'
+          };
+          await docReq(API_ORDEN_INCORPORACION, { method: 'POST', body: JSON.stringify(docPayload) });
+          if (typeof BroadcastChannel !== 'undefined') {
+            try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'orden_incorporacion' }); } catch (_) {}
+          }
+          try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
+        } catch (eDoc) {
+          console.warn('Registro de orden en documentos:', eDoc);
+        }
+
+        try {
+          await registrarMovimientoEfectivo({
+            cip: d.cip,
+            grado: d.grado,
+            apellidos_nombres: d.nombres,
+            tipo_movimiento: (d.condicion === 'DESTACADO' ? 'DESTAQUE' : 'INCORPORACI\u00d3N'),
+            fecha: d.fechaYmd,
+            lista_de_revista: d.destino,
+            unidad_de_origen: d.unidadOrigen,
+            unidad_anterior: d.procedencia,
+            documento_referencia: nroOrdenDoc,
+            motivo: d.motivo,
+            observacion: d.observaciones || '',
+            modulo_origen: 'personal'
+          });
+        } catch (eMov) {
+          console.warn('Error registrando movimiento para nuevo personal (Orden):', eMov);
+        }
+
+        closeForm();
+        await loadData();
+        toast(`\u00a1Personal nuevo registrado y Orden de Incorporaci\u00f3n N\u00b0 ${d.nro} generada exitosamente!`, 'success');
+        return true;
+      } catch (err) {
+        console.error('Error al guardar personal nuevo con orden:', err);
+        toast('Error al guardar: ' + (err.message || err), 'error');
+        return false;
+      }
     }
 
     function cerrarOpcionesGuardarCambioSubunidad() {
@@ -12771,10 +13065,17 @@ MOTIVO: ${motivoText}`;
 
     async function ejecutarGuardadoCambioSubunidad(generarOrden) {
       if (!_csOrdenData) return;
+      const nroVal = String(document.getElementById('ocs_nro').value || '').trim().toUpperCase();
+      if (!nroVal) {
+        toast('Por favor ingrese el NRO. DE ORDEN (Ej. 001-2026)', 'warning');
+        document.getElementById('ocs_nro')?.focus();
+        return;
+      }
+
       const idx = parseInt(document.getElementById('ocs_firmante')?.value, 10);
       const j = (jefesList || [])[idx] || null;
       Object.assign(_csOrdenData, {
-        nro: String(document.getElementById('ocs_nro').value || '').trim().toUpperCase(),
+        nro: nroVal,
         siglas: String(document.getElementById('ocs_siglas').value || '').trim().toUpperCase(),
         docReferencia: String(document.getElementById('ocs_lugar').value || '').trim().toUpperCase(),
         hora: String(document.getElementById('ocs_hora').value || '').trim(),
@@ -12791,7 +13092,12 @@ MOTIVO: ${motivoText}`;
       const btns = [document.getElementById('ocs_btn_generar'), document.getElementById('ocs_btn_sin_doc')];
       btns.forEach(b => { if (b) b.disabled = true; });
       try {
-        const ok = await guardarCambioSubunidad();
+        let ok = false;
+        if (_csOrdenModo === 'nuevo_personal') {
+          ok = await guardarNuevoPersonalConOrden(_csOrdenData);
+        } else {
+          ok = await guardarCambioSubunidad();
+        }
         if (!ok) return;
         cerrarOpcionesGuardarCambioSubunidad();
         if (generarOrden) regenerarOrdenCambioSubunidad(true);
@@ -17320,245 +17626,7 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
 
     async function accionGuardarYGenerarOrdenNuevoPersonal(e) {
       if (e) e.preventDefault();
-      if (!canEdit()) return;
-
-      const cipRaw = onlyDigits(document.getElementById('cip')?.value || (current ? firstValue(current, ['CIP', 'cip']) : ''));
-      if (!cipRaw || cipRaw.length < 6) {
-        toast('Ingrese un CIP válido (mínimo 6 dígitos)', 'warning');
-        return;
-      }
-
-      const grado = document.getElementById('grado')?.value?.trim() || '';
-      const nombres = document.getElementById('apellidos_y_nombres')?.value?.trim() || '';
-      const dni = onlyDigits(document.getElementById('dni')?.value || '');
-      const condicion = String(document.getElementById('condicion')?.value || 'NATO').trim().toUpperCase();
-
-      // Validar duplicados de CIP y DNI antes de registrar
-      const dupCheck = await validarDuplicadosPersonal(cipRaw, dni, current ? current.id : null);
-      if (!dupCheck.valid) {
-        toast(dupCheck.message, 'error');
-        return;
-      }
-      const unidadOrigen = document.getElementById('unidad_de_origen')?.value?.trim() || 'REGPOL HUANUCO';
-      const listaRevista = document.getElementById('lista_de_revista')?.value?.trim() || 'OFAD REGPOL HUANUCO';
-      const unidadAnterior = document.getElementById('unidad_anterior')?.value?.trim() || 'DIRREHUM PNP';
-      const subunidad = document.getElementById('subunidad_donde_se_encuentra_por_curso_o_apoyo')?.value?.trim() || '';
-      const fechaIncorp = document.getElementById('fecha_de_incorporacion')?.value || new Date().toISOString().slice(0, 10);
-      const docSustenta = document.getElementById('documento_que_sustenta')?.value?.trim() || '---';
-      const todayYMD = new Date().toISOString().split('T')[0];
-
-      // Obtener correlativo oficial de Orden de Incorporación
-      let numPadded = '001';
-      const currentYear = new Date().getFullYear();
-      let nroOrden = '';
-      let fechaOrden = fechaIncorp || todayYMD;
-
-      try {
-        const corr = await getNextOrdenCorrelative();
-        nroOrden = corr.formattedDocNum;
-        numPadded = corr.numPadded;
-        if (corr.fecha) fechaOrden = corr.fecha;
-      } catch (errCorr) {
-        console.warn('Error al obtener correlativo de orden:', errCorr);
-        nroOrden = `ORDEN DE INCORPORACION N°001-${currentYear}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
-      }
-
-      // Preparar payload de Personal Policial
-      let sec = moduloFormFields.personal || [];
-      const obj = {};
-      sec.forEach(s => {
-        s.fields.forEach(k => {
-          const el = document.getElementById(k);
-          if (!el) return;
-          let v = el.value.trim();
-          const meta = allFieldMeta[k] || {};
-          if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
-          const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
-          const dbCol = personalDbColumnMap[k];
-          if (dbCol) obj[dbCol] = finalVal;
-        });
-      });
-
-      if (!obj['DOCUMENTO QUE SUSTENTA'] || obj['DOCUMENTO QUE SUSTENTA'] === '---') {
-        obj['DOCUMENTO QUE SUSTENTA'] = nroOrden;
-      }
-      if (!obj['APTITUD PSICOSOMÁTICO']) {
-        obj['APTITUD PSICOSOMÁTICO'] = document.getElementById('aptitud_psicosomatico')?.value?.trim() || 'APTO CODIGO 0';
-      }
-
-      const cleanObj = buildCleanPersonalPayload(obj);
-
-      try {
-        // 1. Guardar en base de datos personal_policial
-        await req(API_PERSONAL, { method: 'POST', body: JSON.stringify(cleanObj) });
-
-        // 2. Si venía de solicitudes QR, eliminarla
-        try {
-          const matchedSol = (solicitudesList || []).find(s => String(s.cip || '').trim() === String(cipRaw).trim());
-          if (matchedSol && matchedSol.id) {
-            const apiBase = (window.location.protocol === 'http:' || window.location.protocol === 'https:') ? '' : `http://${SERVER_LOCAL_IP}:${SERVER_PORT}`;
-            await fetch(`${apiBase}/api/solicitudes?id=${encodeURIComponent(matchedSol.id)}`, { method: 'DELETE' });
-            solicitudesList = solicitudesList.filter(s => s.id !== matchedSol.id);
-            localStorage.setItem(QR_STORAGE_KEY, JSON.stringify(solicitudesList));
-            updateSolicitudesBadge();
-          }
-        } catch (_) {}
-
-        // Determinar Tipo de Incorporación y Motivo según condición
-        let tipoIncorpVal = '';
-        let motIncorpVal = '';
-        let aMeritoVal = '';
-        let docRefComb = '';
-
-        if (condicion === 'DESTACADO') {
-          tipoIncorpVal = (document.getElementById('dest_incorp_tipo_condicion')?.value || getFieldValue('dest_incorp_tipo_condicion') || 'DESTACADO').trim().toUpperCase();
-          motIncorpVal = (document.getElementById('dest_incorp_motivo')?.value || getFieldValue('dest_incorp_motivo') || 'NECESIDAD DEL SERVICIO').trim().toUpperCase();
-          aMeritoVal = (document.getElementById('dest_incorp_a_merito')?.value || getFieldValue('dest_incorp_a_merito') || getFieldValue('dest_incorp_documento_referencia') || '').trim().toUpperCase();
-          if (docSustenta && aMeritoVal) {
-            const cleanDoc = docSustenta.replace(/\s*-\s*$/, '');
-            docRefComb = cleanDoc.toLowerCase().includes(aMeritoVal.toLowerCase()) ? cleanDoc : `${cleanDoc} - ${aMeritoVal}`;
-          } else {
-            docRefComb = docSustenta || aMeritoVal || '---';
-          }
-        } else {
-          tipoIncorpVal = (document.getElementById('incorp_tipo_incorporacion')?.value || getFieldValue('incorp_tipo_incorporacion') || 'REASIGNACIÓN').trim().toUpperCase();
-          motIncorpVal = (document.getElementById('incorp_motivo')?.value || getFieldValue('incorp_motivo') || 'CAMBIO DE COLOCACIÓN').trim().toUpperCase();
-          aMeritoVal = (document.getElementById('incorp_a_merito')?.value || getFieldValue('incorp_a_merito') || '').trim().toUpperCase();
-          docRefComb = (docSustenta && aMeritoVal) ? `${docSustenta} - ${aMeritoVal}` : (docSustenta || aMeritoVal || '---');
-        }
-        const motivoCombinado = (tipoIncorpVal && motIncorpVal) ? `${tipoIncorpVal} - ${motIncorpVal}` : (tipoIncorpVal || motIncorpVal);
-
-        // 3. Sincronizar en incorporados_reasignados o incorporados_destacados
-        if (condicion === 'NATO') {
-          const incorpObj = {
-            "cip": cipRaw,
-            "grado": grado || null,
-            "apellidos_nombres": nombres || null,
-            "lista_revista_anterior": unidadAnterior || null,
-            "situacion": getFieldValue('incorp_situacion') || 'INCORPORADO',
-            "fecha_incorporacion_regpol": fechaIncorp || todayYMD,
-            "tipo_incorporacion": tipoIncorpVal,
-            "motivo": motIncorpVal,
-            "documento_referencia": docRefComb,
-            "a_merito": aMeritoVal || null,
-            "unidad_origen_actual": unidadOrigen || null,
-            "lista_revista_nueva": listaRevista || null,
-            "numero_inclusion": getFieldValue('incorp_numero_inclusion') || null,
-            "fecha_inclusion": document.getElementById('incorp_fecha_inclusion')?.value || null,
-            "documento_pone_disposicion": nroOrden,
-            "fecha_documento": fechaOrden || todayYMD,
-            "observacion": getFieldValue('incorp_observacion') || null
-          };
-          try {
-            await req(API_INCORPORADOS_REASIGNADOS, { method: 'POST', body: JSON.stringify(incorpObj) });
-          } catch (eIncorp) {
-            console.warn('Error sincronizando incorporados_reasignados:', eIncorp);
-          }
-        } else if (condicion === 'DESTACADO') {
-          const sitActualVal = (document.getElementById('situacion_actual')?.value || getFieldValue('situacion_actual') || obj['SITUACIÓN ACTUAL'] || '').trim().toUpperCase();
-          await sincronizarDestaqueNuevoPersonal({
-            cip: cipRaw,
-            grado: grado,
-            nombres: nombres,
-            unidadOrigen: unidadOrigen,
-            unidadAnterior: unidadAnterior,
-            listaRevista: listaRevista,
-            fechaIncorp: fechaIncorp,
-            docSustenta: docSustenta,
-            situacionActual: sitActualVal,
-            nroDocumentoGenerado: nroOrden,
-            fechaDocumentoGenerado: fechaOrden
-          });
-        }
-
-        // 4. Registrar en Sistema de Documentos (tabla 'orden_incorporacion')
-        try {
-          const gradoNombres = `${grado} ${nombres}`.trim();
-          const descripcionOrden = `PONE A DISPOSICIÓN AL ${gradoNombres} POR HABER SIDO ${tipoIncorpVal} MOTIVO: ${motIncorpVal}`.replace(/\s+/g, ' ').trim().toUpperCase();
-          const destinoFinal = (listaRevista || '').trim().toUpperCase() || 'OFAD REGPOL HUANUCO';
-
-          const listJefes = (Array.isArray(jefesList) && jefesList.length > 0) ? jefesList : defaultJefes();
-          const selJefeObj = listJefes[selectedFirmanteIndex] || listJefes[0] || {};
-          const quienOrdena = `${selJefeObj.GRADO || selJefeObj.grado || 'CMDTE PNP'} ${selJefeObj['APELLIDOS Y NOMBRES'] || selJefeObj.nombres || 'CISNEROS APAZA RICKY FLORIAN'} - ${selJefeObj.CARGO || selJefeObj.cargo || 'JEFE OFAD REGPOL HUANUCO'}`.trim();
-
-          const docPayload = {
-            numero_documento: nroOrden,
-            fecha_documento: fechaOrden,
-            descripcion: descripcionOrden,
-            numero_orden_incorporacion_dirrehum: docRefComb,
-            documento_referencia: docRefComb,
-            destino: destinoFinal,
-            quien_ordena: quienOrdena,
-            usuario_registra: sessionStorage.getItem('pnp_user_fullname') || 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS'
-          };
-          await docReq(API_ORDEN_INCORPORACION, { method: 'POST', body: JSON.stringify(docPayload) });
-          if (typeof BroadcastChannel !== 'undefined') {
-            try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'orden_incorporacion' }); } catch (_) {}
-          }
-          try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
-        } catch (eDoc) {
-          console.warn('Registro de orden en documentos:', eDoc);
-        }
-
-        // Registrar movimiento de nuevo personal
-        try {
-          const docRefMov = nroOrden || docRefComb || docSustenta;
-          const motMov = (condicion === 'DESTACADO')
-            ? (motIncorpVal ? `DESTAQUE - ${motIncorpVal}` : 'DESTAQUE POR NECESIDAD DEL SERVICIO')
-            : (motivoCombinado || 'INCORPORACIÓN / REASIGNACIÓN');
-          const obsMov = (condicion === 'DESTACADO')
-            ? (document.getElementById('dest_incorp_observacion')?.value || getFieldValue('dest_incorp_observacion') || '')
-            : (document.getElementById('incorp_observacion')?.value || getFieldValue('incorp_observacion') || '');
-
-          await registrarMovimientoEfectivo({
-            cip: cipRaw,
-            grado: grado,
-            apellidos_nombres: nombres,
-            tipo_movimiento: (condicion === 'DESTACADO' ? 'DESTAQUE' : 'INCORPORACIÓN'),
-            fecha: fechaIncorp || todayYMD,
-            lista_de_revista: listaRevista,
-            unidad_de_origen: unidadOrigen,
-            unidad_anterior: unidadAnterior,
-            documento_referencia: docRefMov,
-            motivo: motMov,
-            observacion: obsMov,
-            modulo_origen: 'personal'
-          });
-        } catch (eMov) {
-          console.warn('Error registrando movimiento para nuevo personal (Orden):', eMov);
-        }
-
-        // 5. Cerrar formularios y recargar datos
-        closeGenerarDocNuevoPersonalModal();
-        closeForm();
-        await loadData();
-
-        // 6. Abrir vista previa de la Orden generada
-        const dataForOrden = {
-          cip: cipRaw,
-          grado: grado || '---',
-          apellidos_y_nombres: nombres || '---',
-          dni: dni || '---',
-          unidad_anterior: unidadAnterior || 'DIRREHUM PNP',
-          unidad_de_origen: unidadOrigen || 'REGPOL HUANUCO',
-          lista_de_revista: listaRevista || 'OFAD REGPOL HUANUCO',
-          condicion: condicion || 'NATO',
-          tipo_incorporacion: tipoIncorpVal,
-          motivo: motivoCombinado,
-          documento_que_sustenta: docRefComb || docSustenta || '---',
-          numPadded: numPadded,
-          numero_documento: nroOrden,
-          fecha_incorporacion: fechaIncorp,
-          created_at: new Date().toISOString()
-        };
-
-        displayOrdenNuevoPersonalPreview(dataForOrden);
-        toast(`¡Personal nuevo registrado y Orden de Incorporación N° ${numPadded} generada exitosamente!`, 'success');
-
-      } catch (err) {
-        console.error('Error al guardar personal nuevo y generar orden:', err);
-        toast('Error al guardar: ' + (err.message || err), 'error');
-      }
+      await abrirOpcionesGuardarOrdenNuevoPersonal(e);
     }
 
     async function accionGuardarYGenerarOficioNuevoPersonal(e) {
@@ -20210,8 +20278,36 @@ REGLAS CRÍTICAS:
         usuario_registra: usuarioReg
       };
 
-      if (currentTable === 'personal') {
-        displayOrdenNuevoPersonalPreview(ordenData);
+      if (currentTable === 'personal' || currentTable === 'cambio_subunidad') {
+        const numExtracted = (docSustVal || '').match(/N[°º\s]*([0-9A-Za-z-]+)/i)?.[1] || numPad;
+        const currentYr = fechaIncorpVal ? String(fechaIncorpVal).slice(0, 4) : new Date().getFullYear().toString();
+        const j0 = (jefesList && jefesList[0]) || (typeof defaultJefes === 'function' ? defaultJefes()[0] : null);
+        _csOrdenData = {
+          cip: cipVal,
+          dni: onlyDigits(document.getElementById('dni')?.value || (current ? firstValue(current, ['DNI', 'dni']) : '')),
+          grado: gradoFormatted,
+          nombres: nombresVal,
+          claseNombre: [gradoFormatted, nombresVal].filter(Boolean).join(' '),
+          procedencia: unidadAntVal,
+          destino: destinoVal,
+          unidadOrigen: document.getElementById('unidad_de_origen')?.value || unidadAntVal,
+          fechaYmd: fechaIncorpVal,
+          nro: numExtracted,
+          siglas: `${currentYr}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`,
+          docReferencia: docSustVal || '---',
+          hora: '08:00',
+          motivo: `${tipoIncVal} - ${motivoVal}`,
+          carnet: [cipVal ? `CIP N° ${cipVal}` : ''].filter(Boolean).join(' / '),
+          vacaciones: 'NO REGISTRA',
+          observaciones: OCS_OBS_TEXTS.OPCION_3 || OCS_OBS_TEXTS.OPCION_1,
+          firmante: j0 ? {
+            cip: String(j0.CIP || j0.cip || '').trim(),
+            nombre: formatNombrePostFirma(j0['APELLIDOS Y NOMBRES'] || j0.apellidos_y_nombres || ''),
+            grado: j0.GRADO || j0.grado || '',
+            cargo: j0.CARGO || j0.cargo || ''
+          } : null
+        };
+        regenerarOrdenCambioSubunidad(true);
       } else {
         displayOrdenPreview(ordenData);
       }
@@ -20591,6 +20687,10 @@ REGLAS CRÍTICAS:
     async function saveRecordAndGenerateOrden(e) {
       if (e) e.preventDefault();
       if (!canEdit()) return;
+
+      if (!current && currentTable === 'personal') {
+        return abrirOpcionesGuardarOrdenNuevoPersonal(e);
+      }
 
       const btnGen = document.getElementById('btnSaveAndGenOrden');
       const btnSave = document.getElementById('saveRecordBtn');
