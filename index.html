@@ -7446,7 +7446,7 @@
       doc_pone_disposicion_subunidad: { label: 'DOC PONE A DISPOSICION A SU DEPENDENCIA POLICIAL', type: 'text', cls: 'wide' },
       fecha_doc: { label: 'FECHA DOC', type: 'date' },
       observacion: { label: 'OBSERVACIÓN', type: 'textarea', cls: 'full' },
-      observaciones: { label: 'OBSERVACIONES', type: 'textarea', cls: 'full' }
+      observaciones: { label: 'OBSERVACIÓN', type: 'textarea', cls: 'full' }
     };
 
     const personalDbColumnMap = {
@@ -7480,7 +7480,9 @@
       correo_personal: 'CORREO PERSONAL',
       celular: 'CELULAR',
       hijos: 'HIJOS',
-      estado_civil: 'ESTADO CIVIL'
+      estado_civil: 'ESTADO CIVIL',
+      observaciones: 'OBSERVACIONES',
+      observacion: 'OBSERVACIONES'
     };
 
     const referidosDbColumnMap = {
@@ -7528,7 +7530,7 @@
       const sampleKeys = Object.keys(sampleRow);
       for (const k of sampleKeys) {
         const kNorm = normalizeText(k).replace(/[^a-z0-9]/g, '');
-        if (kNorm === targetNorm) return k;
+        if (kNorm === targetNorm || (targetNorm.startsWith('observacion') && kNorm.startsWith('observacion'))) return k;
       }
       return targetKey;
     }
@@ -7585,11 +7587,16 @@
         ['CORREO PERSONAL', inputObj['CORREO PERSONAL'] || inputObj['correo_personal'] || ''],
         ['HIJOS', (inputObj['HIJOS'] !== null && inputObj['HIJOS'] !== undefined && inputObj['HIJOS'] !== '') ? Number(inputObj['HIJOS']) : (inputObj['hijos'] !== null && inputObj['hijos'] !== undefined && inputObj['hijos'] !== '' ? Number(inputObj['hijos']) : 0)],
         ['ESTADO CIVIL', inputObj['ESTADO CIVIL'] || inputObj['estado_civil'] || 'SOLTERO(A)'],
-        ['CELULAR', inputObj['CELULAR'] || inputObj['celular'] || null]
+        ['CELULAR', inputObj['CELULAR'] || inputObj['celular'] || null],
+        ['OBSERVACIONES', (inputObj['OBSERVACIONES'] !== undefined) ? inputObj['OBSERVACIONES'] : ((inputObj['observaciones'] !== undefined) ? inputObj['observaciones'] : (inputObj['observacion'] !== undefined ? inputObj['observacion'] : null))]
       ];
 
       standardFields.forEach(([stdKey, val]) => {
         const actualKey = getDbColumnKey(stdKey, sample);
+        if (sample && sample[actualKey] === undefined && (stdKey === 'OBSERVACIONES' || stdKey === 'observaciones')) {
+          // Si el esquema de Supabase aun no tiene la columna OBSERVACIONES, no enviarla en el payload para evitar error 42703
+          return;
+        }
         cleanPayload[actualKey] = val;
       });
 
@@ -7635,6 +7642,7 @@
         { title: 'SITUACIÓN Y CARGO', fields: ['documento_que_sustenta','fecha_de_incorporacion','condicion','situacion_actual','cargo','unidad_anterior','aptitud_psicosomatico','f_inicio','f_termino'] },
         { title: 'FECHAS DE CARRERA', fields: ['fecha_de_nacimiento','f_ingreso_al_estado','f_ingreso_a_la_escuela','f_egreso_de_la_escuela','f_ultimo_ascenso'] },
         { title: 'CONTACTO Y FAMILIA', fields: ['correo_institucional','correo_personal','celular','sexo','hijos','estado_civil'] },
+        { title: 'OBSERVACIONES', fields: ['observaciones'] },
         { title: 'DATOS ADICIONALES DE INCORPORACIÓN (REASIGNACIÓN)', id: 'sec_datos_incorporacion', fields: ['incorp_situacion','incorp_tipo_incorporacion','incorp_motivo','incorp_a_merito','incorp_numero_inclusion','incorp_fecha_inclusion','incorp_documento_pone_disposicion','incorp_fecha_documento','incorp_observacion'] },
         { title: 'DATOS ADICIONALES DE INCORPORACIÓN (DESTAQUE)', id: 'sec_datos_destaque', fields: ['dest_incorp_tipo_condicion','dest_incorp_motivo','dest_incorp_a_merito','dest_incorp_numero_inclusion','dest_incorp_fecha_inclusion','dest_incorp_documento_pone_disposicion','dest_incorp_fecha_documento','dest_incorp_observacion'] }
       ],
@@ -14834,7 +14842,7 @@ p { margin:0; }
             const firstOpt = (!isEdit && defaultVal && opts.some(o => o.toUpperCase() === defaultVal.toUpperCase())) ? '' : '<option value="">Seleccione...</option>';
             return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><select id="${k}">${firstOpt}${optionsHtml}</select></div>`;
           }
-          if (meta.type === 'textarea') return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><textarea id="${k}"></textarea></div>`;
+          if (meta.type === 'textarea') return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><textarea id="${k}" placeholder="Detalles u observaciones adicionales..." style="min-height:70px; text-transform:uppercase;" oninput="this.value = this.value.toUpperCase()"></textarea></div>`;
           return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><input id="${k}" type="${meta.type}" /></div>`;
         }).join('');
 
@@ -19960,7 +19968,15 @@ REGLAS CRÍTICAS:
               const meta = allFieldMeta[k] || {};
               let val = '';
               if (currentTable === 'personal' && personalDbColumnMap[k]) {
-                val = firstValue(current, [personalDbColumnMap[k], k]);
+                val = firstValue(current, [personalDbColumnMap[k], k, 'OBSERVACIONES', 'observaciones', 'OBSERVACION', 'observacion', 'detalle']);
+                if (!val && (k === 'observaciones' || k === 'observacion')) {
+                  try {
+                    const mList = (typeof getMovimientosStorage === 'function' ? getMovimientosStorage() : []);
+                    const curCip = String(firstValue(current, ['CIP', 'cip']) || '').trim();
+                    const lastM = mList.find(m => String(m.cip || '').trim() === curCip && m.observacion && String(m.observacion).trim());
+                    if (lastM) val = lastM.observacion;
+                  } catch (_) {}
+                }
               } else if (currentTable === 'referidos' && referidosDbColumnMap[k]) {
                 val = firstValue(current, [referidosDbColumnMap[k], k]);
               } else if (currentTable === 'incorporados_destacados') {
@@ -20482,18 +20498,34 @@ REGLAS CRÍTICAS:
         }
 
         if (current) {
-          if (current.id !== undefined && current.id !== null && current.id !== '') {
-            await req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(finalPayload) });
-          } else if (currentTable === 'referidos') {
-            const cipKey = firstValue(current, ['CIP', 'cip']);
-            await req(API + '?CIP=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(finalPayload) });
-          } else if (currentTable === 'personal') {
-            const cipKey = firstValue(current, ['CIP', 'cip']);
-            const dbCipCol = getDbColumnKey('CIP', tableSampleRows['personal'] || rows?.[0]);
-            await req(API + `?${encodeURIComponent(dbCipCol)}=eq.` + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(finalPayload) });
-          } else {
-            const cipKey = firstValue(current, ['cip', 'CIP']);
-            await req(API + '?cip=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(finalPayload) });
+          const tryPatch = async (payload) => {
+            if (current.id !== undefined && current.id !== null && current.id !== '') {
+              return await req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(payload) });
+            } else if (currentTable === 'referidos') {
+              const cipKey = firstValue(current, ['CIP', 'cip']);
+              return await req(API + '?CIP=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(payload) });
+            } else if (currentTable === 'personal') {
+              const cipKey = firstValue(current, ['CIP', 'cip']);
+              const dbCipCol = getDbColumnKey('CIP', tableSampleRows['personal'] || rows?.[0]);
+              return await req(API + `?${encodeURIComponent(dbCipCol)}=eq.` + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(payload) });
+            } else {
+              const cipKey = firstValue(current, ['cip', 'CIP']);
+              return await req(API + '?cip=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(payload) });
+            }
+          };
+
+          try {
+            await tryPatch(finalPayload);
+          } catch (errPatch) {
+            const errStr = String(errPatch?.message || errPatch || '');
+            if (currentTable === 'personal' && (errStr.includes('OBSERVACIONES') || errStr.includes('observaciones') || errStr.includes('42703'))) {
+              console.warn('Columna OBSERVACIONES no encontrada en base de datos personal_policial, guardando sin esta columna:', errPatch);
+              delete finalPayload['OBSERVACIONES'];
+              delete finalPayload['observaciones'];
+              await tryPatch(finalPayload);
+            } else {
+              throw errPatch;
+            }
           }
         } else {
           await req(API, { method: 'POST', body: JSON.stringify(finalPayload) });
@@ -20634,6 +20666,32 @@ REGLAS CRÍTICAS:
                 motivo: 'ACTUALIZACIÓN EN SISTEMA',
                 modulo_origen: currentTable
               });
+            }
+
+            if (currentTable === 'personal') {
+              const obsValInput = document.getElementById('observaciones')?.value?.trim() || obj['OBSERVACIONES'] || obj['observaciones'] || '';
+              const obsAnterior = String(firstValue(current, ['OBSERVACIONES', 'observaciones', 'observacion']) || '').trim();
+              if (obsValInput) {
+                current['OBSERVACIONES'] = obsValInput;
+                current['observaciones'] = obsValInput;
+                current['observacion'] = obsValInput;
+              }
+              if (obsValInput && obsValInput !== obsAnterior) {
+                registrarMovimientoEfectivo({
+                  cip: cipClean,
+                  grado: gradoMov,
+                  apellidos_nombres: nomMov,
+                  tipo_movimiento: 'OBSERVACIÓN',
+                  fecha: getTodayPeruYMD(),
+                  lista_de_revista: revMov,
+                  unidad_de_origen: unOrigMov,
+                  unidad_anterior: unAntMov,
+                  documento_referencia: docRefMov,
+                  motivo: 'OBSERVACIÓN REGISTRADA',
+                  observacion: obsValInput,
+                  modulo_origen: 'personal'
+                });
+              }
             }
           } else {
             const condActual = String(document.getElementById('condicion')?.value || obj['CONDICIÓN'] || '').trim().toUpperCase();
