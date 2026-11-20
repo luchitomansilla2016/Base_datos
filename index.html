@@ -7444,7 +7444,7 @@
       documento_referencia_retorno: { label: 'DOCUMENTO DE RETORNO', type: 'text', cls: 'wide' },
       n_inclusion_curso: { label: 'N° INCLUSION (SOLO N°)', type: 'text', cls: 'wide' },
       doc_pone_disposicion_subunidad: { label: 'DOC PONE A DISPOSICION A SU DEPENDENCIA POLICIAL', type: 'text', cls: 'wide' },
-      fecha_doc: { label: 'FECHA DOC', type: 'date' },
+      fecha_doc: { label: 'FECHA DOC', type: 'date', cls: 'wide' },
       observacion: { label: 'OBSERVACIÓN', type: 'textarea', cls: 'full' },
       observaciones: { label: 'OBSERVACIÓN', type: 'textarea', cls: 'full' }
     };
@@ -7658,6 +7658,7 @@
         { title: 'Datos del Efectivo', fields: ['cip','grado','apellidos_nombres'] },
         { title: 'Unidad y Situación', fields: ['lista_de_revista','condicion','situacion_actual'] },
         { title: 'Detalles del Curso', fields: ['descripcion_del_curso','lugar','documento_de_referencia','numero_de_oficio','fecha_de_oficio','n_exclusion_curso','fecha_exclusion_curso'] },
+        { title: 'Historial de Inclusión', fields: ['documento_referencia_retorno','fecha_de_retorno','n_inclusion_curso','fecha_de_inclusion','doc_pone_disposicion_subunidad','fecha_doc'] },
         { title: 'Observaciones', fields: ['observacion'] }
       ],
       destacados: [
@@ -14766,6 +14767,14 @@ p { margin:0; }
               </div>`;
           }
 
+          if (k === 'n_inclusion_curso') {
+            return `
+              <div class="field ${meta.cls || ''}">
+                <label for="${k}">${meta.label}</label>
+                <input id="${k}" type="text" placeholder="Ej. 001 o 15" onblur="formatConstanciaInclusionCurso(this)" onchange="formatConstanciaInclusionCurso(this)" />
+              </div>`;
+          }
+
           if (k === 'incorp_numero_inclusion' || k === 'dest_incorp_numero_inclusion' || k === 'numero_inclusion') {
             return `
               <div class="field ${meta.cls || ''}">
@@ -20024,6 +20033,14 @@ REGLAS CRÍTICAS:
                   if (!val && currentTable === 'en_curso') {
                     val = new Date().toISOString().slice(0, 10);
                   }
+                } else if (k === 'n_inclusion_curso') {
+                  val = firstValue(current, ['n°_inclusion', 'numero_inclusion', 'nro_inclusion', 'inclusion', 'constancia_de_inclusion', 'constancia_inclusion', 'n_inclusion_curso']);
+                } else if (k === 'documento_referencia_retorno') {
+                  val = firstValue(current, ['documento_referencia_retorno', 'documento_de_retorno', 'doc_retorno']);
+                } else if (k === 'doc_pone_disposicion_subunidad') {
+                  val = firstValue(current, ['doc_pone_disposicion_subunidad', 'documento_pone_disposicion', 'doc_pone_disposicion']);
+                } else if (k === 'fecha_doc') {
+                  val = firstValue(current, ['fecha_doc', 'fecha_documento', 'FECHA DOC']);
                 } else if (k === 'observaciones' || k === 'observacion') {
                   val = firstValue(current, ['observaciones', 'observacion', 'OBSERVACIONES', 'OBSERVACION', 'detalle']);
                 } else if (k === 'motivo' || k === 'causal') {
@@ -20426,6 +20443,8 @@ REGLAS CRÍTICAS:
             } else if (currentTable === 'en_curso') {
               if (k === 'n_exclusion_curso') {
                 obj['n°_exclusion'] = finalVal;
+              } else if (k === 'n_inclusion_curso') {
+                obj['n°_inclusion'] = finalVal;
               } else if (k === 'fecha_exclusion_curso') {
                 obj['fecha_de_exclusion'] = finalVal;
               } else if (k === 'observaciones' || k === 'observacion') {
@@ -20512,6 +20531,10 @@ REGLAS CRÍTICAS:
           }
         } else if (currentTable === 'personal') {
           finalPayload = buildCleanPersonalPayload(obj);
+        } else if (currentTable === 'en_curso') {
+          delete finalPayload['n_exclusion_curso'];
+          delete finalPayload['fecha_exclusion_curso'];
+          delete finalPayload['n_inclusion_curso'];
         }
 
         if (current) {
@@ -21168,7 +21191,10 @@ REGLAS CRÍTICAS:
           ['lista_revista', 'Lista revista'], ['condicion', 'Condición'], ['situacion_actual', 'Situación actual'],
           ['descripcion_curso', 'Descripción del curso'], ['lugar', 'Lugar'], ['numero_de_oficio', 'N° Oficio'], ['fecha_de_oficio', 'Fecha de oficio'],
           ['n_exclusion_curso', 'N° Exclusión'], ['fecha_exclusion_curso', 'Fecha de exclusión'],
-          ['tiempo_curso', 'Tiempo transcurrido']
+          ['documento_referencia_retorno', 'Documento retorno'], ['fecha_de_retorno', 'Fecha de retorno'],
+          ['n_inclusion_curso', 'N° Inclusión'], ['fecha_de_inclusion', 'Fecha de inclusión'],
+          ['doc_pone_disposicion_subunidad', 'Doc. pone a disposición'], ['fecha_doc', 'Fecha documento'],
+          ['tiempo_curso', 'Tiempo transcurrido'], ['observacion', 'Observación']
         ];
       } else if (currentTable === 'destacados') {
         fieldList = [
