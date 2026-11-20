@@ -7382,12 +7382,12 @@
       fecha_de_exclusion: { label: 'Fecha exclusión', type: 'date' },
       fecha_de_retorno: { label: 'Fecha de retorno', type: 'date', cls: 'wide' },
       fecha_retorno: { label: 'Fecha Retorno', type: 'date' },
-      documento_de_retorno: { label: 'Documento retorno', type: 'text', cls: 'wide' },
-      constancia_de_inclusion: { label: 'Constancia inclusión', type: 'text' },
-      fecha_de_inclusion: { label: 'Fecha inclusión', type: 'date' },
-      tipo_de_documento: { label: 'Tipo de documento', type: 'text' },
+      documento_de_retorno: { label: 'Doc. retorno', type: 'text', cls: 'wide' },
+      constancia_de_inclusion: { label: 'N° inclusión', type: 'text', cls: 'wide' },
+      fecha_de_inclusion: { label: 'Fecha inclusión', type: 'date', cls: 'wide' },
+      tipo_de_documento: { label: 'Tipo de documento', type: 'text', cls: 'wide' },
       f_doc: { label: 'Fecha documento retorno', type: 'date' },
-      n_de_doc: { label: 'N° Documento retorno', type: 'text' },
+      n_de_doc: { label: 'N° Documento', type: 'text', cls: 'wide' },
       resolucion: { label: 'Resolución / Documento', type: 'text', cls: 'wide' },
       resolucion_memorandum: { label: 'Resolución / Memorándum', type: 'text', cls: 'wide' },
       motivo: { label: 'Motivo', type: 'text', cls: 'wide' },
@@ -7651,6 +7651,7 @@
         { title: 'Unidad y Situación', fields: ['unidad_de_origen','lista_de_revista','condicion','situacion_actual'] },
         { title: 'Documentos de Referencia', fields: ['documento_referencia','diagnostico'] },
         { title: 'Historial de Exclusión', fields: ['numero_oficio_pone_disposición','fecha_de_oficio','constancia_exclusion','fecha_de_exclusion'] },
+        { title: 'Historial de Inclusión', fields: ['documento_de_retorno','fecha_de_retorno','constancia_de_inclusion','fecha_de_inclusion','tipo_de_documento','n_de_doc'] },
         { title: 'Observaciones', fields: ['observaciones'] }
       ],
       en_curso: [
@@ -14853,9 +14854,11 @@ p { margin:0; }
       }).join('');
 
       if (currentTable === 'referidos') {
-        form.innerHTML += retornoModalFields.map(k => `<input type="hidden" id="${k}" />`).join('');
+        const existingIds = new Set(sections.flatMap(s => s.fields));
+        form.innerHTML += retornoModalFields.filter(k => !existingIds.has(k)).map(k => `<input type="hidden" id="${k}" />`).join('');
       } else if (currentTable === 'en_curso') {
-        form.innerHTML += retornoCursoModalFields.map(k => `<input type="hidden" id="${k}" />`).join('');
+        const existingIds = new Set(sections.flatMap(s => s.fields));
+        form.innerHTML += retornoCursoModalFields.filter(k => !existingIds.has(k)).map(k => `<input type="hidden" id="${k}" />`).join('');
       }
 
       const condEl = document.getElementById('condicion');
@@ -19977,8 +19980,16 @@ REGLAS CRÍTICAS:
                     if (lastM) val = lastM.observacion;
                   } catch (_) {}
                 }
-              } else if (currentTable === 'referidos' && referidosDbColumnMap[k]) {
-                val = firstValue(current, [referidosDbColumnMap[k], k]);
+              } else if (currentTable === 'referidos') {
+                if (k === 'documento_de_retorno') val = firstValue(current, ['DOC RETORNO', 'doc_retorno', 'documento_de_retorno', 'DOC_RETORNO']);
+                else if (k === 'fecha_de_retorno') val = firstValue(current, ['FECHA DOC RETORNO', 'FECHA_DOC_RETORNO', 'fecha_de_retorno', 'fecha_doc_retorno']);
+                else if (k === 'constancia_de_inclusion') val = firstValue(current, ['NRO INCLUSION', 'nro_inclusion', 'constancia_de_inclusion', 'constancia_inclusion', 'n°_inclusion']);
+                else if (k === 'fecha_de_inclusion') val = firstValue(current, ['FECHA INCLUSION', 'fecha_inclusion', 'fecha_de_inclusion', 'FECHA_INCLUSION']);
+                else if (k === 'tipo_de_documento') val = firstValue(current, ['TIPO DOC', 'tipo_doc', 'tipo_de_documento', 'tipo_documento', 'TIPO_DOC']);
+                else if (k === 'n_de_doc') val = firstValue(current, ['NRO DOC', 'nro_doc', 'n_de_doc', 'NRO_DOC']);
+                else if (k === 'observaciones' || k === 'observacion') val = firstValue(current, ['OBSERVACION', 'observacion', 'OBSERVACIONES', 'observaciones']);
+                else if (referidosDbColumnMap[k]) val = firstValue(current, [referidosDbColumnMap[k], k]);
+                else val = firstValue(current, [k]);
               } else if (currentTable === 'incorporados_destacados') {
                 if (k === 'numero_exclusion') val = firstValue(current, ['n°_exclusion', 'numero_exclusion', 'nro_exclusion', 'exclusion', 'constancia_exclusion']);
                 else if (k === 'fecha_exclusion') val = firstValue(current, ['fecha_exclusion', 'FECHA EXCLUSION', 'fecha_de_exclusion', 'f_exclusion']);
@@ -20087,7 +20098,10 @@ REGLAS CRÍTICAS:
           }
           retornoModalFields.forEach(k => {
             const el = document.getElementById(k);
-            if (el) el.value = firstValue(current, [referidosDbColumnMap[k] || k, k]) ?? '';
+            if (el) {
+              const rawV = firstValue(current, [referidosDbColumnMap[k] || k, k]);
+              el.value = el.type === 'date' ? formatDateForInput(rawV) : (rawV ?? '');
+            }
           });
         } else if (currentTable === 'en_curso') {
           const sitEl = document.getElementById('situacion_actual');
@@ -20493,6 +20507,9 @@ REGLAS CRÍTICAS:
           Object.keys(obj).forEach(key => {
             if (validReferidosCols.has(key)) finalPayload[key] = obj[key];
           });
+          if (finalPayload['FECHA DOC RETORNO'] !== undefined && finalPayload['FECHA_DOC_RETORNO'] === undefined) {
+            finalPayload['FECHA_DOC_RETORNO'] = finalPayload['FECHA DOC RETORNO'];
+          }
         } else if (currentTable === 'personal') {
           finalPayload = buildCleanPersonalPayload(obj);
         }
