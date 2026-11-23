@@ -3536,6 +3536,7 @@
       <div class="side-section-title">Módulos</div>
       <div class="side-menu">
         <button id="menuPersonal" class="side-btn active" onclick="switchTable('personal')">▣ Personal</button>
+        <button id="menuOficiales" class="side-btn" onclick="switchTable('oficiales')">⭐ Oficiales</button>
         <button id="menuReferidos" class="side-btn" onclick="switchTable('referidos')">▣ Referidos</button>
         <button id="menuCurso" class="side-btn" onclick="switchTable('en_curso')">▣ Curso</button>
         <button id="menuDestacados" class="side-btn" onclick="switchTable('destacados')">▣ Destacados</button>
@@ -7000,6 +7001,7 @@
 
     const tableConfigs = {
       personal: { title: 'PERSONAL', api: API_PERSONAL, menu: 'menuPersonal', optValue: '', optLabel: 'PERSONAL' },
+      oficiales: { title: 'OFICIALES Y MANDOS', api: API_PERSONAL, menu: 'menuOficiales', optValue: '', optLabel: 'TODOS LOS OFICIALES Y MANDOS' },
       referidos: { title: 'REFERIDOS', api: API_REFERIDOS, menu: 'menuReferidos', optValue: 'REFERIDO', optLabel: 'REFERIDOS' },
       en_curso: { title: 'CURSO', api: API_EN_CURSO, menu: 'menuCurso', optValue: 'CURSO', optLabel: 'CURSO' },
       destacados: { title: 'DESTACADOS', api: API_DESTACADOS, menu: 'menuDestacados', optValue: 'DESTACADO', optLabel: 'DESTACADO' },
@@ -8070,9 +8072,71 @@
       } catch (_) { gradoOrden = {}; }
     }
 
+    function getGradoRankScore(gradoStr) {
+      const g = normalizeText(gradoStr || '');
+      // Oficiales Generales y Superiores
+      if (g.startsWith('gral') || g.includes('general')) return 1;
+      if (g.startsWith('crnl') || g.includes('coronel')) return 2;
+      if (g.startsWith('cmdte') || g.includes('comandante')) return 3;
+      if (g.startsWith('may') || g.includes('mayor')) return 4;
+      // Oficiales Subalternos
+      if (g.startsWith('cap') || g.includes('capitan')) return 5;
+      if (g.startsWith('tnte') || g.startsWith('tte') || g.includes('teniente')) return 6;
+      if (g.startsWith('alfz') || g.includes('alferez')) return 7;
+      // Suboficiales con cargo de mando
+      if (g.startsWith('ss') || g.includes('suboficial superior')) return 10;
+      if (g.startsWith('sb') || g.includes('brigadier')) return 11;
+      if (g.startsWith('st1') || g.includes('tecnico de 1')) return 12;
+      if (g.startsWith('st2') || g.includes('tecnico de 2')) return 13;
+      if (g.startsWith('st3') || g.includes('tecnico de 3')) return 14;
+      if (g.startsWith('s1') || g.includes('suboficial de 1')) return 15;
+      if (g.startsWith('s2') || g.includes('suboficial de 2')) return 16;
+      if (g.startsWith('s3') || g.includes('suboficial de 3')) return 17;
+      return 99;
+    }
+
+    function isOficialOMandoRecord(r) {
+      if (!r) return false;
+      const grado = normalizeText(firstValue(r, ['grado', 'GRADO']) || '');
+      const jerarquia = normalizeText(firstValue(r, ['jerarquia', 'JERARQUIA']) || '');
+      const cargo = normalizeText(firstValue(r, ['cargo', 'CARGO']) || '');
+
+      // 1. Oficiales de Armas y Servicios (desde GRAL PNP hasta ALFZ PNP)
+      const esOficial = jerarquia.includes('oficial') ||
+        grado.startsWith('gral') || grado.includes('general') ||
+        grado.startsWith('crnl') || grado.includes('coronel') ||
+        grado.startsWith('cmdte') || grado.includes('comandante') ||
+        grado.startsWith('may') || grado.includes('mayor') ||
+        grado.startsWith('cap') || grado.includes('capitan') ||
+        grado.startsWith('tnte') || grado.startsWith('tte') || grado.includes('teniente') ||
+        grado.startsWith('alfz') || grado.includes('alferez');
+
+      if (esOficial) return true;
+
+      // 2. Suboficiales con cargo de Mando (Comisario, Jefe de Sección o Jefe de Área)
+      const tieneCargoMando = cargo.includes('comisario') ||
+        cargo.includes('jefe de seccion') || cargo.includes('jefe sec') ||
+        cargo.includes('jefe de area') || cargo.includes('jefe area') ||
+        cargo.includes('jefe de puesto') || cargo.includes('jefe puesto');
+
+      if (tieneCargoMando) return true;
+
+      return false;
+    }
+
     function ordenarRegistros(lista) {
       if (currentTable === 'unidades') {
         return lista.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+      }
+      if (currentTable === 'oficiales') {
+        return lista.sort((a, b) => {
+          const rA = getGradoRankScore(firstValue(a, ['grado', 'GRADO']));
+          const rB = getGradoRankScore(firstValue(b, ['grado', 'GRADO']));
+          if (rA !== rB) return rA - rB;
+          const cipA = Number(String(firstValue(a, ['cip', 'CIP'])).replace(/\D/g, '')) || 0;
+          const cipB = Number(String(firstValue(b, ['cip', 'CIP'])).replace(/\D/g, '')) || 0;
+          return cipA - cipB;
+        });
       }
       return lista.sort((a, b) => {
         const gradoA = gradoOrden[String(firstValue(a, ['grado', 'GRADO'])).trim().toUpperCase()] || 9999;
@@ -8097,7 +8161,7 @@
           ? Promise.resolve()
           : Promise.all([loadCatalogos(), loadUnidadesCatalog(), loadJefesList()]).then(() => { _staticCatalogsReady = true; });
 
-        const obsPromise = (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad')
+        const obsPromise = (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad' || tableSnapshot === 'oficiales')
           ? getOrFetchMovimientosObservaciones()
           : Promise.resolve(_movObsCache);
 
@@ -8105,7 +8169,7 @@
         const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
 
         const fetchRowsPromise = (async () => {
-          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad' || tableSnapshot === 'oficiales') {
             const [p0, p1, p2] = await Promise.all([
               req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
               req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
@@ -8135,17 +8199,21 @@
           }
         })();
 
-        const [loadedRows, _, movObsMap] = await Promise.all([fetchRowsPromise, catalogsPromise, obsPromise]);
+        let [loadedRows, _, movObsMap] = await Promise.all([fetchRowsPromise, catalogsPromise, obsPromise]);
         if (token !== loadDataToken || tableSnapshot !== currentTable) return;
 
-        if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+        if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad' || tableSnapshot === 'oficiales') {
           applyObservacionesToRows(loadedRows, movObsMap);
+        }
+
+        if (tableSnapshot === 'oficiales') {
+          loadedRows = (loadedRows || []).filter(isOficialOMandoRecord);
         }
 
         rows = (loadedRows || []).map(_preindexRow);
         tableSampleRows[tableSnapshot] = (rows && rows[0]) ? rows[0] : null;
         ordenarRegistros(rows);
-        if (currentTable === 'unidades' || currentTable === 'cambio_subunidad') {
+        if (currentTable === 'unidades' || currentTable === 'cambio_subunidad' || currentTable === 'oficiales') {
           configureModuleStatusSelect();
         }
         buildAdvancedFilters();
@@ -8178,7 +8246,7 @@
         let loadedRows = [];
         {
           const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
-          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad' || tableSnapshot === 'oficiales') {
             const initialPages = await Promise.all([
               req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
               req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
@@ -8207,11 +8275,14 @@
             }
           }
           if (tableSnapshot !== currentTable) return;
-          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad' || tableSnapshot === 'oficiales') {
             if (Date.now() - _movObsCacheTime > 60000) {
               getOrFetchMovimientosObservaciones().catch(() => {});
             }
             applyObservacionesToRows(loadedRows, _movObsCache);
+          }
+          if (tableSnapshot === 'oficiales') {
+            loadedRows = (loadedRows || []).filter(isOficialOMandoRecord);
           }
           rows = loadedRows.map(_preindexRow);
           tableSampleRows[tableSnapshot] = (loadedRows && loadedRows[0]) ? loadedRows[0] : null;
@@ -8374,6 +8445,23 @@
         return;
       }
 
+      if (currentTable === 'oficiales') {
+        select.innerHTML = `
+          <option value="">TODOS (OFICIALES Y MANDOS)</option>
+          <option value="SOLO_OFICIALES">&#11088; SOLO OFICIALES (GRAL A ALFZ)</option>
+          <option value="SOLO_SUBOFICIALES">&#128110; SOLO SUBOFICIALES CON MANDO</option>
+          <option value="GRAL">GRAL PNP</option>
+          <option value="CRNL">CRNL PNP</option>
+          <option value="CMDTE">CMDTE PNP</option>
+          <option value="MAY">MAY PNP</option>
+          <option value="CAP">CAP PNP</option>
+          <option value="TNTE">TNTE PNP</option>
+          <option value="ALFZ">ALFZ PNP</option>
+        `;
+        select.value = '';
+        return;
+      }
+
       const cfg = tableConfig();
       select.innerHTML = `
         <option value="${esc(cfg.optValue)}">${esc(cfg.optLabel)}</option>
@@ -8470,7 +8558,9 @@
       if (qInput) {
         qInput.placeholder = (tableName === 'cambio_subunidad')
           ? 'Buscar efectivo por CIP, DNI, Apellidos y Nombres, Lista de Revista o Documento...'
-          : 'Buscar por nombres, DNI, CIP, unidad, curso, destino...';
+          : (tableName === 'oficiales')
+            ? 'Buscar oficial o mando por CIP, Grado, Apellidos y Nombres, Cargo o Lista de Revista...'
+            : 'Buscar por nombres, DNI, CIP, unidad, curso, destino...';
       }
       configureModuleStatusSelect();
       updatePrimaryActionButton();
@@ -8483,6 +8573,8 @@
       if (!headRow) return;
       if (currentTable === 'personal') {
         headRow.innerHTML = `<th>CIP</th><th>DNI</th><th>Grado</th><th>Apellidos y nombres</th><th>Unidad de origen</th><th>Lista de revista</th><th>Fecha incorporación</th><th>Tiempo transcurrido</th><th>Situación</th><th>Condición</th><th>Observación</th>`;
+      } else if (currentTable === 'oficiales') {
+        headRow.innerHTML = `<th style="width:88px;">CIP</th><th style="width:95px;">GRADO</th><th>APELLIDOS Y NOMBRES</th><th style="width:220px;">CARGO</th><th>LISTA DE REVISTA (SUBUNIDAD)</th><th style="width:160px;text-align:center;">ACCI&Oacute;N</th>`;
       } else if (currentTable === 'referidos') {
         headRow.innerHTML = `<th>CIP</th><th>Grado</th><th>Apellidos y nombres</th><th>Unidad de origen</th><th>Lista revista</th><th>Situación</th><th>Doc. Referencia</th><th>N° Oficio</th><th>Fecha Oficio</th>`;
       } else if (currentTable === 'en_curso') {
@@ -9451,6 +9543,44 @@
         const situacion = esc(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion', 'estado']) || '—');
         const obs = getObservacionEfectivo(r) || firstValue(r, ['observacion', 'OBSERVACION', 'observaciones', 'OBSERVACIONES', 'detalle', 'motivo']);
 
+        if (currentTable === 'oficiales') {
+          const cargo = esc(firstValue(r, ['cargo', 'CARGO']) || 'SIN CARGO ASIGNADO');
+          const listaRevista = esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '—');
+          const rScore = getGradoRankScore(firstValue(r, ['grado', 'GRADO']));
+          const isOficialGrade = rScore <= 7;
+          const gradoBadgeColor = isOficialGrade
+            ? 'background: linear-gradient(135deg, #1e3a8a, #1d4ed8); color: #ffffff; border: 1px solid #1e40af;'
+            : 'background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;';
+          const cargoUpper = cargo.toUpperCase();
+          const cargoBadge = cargoUpper.includes('COMISARIO')
+            ? `<span style="background:#fef3c7; color:#92400e; border:1px solid #fde047; padding:3px 8px; border-radius:6px; font-weight:800; font-size:11px;">&#128110; COMISARIO: ${cargo}</span>`
+            : cargoUpper.includes('JEFE')
+              ? `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:3px 8px; border-radius:6px; font-weight:800; font-size:11px;">&#11088; ${cargo}</span>`
+              : `<span style="font-weight:700; color:#334155;">${cargo}</span>`;
+
+          return `
+            <tr class="data-row" onclick="openForm('${id}')">
+              <td style="font-weight:800; color:#0f172a;">${cip}</td>
+              <td><span class="pill" style="${gradoBadgeColor}; font-weight:800; font-size:11px;">${grado}</span></td>
+              <td>
+                <div style="font-weight:800; color:#06351f; font-size:12.5px;">${nombres}</div>
+                <div style="font-size:10.5px; color:#64748b;">Situaci&oacute;n: <b>${situacion}</b></div>
+              </td>
+              <td>${cargoBadge}</td>
+              <td>
+                <div style="font-weight:800; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; padding:4px 9px; border-radius:7px; display:inline-block; font-size:11.5px;">
+                  &#127963;&#65039; ${listaRevista}
+                </div>
+              </td>
+              <td style="text-align:center; white-space:nowrap;">
+                <div style="display:inline-flex; gap:6px; align-items:center;">
+                  <button type="button" class="secondary" onclick="event.stopPropagation(); openFichaModal('${id}')" style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; padding:4px 9px; min-height:28px; font-size:11.5px; font-weight:800; border-radius:6px;" title="Ver Ficha Personal">&#128065; Ficha</button>
+                  <button type="button" class="primary" onclick="event.stopPropagation(); openForm('${id}')" style="background:linear-gradient(135deg, #065f46, #047857); padding:4px 9px; min-height:28px; font-size:11.5px; font-weight:800; border-radius:6px;" title="Editar Registro">&#9998; Editar</button>
+                </div>
+              </td>
+            </tr>`;
+        }
+
         if (currentTable === 'cambio_subunidad') {
           const listaRevistaActual = esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '\u2014');
           const unidadAnterior = esc(firstValue(r, ['unidad_anterior', 'UNIDAD ANTERIOR']) || '');
@@ -9805,6 +9935,17 @@
             if (moduloFiltro === 'DETENIDO') return sitActual.includes('detenid');
             return true;
           }
+          if (currentTable === 'oficiales') {
+            const rScore = getGradoRankScore(firstValue(r, ['grado', 'GRADO']));
+            const isOficial = rScore <= 7;
+            if (moduloFiltro === 'SOLO_OFICIALES') return isOficial;
+            if (moduloFiltro === 'SOLO_SUBOFICIALES') return !isOficial;
+            if (moduloFiltro) {
+              const gradoUpper = String(firstValue(r, ['grado', 'GRADO']) || '').toUpperCase();
+              return gradoUpper.startsWith(moduloFiltro);
+            }
+            return true;
+          }
           if (currentTable === 'cambio_subunidad') {
             const divTarget = String(moduloFiltro).trim().toUpperCase();
             if (!divTarget) return true;
@@ -10011,6 +10152,20 @@
             .map(([d, c]) => `<span onclick="filterUnidadesByDivision('${esc(d)}')" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;color:#065f46;background:#d1fae5;border:1px solid #065f4630;" title="Clic para filtrar por ${esc(d)}">${esc(d)}: ${c}</span>`)
             .join(' ');
           status.innerHTML = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;"><span>${esc(baseStatus)}</span><span style="color:#cbd5e1;">|</span>${divPills}</div>`;
+        } else if (currentTable === 'oficiales') {
+          let oficialesCount = 0;
+          let mandosCount = 0;
+          filtered.forEach(r => {
+            const sc = getGradoRankScore(firstValue(r, ['grado', 'GRADO']));
+            if (sc <= 7) oficialesCount++;
+            else mandosCount++;
+          });
+          status.innerHTML = `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;">
+            <span>${esc(baseStatus)}</span>
+            <span style="color:#cbd5e1;">|</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:800;color:#1e40af;background:#dbeafe;border:1px solid #1e40af25;">&#11088; OFICIALES: ${oficialesCount}</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:800;color:#065f46;background:#d1fae5;border:1px solid #065f4625;">&#128110; SO. MANDOS (COMISARIOS/JEFES): ${mandosCount}</span>
+          </div>`;
         } else {
           status.textContent = baseStatus;
         }
@@ -10035,6 +10190,34 @@
       if (window.innerWidth > 900) return;
       const box = document.getElementById('mobileCards');
       if (!box) return;
+      if (currentTable === 'oficiales') {
+        if (!filtered || !filtered.length) {
+          box.innerHTML = '<div class="person-card"><h3>Sin registros</h3><div class="meta">No se encontraron oficiales o mandos con el filtro seleccionado.</div></div>';
+          return;
+        }
+        box.innerHTML = filtered.slice(0, 80).map(r => {
+          const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
+          const id = esc(rawId);
+          const cip = esc(firstValue(r, ['cip', 'CIP']) || '\u2014');
+          const grado = esc(firstValue(r, ['grado', 'GRADO']) || '');
+          const nombres = esc(firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']) || '\u2014');
+          const cargo = esc(firstValue(r, ['cargo', 'CARGO']) || 'SIN CARGO');
+          const rev = esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '\u2014');
+          return `
+            <article class="person-card" onclick="openForm('${id}')">
+              <h3>${grado} ${nombres} <small style="color:#0369a1;">(CIP: ${cip})</small></h3>
+              <div class="meta">
+                <div style="grid-column:1/-1;"><b>Cargo</b><span style="color:#065f46; font-weight:800;">${cargo}</span></div>
+                <div style="grid-column:1/-1;"><b>Lista de Revista</b><span style="color:#0369a1; font-weight:800;">${rev}</span></div>
+              </div>
+              <div class="actions">
+                <button class="secondary" onclick="event.stopPropagation(); openFichaModal('${id}')" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">&#128065; Ver Ficha</button>
+                <button class="primary" onclick="event.stopPropagation(); openForm('${id}')">&#9998; Editar</button>
+              </div>
+            </article>`;
+        }).join('');
+        return;
+      }
       if (currentTable === 'cambio_subunidad') {
         if (!filtered || !filtered.length) {
           box.innerHTML = '<div class="person-card"><h3>Sin registros</h3><div class="meta">Busque por CIP, DNI o Apellidos para realizar el Cambio de Subunidad.</div></div>';
@@ -12266,6 +12449,8 @@ MOTIVO: ${motivoText}`;
         btn.textContent = '+ Nueva unidad';
       } else if (currentTable === 'cambio_subunidad') {
         btn.innerHTML = '&#128260; Cambiar Subunidad';
+      } else if (currentTable === 'oficiales') {
+        btn.textContent = '+ Nuevo Oficial / Mando';
       } else {
         btn.textContent = '+ Nuevo registro';
       }
@@ -14734,14 +14919,14 @@ p { margin:0; }
       let sections = moduloFormFields[currentTable] || moduloFormFields.personal;
 
       // Si estamos editando un personal existente, ocultar las secciones de incorporación
-      if (isEdit && currentTable === 'personal') {
+      if (isEdit && (currentTable === 'personal' || currentTable === 'oficiales')) {
         sections = sections.filter(s => !s.id || !s.id.startsWith('sec_datos_'));
       }
 
       form.innerHTML = sections.map(sec => {
         const fieldsHtml = sec.fields.map(k => {
           let meta = { ...(allFieldMeta[k] || { label: k, type: 'text', cls: '' }) };
-          if (currentTable === 'personal') {
+          if (currentTable === 'personal' || currentTable === 'oficiales') {
             if (k === 'unidad_de_origen') {
               meta.cls = 'col-span-3'; // Ampliado hacia la derecha completando la fila con ESPECIALIDAD (1 + 3 = 4)
             } else if (k === 'lista_de_revista') {
@@ -14856,7 +15041,7 @@ p { margin:0; }
             return `<div class="field ${meta.cls || ''}"><label for="${k}">${meta.label}</label><input id="${k}" type="text" placeholder="Causal o motivo del pase a disponibilidad / retiro" /></div>`;
           }
 
-          if (k === 'incorp_motivo' || k === 'dest_incorp_motivo' || (currentTable === 'reasignados' && k === 'motivo') || (currentTable === 'personal' && k === 'motivo')) {
+          if (k === 'incorp_motivo' || k === 'dest_incorp_motivo' || (currentTable === 'reasignados' && k === 'motivo') || ((currentTable === 'personal' || currentTable === 'oficiales') && k === 'motivo')) {
             const motivoList = ['NECESIDAD DEL SERVICIO', 'A SU SOLICITUD', 'PERMUTA'];
             return `<div class="field ${meta.cls || ''}">
               <label for="${k}">${meta.label}</label>
@@ -14903,7 +15088,7 @@ p { margin:0; }
             const espOpts = (catalogos['especialidad'] && catalogos['especialidad'].length)
               ? catalogos['especialidad']
               : ['ABOGADO', 'ECONOMISTA', 'INV. CRIMI.', 'ING. QUIMICO', 'ORDEN PUBL. SEG.', 'POLICÍA'];
-            const defaultVal = (!isEdit && currentTable === 'personal') ? (espOpts.find(o => normalizeText(o) === 'policia') || espOpts[0] || '') : '';
+            const defaultVal = (!isEdit && (currentTable === 'personal' || currentTable === 'oficiales')) ? (espOpts.find(o => normalizeText(o) === 'policia') || espOpts[0] || '') : '';
             const optionsHtml = espOpts.map(o => {
               const selected = (!isEdit && defaultVal && o.toUpperCase() === defaultVal.toUpperCase()) ? ' selected' : '';
               return `<option value="${esc(o)}"${selected}>${esc(o)}</option>`;
@@ -14931,7 +15116,7 @@ p { margin:0; }
 
           if (k === 'cargo') {
             const cargoOpts = (catalogos['cargo'] || []).length ? catalogos['cargo'] : ['OPERATIVO', 'ADMINISTRATIVO', 'JEFE', 'COMISARIO', 'SECRETARIO', 'OFAD'];
-            const defaultVal = (!isEdit && currentTable === 'personal') ? 'OPERATIVO' : '';
+            const defaultVal = (!isEdit && (currentTable === 'personal' || currentTable === 'oficiales')) ? 'OPERATIVO' : '';
             const optionsHtml = cargoOpts.map(o => {
               const selected = (!isEdit && defaultVal && o.toUpperCase() === defaultVal.toUpperCase()) ? ' selected' : '';
               return `<option value="${esc(o)}"${selected}>${esc(o)}</option>`;
@@ -14954,7 +15139,7 @@ p { margin:0; }
 
           if (opts && opts.length) {
             let defaultVal = '';
-            if (currentTable === 'personal' && !isEdit) {
+            if ((currentTable === 'personal' || currentTable === 'oficiales') && !isEdit) {
               if (k === 'situacion_actual') defaultVal = 'PRESENTE';
               else if (k === 'cargo') defaultVal = 'OPERATIVO';
               else if (k === 'aptitud_psicosomatico') defaultVal = 'APTO CODIGO 0';
@@ -14988,7 +15173,7 @@ p { margin:0; }
 
       const condEl = document.getElementById('condicion');
       if (condEl) {
-        if (currentTable === 'personal') {
+        if (currentTable === 'personal' || currentTable === 'oficiales') {
           condEl.addEventListener('change', updateCondicionVisibility);
           condEl.addEventListener('input', updateCondicionVisibility);
         } else if (currentTable === 'destacados') {
@@ -15007,7 +15192,7 @@ p { margin:0; }
         } else if (currentTable === 'en_curso') {
           sitEl.addEventListener('change', () => checkSituacionRetornoCursoVisibility(true));
           sitEl.addEventListener('input', () => checkSituacionRetornoCursoVisibility(true));
-        } else if (currentTable === 'personal') {
+        } else if (currentTable === 'personal' || currentTable === 'oficiales') {
           sitEl.addEventListener('change', function() {
             const val = String(this.value || '').trim().toUpperCase();
             if (val === 'REFERIDO') {
@@ -20082,7 +20267,7 @@ REGLAS CRÍTICAS:
       if (btnVerOrden) btnVerOrden.style.display = 'none';
 
       const btnGenDocPer = document.getElementById('btnGenerarDocPersonal');
-      if (btnGenDocPer) btnGenDocPer.style.display = (currentTable === 'personal' && !current && canEdit()) ? 'inline-block' : 'none';
+      if (btnGenDocPer) btnGenDocPer.style.display = ((currentTable === 'personal' || currentTable === 'oficiales') && !current && canEdit()) ? 'inline-block' : 'none';
 
       const btnSaveGen = document.getElementById('btnSaveAndGenOrden');
       if (btnSaveGen) btnSaveGen.style.display = 'none';
@@ -20095,7 +20280,7 @@ REGLAS CRÍTICAS:
             if (el) {
               const meta = allFieldMeta[k] || {};
               let val = '';
-              if (currentTable === 'personal' && personalDbColumnMap[k]) {
+              if ((currentTable === 'personal' || currentTable === 'oficiales') && personalDbColumnMap[k]) {
                 val = firstValue(current, [personalDbColumnMap[k], k, 'OBSERVACIONES', 'observaciones', 'OBSERVACION', 'observacion', 'detalle']);
                 if (!val && (k === 'observaciones' || k === 'observacion')) {
                   val = getObservacionEfectivo(current);
@@ -20260,7 +20445,7 @@ REGLAS CRÍTICAS:
         }
       } else {
         // Valores por defecto al abrir formulario de NUEVO REGISTRO
-        if (currentTable === 'personal') {
+        if (currentTable === 'personal' || currentTable === 'oficiales') {
           const todayYMD = new Date().toISOString().slice(0, 10);
 
           const fIncorpEl = document.getElementById('fecha_de_incorporacion');
@@ -20320,7 +20505,7 @@ REGLAS CRÍTICAS:
         checkDestacadoRetornoVisibility();
       }
 
-      if (currentTable === 'personal') {
+      if (currentTable === 'personal' || currentTable === 'oficiales') {
         const cipEl = document.getElementById('cip');
         const dniEl = document.getElementById('dni');
         if (cipEl) {
@@ -20370,7 +20555,7 @@ REGLAS CRÍTICAS:
             if (el && el.value !== undefined) {
               const val = el.value.trim();
               current[k] = val;
-              if (currentTable === 'personal' && personalDbColumnMap[k]) {
+              if ((currentTable === 'personal' || currentTable === 'oficiales') && personalDbColumnMap[k]) {
                 current[personalDbColumnMap[k]] = val;
               } else if (currentTable === 'referidos' && referidosDbColumnMap[k]) {
                 current[referidosDbColumnMap[k]] = val;
@@ -20475,8 +20660,8 @@ REGLAS CRÍTICAS:
       if (e) e.preventDefault();
       if (!canEdit()) return;
 
-      // Validación de duplicados al crear o editar en PERSONAL
-      if (currentTable === 'personal') {
+      // Validación de duplicados al crear o editar en PERSONAL u OFICIALES
+      if (currentTable === 'personal' || currentTable === 'oficiales') {
         const cipInp = onlyDigits(document.getElementById('cip')?.value || '');
         const dniInp = onlyDigits(document.getElementById('dni')?.value || '');
         const dupCheck = await validarDuplicadosPersonal(cipInp, dniInp, current ? current.id : null);
@@ -20486,8 +20671,8 @@ REGLAS CRÍTICAS:
         }
       }
 
-      // Si es un nuevo registro en PERSONAL, abrir modal para seleccionar tipo de documento a generar
-      if (!current && currentTable === 'personal') {
+      // Si es un nuevo registro en PERSONAL u OFICIALES, abrir modal para seleccionar tipo de documento a generar
+      if (!current && (currentTable === 'personal' || currentTable === 'oficiales')) {
         return openGenerarDocNuevoPersonalModal(e);
       }
 
@@ -20536,7 +20721,7 @@ REGLAS CRÍTICAS:
             if (['cip', 'dni', 'celular'].includes(k)) v = onlyDigits(v);
             const finalVal = v === '' ? null : (meta.type === 'number' ? Number(v) : v);
 
-            if (currentTable === 'personal') {
+            if (currentTable === 'personal' || currentTable === 'oficiales') {
               const dbCol = personalDbColumnMap[k];
               if (dbCol) {
                 obj[dbCol] = finalVal;
@@ -20618,7 +20803,7 @@ REGLAS CRÍTICAS:
           });
         }
 
-        const cipVal = (currentTable === 'personal' || currentTable === 'referidos') ? (obj['CIP'] || obj['cip']) : obj['cip'];
+        const cipVal = (currentTable === 'personal' || currentTable === 'oficiales' || currentTable === 'referidos') ? (obj['CIP'] || obj['cip']) : obj['cip'];
         if (!cipVal || String(cipVal).length < 6) { 
           toast('Ingrese un CIP válido (mínimo 6 dígitos)', 'warning'); 
           return; 
@@ -20640,7 +20825,7 @@ REGLAS CRÍTICAS:
           if (finalPayload['FECHA DOC RETORNO'] !== undefined && finalPayload['FECHA_DOC_RETORNO'] === undefined) {
             finalPayload['FECHA_DOC_RETORNO'] = finalPayload['FECHA DOC RETORNO'];
           }
-        } else if (currentTable === 'personal') {
+        } else if (currentTable === 'personal' || currentTable === 'oficiales') {
           finalPayload = buildCleanPersonalPayload(obj);
         } else if (currentTable === 'en_curso') {
           delete finalPayload['n_exclusion_curso'];
@@ -20655,7 +20840,7 @@ REGLAS CRÍTICAS:
             } else if (currentTable === 'referidos') {
               const cipKey = firstValue(current, ['CIP', 'cip']);
               return await req(API + '?CIP=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(payload) });
-            } else if (currentTable === 'personal') {
+            } else if (currentTable === 'personal' || currentTable === 'oficiales') {
               const cipKey = firstValue(current, ['CIP', 'cip']);
               const dbCipCol = getDbColumnKey('CIP', tableSampleRows['personal'] || rows?.[0]);
               return await req(API + `?${encodeURIComponent(dbCipCol)}=eq.` + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(payload) });
@@ -20669,7 +20854,7 @@ REGLAS CRÍTICAS:
             await tryPatch(finalPayload);
           } catch (errPatch) {
             const errStr = String(errPatch?.message || errPatch || '');
-            if (currentTable === 'personal' && (errStr.includes('OBSERVACIONES') || errStr.includes('observaciones') || errStr.includes('42703'))) {
+            if ((currentTable === 'personal' || currentTable === 'oficiales') && (errStr.includes('OBSERVACIONES') || errStr.includes('observaciones') || errStr.includes('42703'))) {
               console.warn('Columna OBSERVACIONES no encontrada en base de datos personal_policial, guardando sin esta columna:', errPatch);
               delete finalPayload['OBSERVACIONES'];
               delete finalPayload['observaciones'];
@@ -20693,8 +20878,8 @@ REGLAS CRÍTICAS:
             }
           } catch (_) {}
 
-          // Sincronización automática al registrar nuevo efectivo en PERSONAL
-          if (currentTable === 'personal') {
+          // Sincronización automática al registrar nuevo efectivo en PERSONAL u OFICIALES
+          if (currentTable === 'personal' || currentTable === 'oficiales') {
             const condVal = String(document.getElementById('condicion')?.value || obj['CONDICIÓN'] || '').trim().toUpperCase();
             const cipClean = onlyDigits(document.getElementById('cip')?.value || obj['CIP']);
 
@@ -20819,7 +21004,7 @@ REGLAS CRÍTICAS:
               });
             }
 
-            if (currentTable === 'personal') {
+            if (currentTable === 'personal' || currentTable === 'oficiales') {
               const obsValInput = document.getElementById('observaciones')?.value?.trim() || obj['OBSERVACIONES'] || obj['observaciones'] || '';
               const obsAnterior = String(firstValue(current, ['OBSERVACIONES', 'observaciones', 'observacion']) || '').trim();
               if (obsValInput) {
@@ -20843,7 +21028,7 @@ REGLAS CRÍTICAS:
                   documento_referencia: docRefMov,
                   motivo: 'OBSERVACIÓN REGISTRADA',
                   observacion: obsValInput,
-                  modulo_origen: 'personal'
+                  modulo_origen: currentTable
                 });
               }
             }
@@ -21303,7 +21488,7 @@ REGLAS CRÍTICAS:
       render();
       const box = document.getElementById('exportFields');
       let fieldList = Object.entries(allFieldMeta).map(([k, v]) => [k, v.label]);
-      if (currentTable === 'personal' || currentTable === 'cambio_subunidad') {
+      if (currentTable === 'personal' || currentTable === 'cambio_subunidad' || currentTable === 'oficiales') {
         fieldList = [
           ['cip', 'CIP'], ['dni', 'DNI'], ['tipo_dni', 'Tipo DNI'], ['codofin', 'CODOFIN'],
           ['grado', 'Grado'], ['apellidos_y_nombres', 'Apellidos y nombres'], ['sexo', 'Sexo'],
@@ -21439,7 +21624,7 @@ REGLAS CRÍTICAS:
       const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `${currentTable === 'personal' ? 'personal_policial' : currentTable}_${new Date().toISOString().slice(0,10)}.xls`;
+      a.download = `${currentTable === 'personal' ? 'personal_policial' : (currentTable === 'oficiales' ? 'padron_oficiales_y_mandos' : currentTable)}_${new Date().toISOString().slice(0,10)}.xls`;
       a.click();
       closeExportModal();
       toast(`Excel descargado (${sourceRows.length} registros)`, 'success');
@@ -21545,7 +21730,7 @@ REGLAS CRÍTICAS:
       const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `respaldo_${currentTable === 'personal' ? 'personal_policial' : currentTable}_${new Date().toISOString().slice(0,10)}.xls`;
+      a.download = `respaldo_${currentTable === 'personal' ? 'personal_policial' : (currentTable === 'oficiales' ? 'oficiales_y_mandos' : currentTable)}_${new Date().toISOString().slice(0,10)}.xls`;
       a.click();
       toast(`Respaldo Excel en columnas descargado (${sourceRows.length} registros)`, 'success');
     }
@@ -22220,7 +22405,7 @@ REGLAS CRÍTICAS:
         let loadedRows = [];
         {
           const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
-          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad' || tableSnapshot === 'oficiales') {
             const initialPages = await Promise.all([
               req(apiSnapshot + '?select=*' + orderParam + '&offset=0&limit=' + pageSize),
               req(apiSnapshot + '?select=*' + orderParam + '&offset=1000&limit=' + pageSize),
@@ -22249,11 +22434,14 @@ REGLAS CRÍTICAS:
             }
           }
           if (tableSnapshot !== currentTable) return;
-          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad' || tableSnapshot === 'oficiales') {
             if (Date.now() - _movObsCacheTime > 60000) {
               getOrFetchMovimientosObservaciones().catch(() => {});
             }
             applyObservacionesToRows(loadedRows, _movObsCache);
+          }
+          if (tableSnapshot === 'oficiales') {
+            loadedRows = (loadedRows || []).filter(isOficialOMandoRecord);
           }
           rows = loadedRows.map(_preindexRow);
           tableSampleRows[tableSnapshot] = (loadedRows && loadedRows[0]) ? loadedRows[0] : null;
