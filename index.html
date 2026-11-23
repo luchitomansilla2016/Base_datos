@@ -12709,9 +12709,11 @@ MOTIVO: ${motivoText}`;
         _preindexRow(r);
 
         // Registrar automaticamente en el Historial de Movimientos del efectivo
+        const obsModal = String(document.getElementById('ocs_observaciones')?.value || '').trim();
+        const obsFinal = obsModal || observacion;
         const obsCompleta = [
           revistaAnterior ? `DE: ${revistaAnterior}` : '',
-          observacion
+          obsFinal
         ].filter(Boolean).join(' | ');
 
         await registrarMovimientoEfectivo({
@@ -13009,9 +13011,9 @@ MOTIVO: ${motivoText}`;
       setTimeout(() => { ocsNroEl.focus(); }, 150);
     }
 
-    async function guardarNuevoPersonalConOrden(d) {
+    async function guardarNuevoPersonalConOrden(d, generarOrden = true) {
       const nroIngresado = String(document.getElementById('ocs_nro').value || '').trim().toUpperCase();
-      if (!nroIngresado) {
+      if (generarOrden && !nroIngresado) {
         toast('Por favor ingrese el NRO. DE ORDEN (Ej. 001-2026)', 'warning');
         document.getElementById('ocs_nro')?.focus();
         return false;
@@ -13033,7 +13035,9 @@ MOTIVO: ${motivoText}`;
         cargo: j.CARGO || j.cargo || ''
       } : null;
 
-      const nroOrdenDoc = `ORDEN DE INCORPORACION N\u00b0${d.nro} - ${d.siglas}`;
+      const nroOrdenDoc = (generarOrden && d.nro)
+        ? `ORDEN DE INCORPORACION N\u00b0${d.nro} - ${d.siglas}`
+        : (d.docReferencia || d.docRefComb || '---');
 
       let sec = moduloFormFields.personal || [];
       const obj = {};
@@ -13118,27 +13122,29 @@ MOTIVO: ${motivoText}`;
           });
         }
 
-        try {
-          const descripcionOrden = `PONE A DISPOSICI\u00d3N AL ${d.claseNombre} POR HABER SIDO ${d.tipoIncorpVal} MOTIVO: ${d.motIncorpVal}`.replace(/\s+/g, ' ').trim().toUpperCase();
-          const quienOrdena = d.firmante ? `${d.firmante.grado} ${d.firmante.nombre} - ${d.firmante.cargo}` : 'JEFE OFAD REGPOL HUANUCO';
+        if (generarOrden && d.nro) {
+          try {
+            const descripcionOrden = `PONE A DISPOSICI\u00d3N AL ${d.claseNombre} POR HABER SIDO ${d.tipoIncorpVal} MOTIVO: ${d.motIncorpVal}`.replace(/\s+/g, ' ').trim().toUpperCase();
+            const quienOrdena = d.firmante ? `${d.firmante.grado} ${d.firmante.nombre} - ${d.firmante.cargo}` : 'JEFE OFAD REGPOL HUANUCO';
 
-          const docPayload = {
-            numero_documento: nroOrdenDoc,
-            fecha_documento: d.fechaYmd,
-            descripcion: descripcionOrden,
-            numero_orden_incorporacion_dirrehum: d.docReferencia || d.docRefComb || '---',
-            documento_referencia: d.docReferencia || d.docRefComb || '---',
-            destino: d.destino,
-            quien_ordena: quienOrdena,
-            usuario_registra: sessionStorage.getItem('pnp_user_fullname') || 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS'
-          };
-          await docReq(API_ORDEN_INCORPORACION, { method: 'POST', body: JSON.stringify(docPayload) });
-          if (typeof BroadcastChannel !== 'undefined') {
-            try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'orden_incorporacion' }); } catch (_) {}
+            const docPayload = {
+              numero_documento: nroOrdenDoc,
+              fecha_documento: d.fechaYmd,
+              descripcion: descripcionOrden,
+              numero_orden_incorporacion_dirrehum: d.docReferencia || d.docRefComb || '---',
+              documento_referencia: d.docReferencia || d.docRefComb || '---',
+              destino: d.destino,
+              quien_ordena: quienOrdena,
+              usuario_registra: sessionStorage.getItem('pnp_user_fullname') || 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS'
+            };
+            await docReq(API_ORDEN_INCORPORACION, { method: 'POST', body: JSON.stringify(docPayload) });
+            if (typeof BroadcastChannel !== 'undefined') {
+              try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'orden_incorporacion' }); } catch (_) {}
+            }
+            try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
+          } catch (eDoc) {
+            console.warn('Registro de orden en documentos:', eDoc);
           }
-          try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
-        } catch (eDoc) {
-          console.warn('Registro de orden en documentos:', eDoc);
         }
 
         try {
@@ -13162,7 +13168,11 @@ MOTIVO: ${motivoText}`;
 
         closeForm();
         await loadData();
-        toast(`\u00a1Personal nuevo registrado y Orden de Incorporaci\u00f3n N\u00b0 ${d.nro} generada exitosamente!`, 'success');
+        if (generarOrden && d.nro) {
+          toast(`\u00a1Personal nuevo registrado y Orden de Incorporaci\u00f3n N\u00b0 ${d.nro} generada exitosamente!`, 'success');
+        } else {
+          toast(`\u00a1Personal nuevo registrado exitosamente!`, 'success');
+        }
         return true;
       } catch (err) {
         console.error('Error al guardar personal nuevo con orden:', err);
@@ -13178,7 +13188,7 @@ MOTIVO: ${motivoText}`;
     async function ejecutarGuardadoCambioSubunidad(generarOrden) {
       if (!_csOrdenData) return;
       const nroVal = String(document.getElementById('ocs_nro').value || '').trim().toUpperCase();
-      if (!nroVal) {
+      if (generarOrden && !nroVal) {
         toast('Por favor ingrese el NRO. DE ORDEN (Ej. 001-2026)', 'warning');
         document.getElementById('ocs_nro')?.focus();
         return;
@@ -13187,7 +13197,7 @@ MOTIVO: ${motivoText}`;
       const idx = parseInt(document.getElementById('ocs_firmante')?.value, 10);
       const j = (jefesList || [])[idx] || null;
       Object.assign(_csOrdenData, {
-        nro: nroVal,
+        nro: nroVal || '',
         siglas: String(document.getElementById('ocs_siglas').value || '').trim().toUpperCase(),
         docReferencia: String(document.getElementById('ocs_lugar').value || '').trim().toUpperCase(),
         hora: String(document.getElementById('ocs_hora').value || '').trim(),
@@ -13206,13 +13216,17 @@ MOTIVO: ${motivoText}`;
       try {
         let ok = false;
         if (_csOrdenModo === 'nuevo_personal') {
-          ok = await guardarNuevoPersonalConOrden(_csOrdenData);
+          ok = await guardarNuevoPersonalConOrden(_csOrdenData, generarOrden);
         } else {
           ok = await guardarCambioSubunidad();
         }
         if (!ok) return;
         cerrarOpcionesGuardarCambioSubunidad();
-        if (generarOrden) regenerarOrdenCambioSubunidad(true);
+        if (generarOrden) {
+          regenerarOrdenCambioSubunidad(true);
+        } else if (_csOrdenModo === 'cambio_subunidad') {
+          closeCambioSubunidadModal();
+        }
       } finally {
         btns.forEach(b => { if (b) b.disabled = false; });
       }
