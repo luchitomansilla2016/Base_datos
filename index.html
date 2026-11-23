@@ -7233,6 +7233,90 @@
                  });
     }
 
+    // Caché y sincronización de observaciones desde historial_movimientos
+    let _movObsCache = {};
+    let _movObsCacheTime = 0;
+
+    async function getOrFetchMovimientosObservaciones(forceRefresh = false) {
+      const now = Date.now();
+      if (!forceRefresh && Object.keys(_movObsCache).length > 0 && (now - _movObsCacheTime < 60000)) {
+        return _movObsCache;
+      }
+      try {
+        const res = await req(API_HISTORIAL_MOVIMIENTOS + '?observacion=not.is.null&select=cip,observacion,tipo_movimiento,fecha,id&order=fecha.desc,id.desc');
+        if (Array.isArray(res)) {
+          const map = {};
+          res.forEach(item => {
+            const c = onlyDigits(item.cip);
+            const obs = String(item.observacion || '').trim();
+            if (c && obs && !map[c]) {
+              map[c] = obs;
+            }
+          });
+          const localMovs = (typeof getMovimientosStorage === 'function') ? getMovimientosStorage() : [];
+          localMovs.forEach(item => {
+            const c = onlyDigits(item.cip);
+            const obs = String(item.observacion || '').trim();
+            if (c && obs && !map[c]) {
+              map[c] = obs;
+            }
+          });
+          _movObsCache = map;
+          _movObsCacheTime = now;
+          return _movObsCache;
+        }
+      } catch (err) {
+        console.warn('No se pudo cargar observaciones desde historial_movimientos:', err);
+      }
+      const map = { ..._movObsCache };
+      const localMovs = (typeof getMovimientosStorage === 'function') ? getMovimientosStorage() : [];
+      localMovs.forEach(item => {
+        const c = onlyDigits(item.cip);
+        const obs = String(item.observacion || '').trim();
+        if (c && obs && !map[c]) {
+          map[c] = obs;
+        }
+      });
+      _movObsCache = map;
+      _movObsCacheTime = now;
+      return _movObsCache;
+    }
+
+    function getObservacionEfectivo(r) {
+      if (!r) return '';
+      const direct = String(firstValue(r, ['observaciones', 'OBSERVACIONES', 'observacion', 'OBSERVACION']) || '').trim();
+      if (direct) return direct;
+      const cip = onlyDigits(firstValue(r, ['cip', 'CIP']));
+      if (cip && _movObsCache && _movObsCache[cip]) {
+        return _movObsCache[cip];
+      }
+      if (cip) {
+        try {
+          const localMovs = (typeof getMovimientosStorage === 'function') ? getMovimientosStorage() : [];
+          const found = localMovs.find(m => onlyDigits(m.cip) === cip && m.observacion && String(m.observacion).trim());
+          if (found && found.observacion) return String(found.observacion).trim();
+        } catch (_) {}
+      }
+      return '';
+    }
+
+    function applyObservacionesToRows(targetRows, obsMap) {
+      if (!Array.isArray(targetRows) || !targetRows.length) return;
+      const map = obsMap || _movObsCache || {};
+      targetRows.forEach(r => {
+        if (!r || typeof r !== 'object') return;
+        const cip = onlyDigits(firstValue(r, ['cip', 'CIP']));
+        const existing = String(firstValue(r, ['observaciones', 'OBSERVACIONES', 'observacion', 'OBSERVACION']) || '').trim();
+        if (!existing && cip && map[cip]) {
+          const obsVal = map[cip];
+          r.observaciones = obsVal;
+          r.OBSERVACIONES = obsVal;
+          r.observacion = obsVal;
+          r.OBSERVACION = obsVal;
+        }
+      });
+    }
+
     // Funciones de Zona Horaria Oficial Perú (America/Lima UTC-5)
     function getNowPeru() {
       try {
@@ -8013,6 +8097,10 @@
           ? Promise.resolve()
           : Promise.all([loadCatalogos(), loadUnidadesCatalog(), loadJefesList()]).then(() => { _staticCatalogsReady = true; });
 
+        const obsPromise = (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad')
+          ? getOrFetchMovimientosObservaciones()
+          : Promise.resolve(_movObsCache);
+
         const pageSize = 1000;
         const orderParam = (tableSnapshot === 'referidos') ? '' : '&order=id.asc';
 
@@ -8047,8 +8135,12 @@
           }
         })();
 
-        const [loadedRows] = await Promise.all([fetchRowsPromise, catalogsPromise]);
+        const [loadedRows, _, movObsMap] = await Promise.all([fetchRowsPromise, catalogsPromise, obsPromise]);
         if (token !== loadDataToken || tableSnapshot !== currentTable) return;
+
+        if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+          applyObservacionesToRows(loadedRows, movObsMap);
+        }
 
         rows = (loadedRows || []).map(_preindexRow);
         tableSampleRows[tableSnapshot] = (rows && rows[0]) ? rows[0] : null;
@@ -8115,6 +8207,12 @@
             }
           }
           if (tableSnapshot !== currentTable) return;
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+            if (Date.now() - _movObsCacheTime > 60000) {
+              getOrFetchMovimientosObservaciones().catch(() => {});
+            }
+            applyObservacionesToRows(loadedRows, _movObsCache);
+          }
           rows = loadedRows.map(_preindexRow);
           tableSampleRows[tableSnapshot] = (loadedRows && loadedRows[0]) ? loadedRows[0] : null;
           ordenarRegistros(rows);
@@ -9351,7 +9449,7 @@
         const nombres = esc(firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']) || '—');
         const unidad = esc(firstValue(r, ['lista_revista', 'LISTA DE REVISTA', 'lista_de_revista', 'unidad_de_origen', 'UNIDAD DE ORIGEN']) || '—');
         const situacion = esc(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion', 'estado']) || '—');
-        const obs = firstValue(r, ['observacion', 'OBSERVACION', 'observaciones', 'OBSERVACIONES', 'detalle', 'motivo']);
+        const obs = getObservacionEfectivo(r) || firstValue(r, ['observacion', 'OBSERVACION', 'observaciones', 'OBSERVACIONES', 'detalle', 'motivo']);
 
         if (currentTable === 'cambio_subunidad') {
           const listaRevistaActual = esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '\u2014');
@@ -9927,7 +10025,7 @@
             <tr class="data-row" onclick="openForm('${r.id}')">
               <td>${esc(firstValue(r, ['cip', 'CIP']))}</td><td>${esc(firstValue(r, ['dni', 'DNI']))}</td><td><span class="pill">${esc(firstValue(r, ['grado', 'GRADO']))}</span></td><td><b>${esc(firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES']))}</b></td>
               <td>${esc(firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN']))}</td><td>${esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA']))}</td><td>${esc(formatDateDisplay(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN'])))}</td>
-              <td>${esc(tiempoTranscurrido(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN'])))}</td><td>${esc(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL']))}</td><td>${esc(firstValue(r, ['condicion', 'CONDICIÓN']))}</td><td>${observacionButton(firstValue(r, ['observaciones', 'OBSERVACIONES']))}</td>
+              <td>${esc(tiempoTranscurrido(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN'])))}</td><td>${esc(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL']))}</td><td>${esc(firstValue(r, ['condicion', 'CONDICIÓN']))}</td><td>${observacionButton(getObservacionEfectivo(r))}</td>
             </tr>`).join('');
         }
       }
@@ -10123,6 +10221,10 @@
 
     function fichaValor(r, key) {
       if (!r) return '';
+      if (key === 'observaciones' || key === 'observacion') {
+        const obsDirect = firstValue(r, ['observaciones', 'OBSERVACIONES', 'observacion', 'OBSERVACION']);
+        return obsDirect || getObservacionEfectivo(r) || '';
+      }
       if (key === 'apellidos_y_nombres' || key === 'apellidos_nombre' || key === 'apellidos_nombres') return firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']);
       if (key === 'lista_de_revista' || key === 'lista_revista') return firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']);
       if (key === 'unidad_de_origen' || key === 'unidad_origen') return firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN', 'unidad_origen']);
@@ -19982,12 +20084,7 @@ REGLAS CRÍTICAS:
               if (currentTable === 'personal' && personalDbColumnMap[k]) {
                 val = firstValue(current, [personalDbColumnMap[k], k, 'OBSERVACIONES', 'observaciones', 'OBSERVACION', 'observacion', 'detalle']);
                 if (!val && (k === 'observaciones' || k === 'observacion')) {
-                  try {
-                    const mList = (typeof getMovimientosStorage === 'function' ? getMovimientosStorage() : []);
-                    const curCip = String(firstValue(current, ['CIP', 'cip']) || '').trim();
-                    const lastM = mList.find(m => String(m.cip || '').trim() === curCip && m.observacion && String(m.observacion).trim());
-                    if (lastM) val = lastM.observacion;
-                  } catch (_) {}
+                  val = getObservacionEfectivo(current);
                 }
               } else if (currentTable === 'referidos') {
                 if (k === 'documento_de_retorno') val = firstValue(current, ['DOC RETORNO', 'doc_retorno', 'documento_de_retorno', 'DOC_RETORNO']);
@@ -20715,6 +20812,9 @@ REGLAS CRÍTICAS:
                 current['OBSERVACIONES'] = obsValInput;
                 current['observaciones'] = obsValInput;
                 current['observacion'] = obsValInput;
+                if (cipClean) _movObsCache[cipClean] = obsValInput;
+              } else if (cipClean && _movObsCache[cipClean]) {
+                delete _movObsCache[cipClean];
               }
               if (obsValInput && obsValInput !== obsAnterior) {
                 registrarMovimientoEfectivo({
@@ -20750,6 +20850,26 @@ REGLAS CRÍTICAS:
               motivo: motMovNuevo,
               modulo_origen: currentTable
             });
+            if (currentTable === 'personal') {
+              const obsValInput = document.getElementById('observaciones')?.value?.trim() || obj['OBSERVACIONES'] || obj['observaciones'] || '';
+              if (obsValInput && cipClean) {
+                _movObsCache[cipClean] = obsValInput;
+                registrarMovimientoEfectivo({
+                  cip: cipClean,
+                  grado: gradoMov,
+                  apellidos_nombres: nomMov,
+                  tipo_movimiento: 'OBSERVACIÓN',
+                  fecha: getTodayPeruYMD(),
+                  lista_de_revista: revMov,
+                  unidad_de_origen: unOrigMov,
+                  unidad_anterior: unAntMov,
+                  documento_referencia: docRefMov,
+                  motivo: 'OBSERVACIÓN INICIAL',
+                  observacion: obsValInput,
+                  modulo_origen: 'personal'
+                });
+              }
+            }
           }
         } catch (errMov) {
           console.warn('Advertencia al registrar movimiento automático:', errMov);
@@ -22115,6 +22235,12 @@ REGLAS CRÍTICAS:
             }
           }
           if (tableSnapshot !== currentTable) return;
+          if (tableSnapshot === 'personal' || tableSnapshot === 'cambio_subunidad') {
+            if (Date.now() - _movObsCacheTime > 60000) {
+              getOrFetchMovimientosObservaciones().catch(() => {});
+            }
+            applyObservacionesToRows(loadedRows, _movObsCache);
+          }
           rows = loadedRows.map(_preindexRow);
           tableSampleRows[tableSnapshot] = (loadedRows && loadedRows[0]) ? loadedRows[0] : null;
           ordenarRegistros(rows);
