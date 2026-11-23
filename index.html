@@ -8102,7 +8102,7 @@
       const cargo = normalizeText(firstValue(r, ['cargo', 'CARGO']) || '');
 
       // 1. Oficiales de Armas y Servicios (desde GRAL PNP hasta ALFZ PNP)
-      const esOficial = jerarquia.includes('oficial') ||
+      const esOficial = (jerarquia.includes('oficial') && !jerarquia.includes('suboficial')) ||
         grado.startsWith('gral') || grado.includes('general') ||
         grado.startsWith('crnl') || grado.includes('coronel') ||
         grado.startsWith('cmdte') || grado.includes('comandante') ||
@@ -8111,17 +8111,22 @@
         grado.startsWith('tnte') || grado.startsWith('tte') || grado.includes('teniente') ||
         grado.startsWith('alfz') || grado.includes('alferez');
 
-      if (esOficial) return true;
+      const esGradoSuboficial = grado.startsWith('ss') || grado.startsWith('sb') ||
+        grado.startsWith('st') || grado.startsWith('s1') ||
+        grado.startsWith('s2') || grado.startsWith('s3') ||
+        grado.includes('suboficial') || jerarquia.includes('suboficial');
 
-      // 2. Suboficiales con cargo de Mando (Comisario, Jefe de Sección o Jefe de Área)
-      const tieneCargoMando = cargo.includes('comisario') ||
-        cargo.includes('jefe de seccion') || cargo.includes('jefe sec') ||
-        cargo.includes('jefe de area') || cargo.includes('jefe area') ||
-        cargo.includes('jefe de puesto') || cargo.includes('jefe puesto');
+      // Si es Oficial genuino (no suboficial), se incluye
+      if (esOficial && !esGradoSuboficial) {
+        return true;
+      }
 
-      if (tieneCargoMando) return true;
+      // 2. Suboficiales: SOLO Y EXCLUSIVAMENTE los que tienen cargo COMISARIO, JEFE DE SECCION o JEFE DE AREA
+      const esComisario = cargo.includes('comisario');
+      const esJefeSeccion = cargo.includes('jefe de seccion') || cargo.includes('jefe seccion') || cargo.includes('jefe sec') || cargo.includes('jefe de sec');
+      const esJefeArea = cargo.includes('jefe de area') || cargo.includes('jefe area') || cargo.includes('jefe de are');
 
-      return false;
+      return esComisario || esJefeSeccion || esJefeArea;
     }
 
     function ordenarRegistros(lista) {
@@ -8449,7 +8454,7 @@
         select.innerHTML = `
           <option value="">TODOS (OFICIALES Y MANDOS)</option>
           <option value="SOLO_OFICIALES">&#11088; SOLO OFICIALES (GRAL A ALFZ)</option>
-          <option value="SOLO_SUBOFICIALES">&#128110; SOLO SUBOFICIALES CON MANDO</option>
+          <option value="SOLO_SUBOFICIALES">&#128110; SOLO SUBOFICIALES (COMISARIOS / JEFES SEC / ÁREA)</option>
           <option value="GRAL">GRAL PNP</option>
           <option value="CRNL">CRNL PNP</option>
           <option value="CMDTE">CMDTE PNP</option>
@@ -9553,10 +9558,12 @@
             : 'background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;';
           const cargoUpper = cargo.toUpperCase();
           const cargoBadge = cargoUpper.includes('COMISARIO')
-            ? `<span style="background:#fef3c7; color:#92400e; border:1px solid #fde047; padding:3px 8px; border-radius:6px; font-weight:800; font-size:11px;">&#128110; COMISARIO: ${cargo}</span>`
-            : cargoUpper.includes('JEFE')
+            ? `<span style="background:#fef3c7; color:#92400e; border:1px solid #fde047; padding:3px 8px; border-radius:6px; font-weight:800; font-size:11px;">&#128110; ${cargo}</span>`
+            : (cargoUpper.includes('SECCION') || cargoUpper.includes('SEC'))
               ? `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:3px 8px; border-radius:6px; font-weight:800; font-size:11px;">&#11088; ${cargo}</span>`
-              : `<span style="font-weight:700; color:#334155;">${cargo}</span>`;
+              : (cargoUpper.includes('AREA') || cargoUpper.includes('ÁREA'))
+                ? `<span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:3px 8px; border-radius:6px; font-weight:800; font-size:11px;">&#128193; ${cargo}</span>`
+                : `<span style="font-weight:700; color:#334155;">${cargo}</span>`;
 
           return `
             <tr class="data-row" onclick="openForm('${id}')">
