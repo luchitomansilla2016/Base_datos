@@ -6677,7 +6677,15 @@
             <div class="field" style="grid-column:span 2;"><label for="ocs_nro" style="font-weight:900; color:#06351f;">NRO. DE ORDEN <span style="font-size:10px; font-weight:normal; color:#64748b;">(Solo para Orden)</span> <span style="color:#dc2626;">*</span></label><input id="ocs_nro" type="text" placeholder="Ej. 001-2026" style="border:2px solid #059669; font-weight:800; color:#064e3b; background:#f0fdf4;" /></div>
             <div class="field" style="grid-column:span 4;"><label for="ocs_siglas">SIGLAS</label><input id="ocs_siglas" type="text" /></div>
             <div class="field" style="grid-column:span 6;"><label for="ocs_lugar">DOC DE REFERENCIA</label><input id="ocs_lugar" type="text" placeholder="Documento de referencia o sustento" /></div>
-            <div class="field" style="grid-column:span 6;" id="ocs_dest_wrap"><label for="ocs_destinatario" style="font-weight:900; color:#0369a1;">DESTINATARIO <span style="font-size:10px; font-weight:normal; color:#64748b;">(Solo para Oficio - Opcional)</span></label><input id="ocs_destinatario" type="text" placeholder="Ej. JEFE DE LA SUBUNIDAD / COMISARIO" style="border:1.5px solid #0284c7;" /></div>
+            <div style="grid-column:span 6; background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:8px; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <div>
+                <div style="font-size:11px; font-weight:800; color:#0369a1; text-transform:uppercase;">👤 Destinatario del Oficio (SE&Ntilde;OR :):</div>
+                <div id="ocs_destinatario_preview_text" style="font-size:12.5px; font-weight:bold; color:#0c4a6e; margin-top:2px;">JEFE DE LA SUBUNIDAD DE DESTINO</div>
+              </div>
+              <button type="button" onclick="abrirEditarDestinatarioCambioSubunidad(event)" style="background:#fff; border:1.5px solid #0284c7; color:#0369a1; border-radius:6px; padding:5px 12px; font-size:11.5px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                <span>✏️</span> Editar / Buscar
+              </button>
+            </div>
             <div class="field" style="grid-column:span 2;"><label for="ocs_hora">HORA</label><input id="ocs_hora" type="text" placeholder="08:00" /></div>
             <div class="field" style="grid-column:span 4;"><label for="ocs_vacaciones">VACACIONES</label><input id="ocs_vacaciones" type="text" placeholder="Ej. NO REGISTRA / PENDIENTE 2025" /></div>
             <div class="field" style="grid-column:span 6;">
@@ -6708,12 +6716,12 @@
           </button>
 
           <!-- Opción 2 (NUEVA): Guardar y Generar Oficio (Piloto) -->
-          <button type="button" id="ocs_btn_generar_oficio" class="primary" onclick="ejecutarGuardadoCambioSubunidadOficio()" style="background:linear-gradient(135deg, #0284c7, #0369a1); padding:13px 16px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; text-align:left; border:none; cursor:pointer; box-shadow:0 3px 8px rgba(2,132,199,0.3);">
+          <button type="button" id="ocs_btn_generar_oficio" class="primary" onclick="abrirEditarDestinatarioCambioSubunidad(event)" style="background:linear-gradient(135deg, #0284c7, #0369a1); padding:13px 16px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; text-align:left; border:none; cursor:pointer; box-shadow:0 3px 8px rgba(2,132,199,0.3);">
             <div style="display:flex; align-items:center; gap:10px;">
               <span style="font-size:22px;">&#128196;</span>
               <div>
                 <div style="font-size:14px; color:#fff; font-weight:800;">Guardar y Generar Oficio (Piloto)</div>
-                <div style="font-size:11.5px; color:#e0f2fe; font-weight:normal;">Guarda el cambio y abre el Oficio oficial en hoja A4 (plantilla piloto editable y descargable en Word)</div>
+                <div style="font-size:11.5px; color:#e0f2fe; font-weight:normal;">Abre la ventana para editar el Destinatario y genera el Oficio oficial en hoja A4</div>
               </div>
             </div>
             <span style="font-size:18px; color:#fff;">&#10132;</span>
@@ -6759,6 +6767,78 @@
     </div>
   </div>
 
+  <!-- Modal: Editar / Seleccionar Destinatario para Oficio de Cambio de Subunidad -->
+  <div id="destinatarioCambioSubunidadModal" class="modal" style="z-index: 250;">
+    <div class="dialog" style="max-width: 640px; border-top: 5px solid #0284c7; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e0f2fe 100%);">
+        <div>
+          <h1 style="color: #0369a1; font-size: 16.5px; display: flex; align-items: center; gap: 8px;">
+            <span>👤</span> Destinatario del Oficio (Puesta a Disposici&oacute;n)
+          </h1>
+          <div class="sub">Indique o edite a qui&eacute;n va dirigido el Oficio (SE&Ntilde;OR :) antes de generar el documento</div>
+        </div>
+        <button class="close-btn" onclick="cerrarDestinatarioCambioSubunidadModal()" title="Cerrar">&times;</button>
+      </header>
+
+      <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; max-height: calc(85vh - 120px); overflow-y: auto;">
+
+        <!-- Resumen del Efectivo y Destino -->
+        <div id="csDestEfInfo" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #0369a1; line-height: 1.5;"></div>
+
+        <!-- Selector rápido de destinatarios guardados -->
+        <div style="background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label for="csDestQuickSelect" style="font-size: 11.5px; font-weight: 800; color: #0f172a; text-transform: uppercase;">
+              📋 Destinatarios Registrados Frecuentes:
+            </label>
+            <button type="button" onclick="openGestionDestinatariosModal(event)" style="font-size:11px; color:#0284c7; background:none; border:none; text-decoration:underline; cursor:pointer; font-weight:bold;">⚙️ Administrar lista</button>
+          </div>
+          <select id="csDestQuickSelect" onchange="onSelectQuickDestinatarioCs(this.value)" style="width: 100%; height: 34px; padding: 4px 10px; border-radius: 6px; border: 1.5px solid #94a3b8; font-size: 12px; font-weight: 600; background: #fff; color: #0f172a;">
+            <option value="">(Seleccionar autoridad registrada...)</option>
+          </select>
+        </div>
+
+        <!-- Buscador en el padrón policial -->
+        <div style="position: relative;">
+          <label style="font-size: 11.5px; font-weight: 800; color: #06351f; display: block; margin-bottom: 4px;">
+            🔍 Buscar Oficial en el Padrón Policial (por CIP o Apellidos):
+          </label>
+          <input type="text" id="csDestSearchInput" placeholder="Escriba CIP o Apellidos para autocompletar cargo y grado..." oninput="searchPersonalForCsDestinatario(this.value)" autocomplete="off" style="width: 100%; height: 34px; padding: 4px 10px; border-radius: 6px; border: 1.5px solid #0284c7; font-size: 12px; background: #fff; box-sizing: border-box;" />
+          <div id="csDestSearchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 180px; overflow-y: auto; background: #fff; border: 1.5px solid #0284c7; border-radius: 0 0 6px 6px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); z-index: 1000;"></div>
+        </div>
+
+        <!-- Formulario Editable del Destinatario (SEÑOR :) -->
+        <div style="border: 1.5px solid #bae6fd; border-radius: 8px; padding: 12px 14px; background: #f8fafc;">
+          <div style="font-size: 11.5px; font-weight: 900; color: #0369a1; text-transform: uppercase; margin-bottom: 8px;">
+            ✍️ Datos del Destinatario en el Oficio (SEÑOR :)
+          </div>
+          <div style="display: grid; grid-template-columns: 140px 1fr; gap: 8px; margin-bottom: 8px;">
+            <div>
+              <label for="csDestGrado" style="font-size: 11px; font-weight: bold; color: #334155;">Grado (Opcional):</label>
+              <input type="text" id="csDestGrado" placeholder="Ej. CRNL PNP, MAY PNP" style="width: 100%; height: 32px; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px; text-transform: uppercase; box-sizing: border-box;" />
+            </div>
+            <div>
+              <label for="csDestNombres" style="font-size: 11px; font-weight: bold; color: #334155;">Autoridad o Nombres y Apellidos <span style="color:#dc2626;">*</span>:</label>
+              <input type="text" id="csDestNombres" placeholder="Ej. COMISARIO DE LA COMISARÍA PNP HUÁNUCO" style="width: 100%; height: 32px; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px; text-transform: uppercase; font-weight: 700; box-sizing: border-box;" />
+            </div>
+          </div>
+          <div>
+            <label for="csDestCargo" style="font-size: 11px; font-weight: bold; color: #334155;">Cargo / Subunidad o Dependencia Oficial:</label>
+            <input type="text" id="csDestCargo" placeholder="Ej. REGPOL HUÁNUCO" style="width: 100%; height: 32px; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px; text-transform: uppercase; font-weight: 600; box-sizing: border-box;" />
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <button type="button" class="secondary" onclick="cerrarDestinatarioCambioSubunidadModal()">Cancelar</button>
+        <button id="btnConfirmarCsDestinatario" type="button" class="primary" onclick="confirmarYGenerarOficioCambioSubunidad()" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; font-weight: 800; padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(2,132,199,0.3);">
+          <span>📄</span> Guardar y Generar Oficio Oficial ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- PILOTO: Vista previa editable Oficio de Puesta a Disposicion (Cambio de Subunidad) - 1 hoja A4 Oficial -->
   <div id="oficioCambioSubunidadPreviewModal" class="modal" style="z-index: 240;">
     <div class="dialog" style="max-width: 920px; border-top: 5px solid #0284c7;">
@@ -6773,6 +6853,9 @@
         <div style="display:flex; align-items:center; gap:8px;">
           <label for="oficioCsFirmanteSelect" style="font-size:12px; font-weight:bold; color:#0369a1; white-space:nowrap;">Firmante:</label>
           <select id="oficioCsFirmanteSelect" onchange="cambiarFirmanteOficioCambioSubunidad(this.value)" style="height:34px; padding:2px 8px; border-radius:6px; border:1px solid #7dd3fc; font-size:12px; font-weight:600; color:#0c4a6e; background:#fff;"></select>
+          <button type="button" class="secondary" onclick="abrirEditarDestinatarioCambioSubunidadDesdePreview()" style="font-size:12px; height:34px; border:1.5px solid #0284c7; color:#0369a1; background:#fff; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:4px; padding:0 10px; border-radius:6px;">
+            <span>👤</span> Cambiar Destinatario
+          </button>
         </div>
         <div style="display:flex; gap:8px; align-items:center;">
           <button type="button" class="secondary" onclick="regenerarOficioCambioSubunidad()" title="Volver a cargar los datos originales">&#8635; Restablecer</button>
@@ -7388,6 +7471,19 @@
     }
 
     async function req(url, options = {}) {
+      if (url && url.includes('/personal_policial') && options.body && (options.method === 'POST' || options.method === 'PATCH' || options.method === 'PUT')) {
+        try {
+          const parsed = JSON.parse(options.body);
+          if (parsed && typeof parsed === 'object') {
+            Object.keys(parsed).forEach(k => {
+              if (/^observaci[oó]n(es)?$/i.test(k.trim())) {
+                delete parsed[k];
+              }
+            });
+            options.body = JSON.stringify(parsed);
+          }
+        } catch (_) {}
+      }
       let response;
       try {
         response = await fetch(url, { cache: 'no-store', ...options, headers: buildHeaders(options.headers || {}, url) });
@@ -7610,9 +7706,7 @@
       correo_personal: 'CORREO PERSONAL',
       celular: 'CELULAR',
       hijos: 'HIJOS',
-      estado_civil: 'ESTADO CIVIL',
-      observaciones: 'OBSERVACIONES',
-      observacion: 'OBSERVACIONES'
+      estado_civil: 'ESTADO CIVIL'
     };
 
     const referidosDbColumnMap = {
@@ -7660,7 +7754,7 @@
       const sampleKeys = Object.keys(sampleRow);
       for (const k of sampleKeys) {
         const kNorm = normalizeText(k).replace(/[^a-z0-9]/g, '');
-        if (kNorm === targetNorm || (targetNorm.startsWith('observacion') && kNorm.startsWith('observacion'))) return k;
+        if (kNorm === targetNorm) return k;
       }
       return targetKey;
     }
@@ -13211,14 +13305,18 @@ MOTIVO: ${motivoText}`;
       if (selObs) selObs.value = 'OPCION_1';
       document.getElementById('ocs_observaciones').value = OCS_OBS_TEXTS.OPCION_1;
       document.getElementById('ocs_vacaciones').value = document.getElementById('ocs_vacaciones').value || '';
-      const destInp = document.getElementById('ocs_destinatario');
-      if (destInp) {
-        let defaultDest = `JEFE DE ${nuevaRevista}`;
-        if (nuevaRevista.startsWith('COMISARIA') || nuevaRevista.startsWith('CIA') || nuevaRevista.startsWith('COM.')) {
-          defaultDest = `COMISARIO DE LA ${nuevaRevista}`;
-        }
-        destInp.value = defaultDest;
+      let defaultNom = `JEFE DE ${nuevaRevista}`;
+      let defaultGrd = 'CMDTE PNP';
+      if (nuevaRevista.startsWith('COMISARIA') || nuevaRevista.startsWith('CIA') || nuevaRevista.startsWith('COM.')) {
+        defaultNom = `COMISARIO DE LA ${nuevaRevista}`;
+        defaultGrd = 'MAY PNP';
       }
+      currentOficioCambioSubunidadDestinatario = {
+        grado: defaultGrd,
+        nombres: defaultNom,
+        cargo: 'REGPOL HUÁNUCO'
+      };
+      actualizarTextoPreviewDestinatarioCs();
 
       const sel = document.getElementById('ocs_firmante');
       const prev = sel.value;
@@ -13712,6 +13810,234 @@ p { margin:0; }
     }
 
     // ========================================================
+    // GESTIÓN DE DESTINATARIO PARA OFICIO (CAMBIO DE SUBUNIDAD)
+    // ========================================================
+    let currentOficioCambioSubunidadDestinatario = null;
+    let _isEditingDestFromPreview = false;
+
+    function actualizarTextoPreviewDestinatarioCs() {
+      const el = document.getElementById('ocs_destinatario_preview_text');
+      if (!el || !currentOficioCambioSubunidadDestinatario) return;
+      const partes = [
+        currentOficioCambioSubunidadDestinatario.grado,
+        currentOficioCambioSubunidadDestinatario.nombres,
+        currentOficioCambioSubunidadDestinatario.cargo
+      ].filter(Boolean);
+      el.textContent = partes.join(' - ') || 'JEFE DE LA SUBUNIDAD DE DESTINO';
+    }
+
+    function abrirEditarDestinatarioCambioSubunidad(e) {
+      if (e) e.preventDefault();
+      _isEditingDestFromPreview = false;
+
+      const nomEf = _csOrdenData?.nombres ? `${_csOrdenData.grado || ''} ${_csOrdenData.nombres}`.trim() : '—';
+      const destEf = _csOrdenData?.destino || '—';
+      const elNom = document.getElementById('csDestModalEfNombre');
+      if (elNom) elNom.textContent = nomEf;
+      const elDest = document.getElementById('csDestModalEfDestino');
+      if (elDest) elDest.textContent = destEf;
+
+      poblarSelectDestinatariosRapidosCs();
+
+      if (!currentOficioCambioSubunidadDestinatario) {
+        let defaultNom = `JEFE DE ${destEf}`;
+        let defaultGrd = 'CMDTE PNP';
+        if (destEf.startsWith('COMISARIA') || destEf.startsWith('CIA') || destEf.startsWith('COM.')) {
+          defaultNom = `COMISARIO DE LA ${destEf}`;
+          defaultGrd = 'MAY PNP';
+        }
+        currentOficioCambioSubunidadDestinatario = {
+          grado: defaultGrd,
+          nombres: defaultNom,
+          cargo: 'REGPOL HUÁNUCO'
+        };
+      }
+
+      const inpGrd = document.getElementById('csDestGrado');
+      if (inpGrd) inpGrd.value = currentOficioCambioSubunidadDestinatario.grado || '';
+      const inpNom = document.getElementById('csDestNombres');
+      if (inpNom) inpNom.value = currentOficioCambioSubunidadDestinatario.nombres || '';
+      const inpCrg = document.getElementById('csDestCargo');
+      if (inpCrg) inpCrg.value = currentOficioCambioSubunidadDestinatario.cargo || 'REGPOL HUÁNUCO';
+
+      const searchInp = document.getElementById('csDestSearchInput');
+      if (searchInp) searchInp.value = '';
+      const searchRes = document.getElementById('csDestSearchResults');
+      if (searchRes) { searchRes.innerHTML = ''; searchRes.style.display = 'none'; }
+
+      const btnConf = document.getElementById('btnConfirmarCsDestinatario');
+      if (btnConf) btnConf.innerHTML = '<span>📄</span> Guardar y Generar Oficio Oficial ➔';
+
+      document.getElementById('destinatarioCambioSubunidadModal')?.classList.add('open');
+      setTimeout(() => { document.getElementById('csDestNombres')?.focus(); }, 150);
+    }
+
+    function abrirEditarDestinatarioCambioSubunidadDesdePreview(e) {
+      if (e) e.preventDefault();
+      _isEditingDestFromPreview = true;
+
+      const nomEf = _csOficioData?.nombres ? `${_csOficioData.grado || ''} ${_csOficioData.nombres}`.trim() : '—';
+      const destEf = _csOficioData?.destino || '—';
+      const elNom = document.getElementById('csDestModalEfNombre');
+      if (elNom) elNom.textContent = nomEf;
+      const elDest = document.getElementById('csDestModalEfDestino');
+      if (elDest) elDest.textContent = destEf;
+
+      poblarSelectDestinatariosRapidosCs();
+
+      const inpGrd = document.getElementById('csDestGrado');
+      if (inpGrd) inpGrd.value = _csOficioData?.destinatarioGrado || currentOficioCambioSubunidadDestinatario?.grado || '';
+      const inpNom = document.getElementById('csDestNombres');
+      if (inpNom) inpNom.value = _csOficioData?.destinatarioNombre || currentOficioCambioSubunidadDestinatario?.nombres || _csOficioData?.destinatario || '';
+      const inpCrg = document.getElementById('csDestCargo');
+      if (inpCrg) inpCrg.value = _csOficioData?.destinatarioCargo || currentOficioCambioSubunidadDestinatario?.cargo || 'REGPOL HUÁNUCO';
+
+      const searchInp = document.getElementById('csDestSearchInput');
+      if (searchInp) searchInp.value = '';
+      const searchRes = document.getElementById('csDestSearchResults');
+      if (searchRes) { searchRes.innerHTML = ''; searchRes.style.display = 'none'; }
+
+      const btnConf = document.getElementById('btnConfirmarCsDestinatario');
+      if (btnConf) btnConf.innerHTML = '<span>✔</span> Aplicar al Oficio Oficial';
+
+      document.getElementById('destinatarioCambioSubunidadModal')?.classList.add('open');
+      setTimeout(() => { document.getElementById('csDestNombres')?.focus(); }, 150);
+    }
+
+    function cerrarDestinatarioCambioSubunidadModal() {
+      document.getElementById('destinatarioCambioSubunidadModal')?.classList.remove('open');
+    }
+
+    function poblarSelectDestinatariosRapidosCs() {
+      const sel = document.getElementById('csDestQuickSelect');
+      if (!sel) return;
+      let opts = '<option value="">(Seleccione un destinatario frecuente para autocompletar...)</option>';
+      const list = (typeof destinatariosList !== 'undefined' && Array.isArray(destinatariosList)) ? destinatariosList : [];
+      list.forEach((d, idx) => {
+        const grd = d.GRADO || d.grado || '';
+        const nom = d['APELLIDOS Y NOMBRES'] || d.apellidos_y_nombres || d.nombres || '';
+        const crg = d.CARGO || d.cargo || '';
+        const display = [grd, nom, crg].filter(Boolean).join(' - ');
+        opts += `<option value="${idx}">${esc(display)}</option>`;
+      });
+      sel.innerHTML = opts;
+    }
+
+    function onSelectQuickDestinatarioCs(idxStr) {
+      if (idxStr === '') return;
+      const idx = parseInt(idxStr, 10);
+      const list = (typeof destinatariosList !== 'undefined' && Array.isArray(destinatariosList)) ? destinatariosList : [];
+      const item = list[idx];
+      if (!item) return;
+
+      const grd = item.GRADO || item.grado || '';
+      const nom = item['APELLIDOS Y NOMBRES'] || item.apellidos_y_nombres || item.nombres || '';
+      const crg = item.CARGO || item.cargo || '';
+
+      const inpGrd = document.getElementById('csDestGrado');
+      if (inpGrd) inpGrd.value = grd;
+      const inpNom = document.getElementById('csDestNombres');
+      if (inpNom) inpNom.value = nom;
+      const inpCrg = document.getElementById('csDestCargo');
+      if (inpCrg) inpCrg.value = crg || 'REGPOL HUÁNUCO';
+    }
+
+    function searchPersonalForCsDestinatario(query) {
+      const resultsDiv = document.getElementById('csDestSearchResults');
+      if (!resultsDiv) return;
+      const q = String(query || '').trim().toLowerCase();
+      if (!q || q.length < 2) {
+        resultsDiv.innerHTML = '';
+        resultsDiv.style.display = 'none';
+        return;
+      }
+
+      const list = Array.isArray(rows) ? rows : [];
+      const matches = list.filter(r => {
+        const cip = String(firstValue(r, ['CIP', 'cip']) || '').toLowerCase();
+        const nom = String(firstValue(r, ['APELLIDOS Y NOMBRES', 'apellidos_y_nombres']) || '').toLowerCase();
+        const crg = String(firstValue(r, ['CARGO', 'cargo']) || '').toLowerCase();
+        return cip.includes(q) || nom.includes(q) || crg.includes(q);
+      }).slice(0, 15);
+
+      if (matches.length === 0) {
+        resultsDiv.innerHTML = '<div style="padding:8px 12px; font-size:12px; color:#64748b;">No se encontraron efectivos en el padrón</div>';
+        resultsDiv.style.display = 'block';
+        return;
+      }
+
+      resultsDiv.innerHTML = matches.map(r => {
+        const cip = String(firstValue(r, ['CIP', 'cip']) || '');
+        const grd = String(firstValue(r, ['GRADO', 'grado']) || '');
+        const rawNom = String(firstValue(r, ['APELLIDOS Y NOMBRES', 'apellidos_y_nombres']) || '');
+        const crg = String(firstValue(r, ['CARGO', 'cargo', 'LISTA DE REVISTA', 'lista_de_revista']) || 'REGPOL HUÁNUCO');
+        const nomFormatted = typeof convertirApellidosNombresANombresApellidos === 'function' ? convertirApellidosNombresANombresApellidos(rawNom) : rawNom;
+        const encoded = encodeURIComponent(JSON.stringify({ grado: grd, nombres: nomFormatted, cargo: crg }));
+        return `
+          <div onclick="selectPersonalForCsDestinatario('${encoded}')" style="padding:6px 12px; border-bottom:1px solid #f1f5f9; cursor:pointer; font-size:11.5px;" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='transparent'">
+            <span style="font-weight:bold; color:#0369a1;">${esc(grd)} ${esc(rawNom)}</span>
+            <span style="color:#64748b; font-size:10.5px;">(CIP: ${esc(cip)} | ${esc(crg)})</span>
+          </div>
+        `;
+      }).join('');
+      resultsDiv.style.display = 'block';
+    }
+
+    function selectPersonalForCsDestinatario(encodedData) {
+      try {
+        const d = JSON.parse(decodeURIComponent(encodedData));
+        const inpGrd = document.getElementById('csDestGrado');
+        if (inpGrd) inpGrd.value = d.grado || '';
+        const inpNom = document.getElementById('csDestNombres');
+        if (inpNom) inpNom.value = d.nombres || '';
+        const inpCrg = document.getElementById('csDestCargo');
+        if (inpCrg) inpCrg.value = d.cargo || 'REGPOL HUÁNUCO';
+
+        const resultsDiv = document.getElementById('csDestSearchResults');
+        if (resultsDiv) { resultsDiv.innerHTML = ''; resultsDiv.style.display = 'none'; }
+        const searchInp = document.getElementById('csDestSearchInput');
+        if (searchInp) searchInp.value = `${d.grado || ''} ${d.nombres || ''}`.trim();
+      } catch (err) {
+        console.error('Error seleccionando personal para destinatario:', err);
+      }
+    }
+
+    function confirmarYGenerarOficioCambioSubunidad() {
+      const grd = String(document.getElementById('csDestGrado')?.value || '').trim().toUpperCase();
+      const nom = String(document.getElementById('csDestNombres')?.value || '').trim().toUpperCase();
+      const crg = String(document.getElementById('csDestCargo')?.value || '').trim().toUpperCase();
+
+      if (!nom) {
+        toast('Por favor ingrese el nombre o autoridad del destinatario (Ej. COMISARIO DE LA COMISARÍA PNP...)', 'warning');
+        document.getElementById('csDestNombres')?.focus();
+        return;
+      }
+
+      currentOficioCambioSubunidadDestinatario = {
+        grado: grd,
+        nombres: nom,
+        cargo: crg || 'REGPOL HUÁNUCO'
+      };
+
+      if (_isEditingDestFromPreview) {
+        if (_csOficioData) {
+          _csOficioData.destinatarioGrado = grd;
+          _csOficioData.destinatarioNombre = nom;
+          _csOficioData.destinatarioCargo = crg || 'REGPOL HUÁNUCO';
+          _csOficioData.destinatario = [grd, nom].filter(Boolean).join(' ');
+          regenerarOficioCambioSubunidad(false);
+          toast('Destinatario del Oficio actualizado con éxito', 'success');
+        }
+        cerrarDestinatarioCambioSubunidadModal();
+        return;
+      }
+
+      actualizarTextoPreviewDestinatarioCs();
+      cerrarDestinatarioCambioSubunidadModal();
+      ejecutarGuardadoCambioSubunidadOficio();
+    }
+
+    // ========================================================
     // PILOTO: OFICIO DE PUESTA A DISPOSICIÓN (CAMBIO DE SUBUNIDAD)
     // 1 hoja A4 Oficial, editable directamente, descargable en Word y lista para imprimir
     // ========================================================
@@ -13724,7 +14050,6 @@ p { margin:0; }
       const j = (jefesList || [])[idx] || null;
       const docRefInput = String(document.getElementById('ocs_lugar')?.value || '').trim().toUpperCase();
       const obsInput = String(document.getElementById('ocs_observaciones')?.value || '').trim().toUpperCase();
-      const destInput = String(document.getElementById('ocs_destinatario')?.value || '').trim().toUpperCase();
 
       const btns = [
         document.getElementById('ocs_btn_generar'),
@@ -13783,6 +14108,11 @@ p { margin:0; }
           console.warn('Registro de oficio en documentos:', eOfi);
         }
 
+        const destGrd = currentOficioCambioSubunidadDestinatario?.grado || '';
+        const destNom = currentOficioCambioSubunidadDestinatario?.nombres || `JEFE DE ${_csOrdenData.destino}`;
+        const destCrg = currentOficioCambioSubunidadDestinatario?.cargo || 'REGPOL HUÁNUCO';
+        const destCompleto = [destGrd, destNom].filter(Boolean).join(' ');
+
         // 3. Preparar datos del Oficio Piloto
         _csOficioData = {
           ..._csOrdenData,
@@ -13790,7 +14120,10 @@ p { margin:0; }
           yearOficio: nextCorr.currentYear || new Date().getFullYear(),
           formattedDocNum: nextCorr.formattedDocNum,
           fechaOficio: _csOrdenData.fechaYmd || getTodayPeruYMD(),
-          destinatario: destInput || `JEFE DE ${_csOrdenData.destino}`,
+          destinatario: destCompleto,
+          destinatarioGrado: destGrd,
+          destinatarioNombre: destNom,
+          destinatarioCargo: destCrg,
           firmante: j ? {
             cip: String(j.CIP || j.cip || '').trim(),
             nombre: formatNombrePostFirma(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || ''),
@@ -13898,8 +14231,9 @@ p { margin:0; }
             <div style="font-weight:bold;">SEÑOR</div>
             <div style="font-weight:bold; text-align:center;">:</div>
             <div style="padding-left:10px; line-height:1.2;">
-              <span style="font-weight:bold;">${e(dest)}</span><br/>
-              <span style="font-weight:bold;">REGPOL HUÁNUCO</span>
+              ${d.destinatarioGrado ? `<span style="font-weight:bold;">${e(d.destinatarioGrado)}</span><br/>` : ''}
+              <span style="font-weight:bold;">${e(d.destinatarioNombre || d.destinatario || 'JEFE DE LA SUBUNIDAD')}</span><br/>
+              <span style="font-weight:bold;">${e(d.destinatarioCargo || 'REGPOL HUÁNUCO')}</span>
             </div>
 
             <div style="font-weight:bold; margin-top:14px;">ASUNTO</div>
@@ -20808,7 +21142,7 @@ REGLAS CRÍTICAS:
             if (el) {
               const meta = allFieldMeta[k] || {};
               let val = '';
-              if ((currentTable === 'personal' || currentTable === 'oficiales') && personalDbColumnMap[k]) {
+              if ((currentTable === 'personal' || currentTable === 'oficiales') && (personalDbColumnMap[k] || k === 'observaciones' || k === 'observacion')) {
                 val = firstValue(current, [personalDbColumnMap[k], k, 'OBSERVACIONES', 'observaciones', 'OBSERVACION', 'observacion', 'detalle']);
                 if (!val && (k === 'observaciones' || k === 'observacion')) {
                   val = getObservacionEfectivo(current);
@@ -21083,7 +21417,7 @@ REGLAS CRÍTICAS:
             if (el && el.value !== undefined) {
               const val = el.value.trim();
               current[k] = val;
-              if ((currentTable === 'personal' || currentTable === 'oficiales') && personalDbColumnMap[k]) {
+              if ((currentTable === 'personal' || currentTable === 'oficiales') && (personalDbColumnMap[k] || k === 'observaciones' || k === 'observacion')) {
                 current[personalDbColumnMap[k]] = val;
               } else if (currentTable === 'referidos' && referidosDbColumnMap[k]) {
                 current[referidosDbColumnMap[k]] = val;
@@ -21353,7 +21687,7 @@ REGLAS CRÍTICAS:
           if (finalPayload['FECHA DOC RETORNO'] !== undefined && finalPayload['FECHA_DOC_RETORNO'] === undefined) {
             finalPayload['FECHA_DOC_RETORNO'] = finalPayload['FECHA DOC RETORNO'];
           }
-        } else if (currentTable === 'personal' || currentTable === 'oficiales') {
+        } else if (currentTable === 'personal' || currentTable === 'oficiales' || currentTable === 'cambio_subunidad') {
           finalPayload = buildCleanPersonalPayload(obj);
           delete finalPayload['OBSERVACIONES'];
           delete finalPayload['observaciones'];
@@ -21372,7 +21706,7 @@ REGLAS CRÍTICAS:
             } else if (currentTable === 'referidos') {
               const cipKey = firstValue(current, ['CIP', 'cip']);
               return await req(API + '?CIP=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(payload) });
-            } else if (currentTable === 'personal' || currentTable === 'oficiales') {
+            } else if (currentTable === 'personal' || currentTable === 'oficiales' || currentTable === 'cambio_subunidad') {
               const cipKey = firstValue(current, ['CIP', 'cip']);
               const dbCipCol = getDbColumnKey('CIP', tableSampleRows['personal'] || rows?.[0]);
               return await req(API + `?${encodeURIComponent(dbCipCol)}=eq.` + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(payload) });
@@ -21386,7 +21720,7 @@ REGLAS CRÍTICAS:
             await tryPatch(finalPayload);
           } catch (errPatch) {
             const errStr = String(errPatch?.message || errPatch || '');
-            if ((currentTable === 'personal' || currentTable === 'oficiales') && (errStr.includes('OBSERVACIONES') || errStr.includes('observaciones') || errStr.includes('42703'))) {
+            if ((currentTable === 'personal' || currentTable === 'oficiales' || currentTable === 'cambio_subunidad') && (errStr.includes('OBSERVACIONES') || errStr.includes('observaciones') || errStr.includes('42703'))) {
               console.warn('Columna OBSERVACIONES no encontrada en base de datos personal_policial, guardando sin esta columna:', errPatch);
               delete finalPayload['OBSERVACIONES'];
               delete finalPayload['observaciones'];
@@ -21396,6 +21730,12 @@ REGLAS CRÍTICAS:
             }
           }
         } else {
+          if (API === API_PERSONAL || currentTable === 'personal' || currentTable === 'oficiales' || currentTable === 'cambio_subunidad') {
+            delete finalPayload['OBSERVACIONES'];
+            delete finalPayload['observaciones'];
+            delete finalPayload['observacion'];
+            delete finalPayload['OBSERVACION'];
+          }
           await req(API, { method: 'POST', body: JSON.stringify(finalPayload) });
 
           // Limpiar solicitud QR procesada si coincide el CIP
