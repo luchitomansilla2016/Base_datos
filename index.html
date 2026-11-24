@@ -8139,8 +8139,8 @@
       'DIVOPUS HUANUCO',
       'DIVOPUS LEONCIO PRADO',
       'DIVOPUS PUERTO INCA',
-      'DIVPOCOM',
       'DIVCUD HUANUCO',
+      'DIVPOCOM',
       'OTRAS / SIN DIVISIÓN'
     ];
     let _divCatalogMap = null;
@@ -8155,7 +8155,7 @@
       if (t.includes('DIVREINT')) return 'DIVREINT';
       if (t.includes('DIVINCRI')) return 'DIVINCRI';
       if (t.includes('DIVPOCOM')) return 'DIVPOCOM';
-      if (t.includes('DIVCUD')) return 'DIVCUD HUANUCO';
+      if (t.includes('DIVCUD') || t.includes('DIV CUD') || t.includes('DIV.CUD') || t.includes('DIVICUD')) return 'DIVCUD HUANUCO';
       if (t.includes('UNIADM') || t.includes(' UE ') || t.includes('UE-HUANUCO') || t.includes('UE - HUANUCO')) return 'UNIADM';
       if (t.includes('ESTADO MAYOR') || t.includes('/EM') || t.includes(' EM ') || t.includes('EM-') || t.includes('OFAD') || t.includes('OFIPLO') || t.includes('OFIPLA') || t.includes('OFICOM') || t.includes('OFITEL') || t.includes('OFIDISC') || t.includes('OFINT')) return 'ESTADO MAYOR';
       if (t.includes('JEFATURA') || t.includes('JEFREG') || /REGPOL HUANUCO\s*$/.test(t.trim())) return 'JEFATURA';
