@@ -8129,6 +8129,69 @@
       return esComisario || esJefeSeccion || esJefeArea;
     }
 
+    // ===== Agrupación por DIVISIÓN para el módulo OFICIALES =====
+    const OFICIALES_DIV_ORDER = [
+      'JEFATURA',
+      'ESTADO MAYOR',
+      'UNIADM',
+      'DIVREINT',
+      'DIVINCRI',
+      'DIVOPUS HUANUCO',
+      'DIVOPUS LEONCIO PRADO',
+      'DIVOPUS PUERTO INCA',
+      'DIVPOCOM',
+      'DIVCUD HUANUCO',
+      'OTRAS / SIN DIVISIÓN'
+    ];
+    let _divCatalogMap = null;
+    let _divCatalogSize = -1;
+
+    function canonicalDivision(text) {
+      const t = ' ' + normalizeText(text || '').toUpperCase().replace(/\s+/g, ' ') + ' ';
+      if (!t.trim()) return '';
+      if (t.includes('LEONCIO PRADO') || t.includes('DIVOPUS LP') || t.includes('DIVOPUS L.P') || t.includes('DIVOPUS TINGO')) return 'DIVOPUS LEONCIO PRADO';
+      if (t.includes('PUERTO INCA') || t.includes('DIVOPUS PI ') || t.includes('DIVOPUS P.INCA')) return 'DIVOPUS PUERTO INCA';
+      if (t.includes('DIVOPUS')) return 'DIVOPUS HUANUCO';
+      if (t.includes('DIVREINT')) return 'DIVREINT';
+      if (t.includes('DIVINCRI')) return 'DIVINCRI';
+      if (t.includes('DIVPOCOM')) return 'DIVPOCOM';
+      if (t.includes('DIVCUD')) return 'DIVCUD HUANUCO';
+      if (t.includes('UNIADM') || t.includes(' UE ') || t.includes('UE-HUANUCO') || t.includes('UE - HUANUCO')) return 'UNIADM';
+      if (t.includes('ESTADO MAYOR') || t.includes('/EM') || t.includes(' EM ') || t.includes('EM-') || t.includes('OFAD') || t.includes('OFIPLO') || t.includes('OFIPLA') || t.includes('OFICOM') || t.includes('OFITEL') || t.includes('OFIDISC') || t.includes('OFINT')) return 'ESTADO MAYOR';
+      if (t.includes('JEFATURA') || t.includes('JEFREG') || /REGPOL HUANUCO\s*$/.test(t.trim())) return 'JEFATURA';
+      return '';
+    }
+
+    function getDivisionOficial(r) {
+      const rev = String(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '').trim();
+      if (!rev) return 'OTRAS / SIN DIVISIÓN';
+      // 1. Coincidencia exacta con el catálogo de unidades (NIVEL1)
+      if (!_divCatalogMap || _divCatalogSize !== (unidadesCatalog || []).length) {
+        _divCatalogMap = new Map();
+        (unidadesCatalog || []).forEach(u => {
+          const n1 = String(u.nivel_1 || '').trim();
+          if (!n1 || n1.toUpperCase() === 'TODOS') return;
+          [u.nivel_4_nombre, u.nivel_3_nombre, u.nivel_2_nombre, u.nivel_1_nombre].forEach(n => {
+            const k = normalizeText(n || '').toUpperCase().trim();
+            if (k && !_divCatalogMap.has(k)) _divCatalogMap.set(k, n1);
+          });
+        });
+        _divCatalogSize = (unidadesCatalog || []).length;
+      }
+      const catDiv = _divCatalogMap.get(normalizeText(rev).toUpperCase().trim());
+      if (catDiv) {
+        const c = canonicalDivision(catDiv);
+        if (c) return c;
+      }
+      // 2. Detección por palabras clave en la Lista de Revista
+      return canonicalDivision(rev) || 'OTRAS / SIN DIVISIÓN';
+    }
+
+    function getDivisionOrderIndex(div) {
+      const i = OFICIALES_DIV_ORDER.indexOf(div);
+      return i === -1 ? 999 : i;
+    }
+
     function ordenarRegistros(lista) {
       if (currentTable === 'unidades') {
         return lista.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
@@ -8455,6 +8518,7 @@
           <option value="">TODOS (OFICIALES Y MANDOS)</option>
           <option value="SOLO_OFICIALES">&#11088; SOLO OFICIALES (GRAL A ALFZ)</option>
           <option value="SOLO_SUBOFICIALES">&#128110; SOLO SUBOFICIALES (COMISARIOS / JEFES SEC / ÁREA)</option>
+          ${OFICIALES_DIV_ORDER.map(d => `<option value="DIV:${esc(d)}">&#127963;&#65039; DIVISI&Oacute;N: ${esc(d)}</option>`).join('')}
           <option value="GRAL">GRAL PNP</option>
           <option value="CRNL">CRNL PNP</option>
           <option value="CMDTE">CMDTE PNP</option>
@@ -9538,7 +9602,7 @@
         tbody.innerHTML = htmlOut;
         return;
       }
-      tbody.innerHTML = filtered.map(r => {
+      const rowHtmls = filtered.map(r => {
         const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
         const id = esc(rawId);
         const cip = esc(firstValue(r, ['cip', 'CIP']) || '—');
@@ -9581,7 +9645,7 @@
               </td>
               <td style="text-align:center; white-space:nowrap;">
                 <div style="display:inline-flex; gap:6px; align-items:center;">
-                  <button type="button" class="secondary" onclick="event.stopPropagation(); openFichaModal('${id}')" style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; padding:4px 9px; min-height:28px; font-size:11.5px; font-weight:800; border-radius:6px;" title="Ver Ficha Personal">&#128065; Ficha</button>
+                  <button type="button" class="secondary" onclick="event.stopPropagation(); openFicha('${id}')" style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; padding:4px 9px; min-height:28px; font-size:11.5px; font-weight:800; border-radius:6px;" title="Ver Ficha Personal">&#128065; Ficha</button>
                   <button type="button" class="primary" onclick="event.stopPropagation(); openForm('${id}')" style="background:linear-gradient(135deg, #065f46, #047857); padding:4px 9px; min-height:28px; font-size:11.5px; font-weight:800; border-radius:6px;" title="Editar Registro">&#9998; Editar</button>
                 </div>
               </td>
@@ -9852,7 +9916,46 @@
             <td>${cip}</td><td><span class="pill">${grado}</span></td><td><b>${nombres}</b></td><td>${unidad}</td><td>${esc(firstValue(r, ['delito', 'causal', 'motivo']))}</td>
             <td>${esc(firstValue(r, ['autoridad', 'resolucion', 'penal']))}</td><td>${esc(firstValue(r, ['documento', 'oficio', 'expediente']))}</td><td>${esc(formatDateDisplay(firstValue(r, ['fecha', 'f_inicio'])))}</td><td>${situacion}</td>
           </tr>`;
-      }).join('');
+      });
+
+      if (currentTable !== 'oficiales') {
+        tbody.innerHTML = rowHtmls.join('');
+        return;
+      }
+
+      // ===== OFICIALES: agrupar por DIVISIÓN respetando el orden jerárquico dentro de cada grupo =====
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:28px; color:var(--muted); font-weight:700;">No se encontraron oficiales o mandos con los filtros seleccionados.</td></tr>`;
+        return;
+      }
+      const grupos = new Map();
+      filtered.forEach((r, idx) => {
+        const div = getDivisionOficial(r);
+        if (!grupos.has(div)) grupos.set(div, []);
+        grupos.get(div).push({ r, html: rowHtmls[idx] });
+      });
+      const ordenDivs = [...grupos.keys()].sort((a, b) => getDivisionOrderIndex(a) - getDivisionOrderIndex(b));
+      let out = '';
+      ordenDivs.forEach(div => {
+        const items = grupos.get(div);
+        let nOf = 0, nSo = 0;
+        items.forEach(it => { if (getGradoRankScore(firstValue(it.r, ['grado', 'GRADO'])) <= 7) nOf++; else nSo++; });
+        out += `
+          <tr style="background: linear-gradient(90deg, #06351f 0%, #0b5a3c 100%); color:#ffffff;">
+            <td colspan="6" style="padding:9px 14px; font-weight:900; font-size:13px; letter-spacing:0.4px; border-top:2px solid #d8b23f;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                <span>&#127963;&#65039; <span style="color:#fde047;">${esc(div)}</span></span>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <span style="background:#1e3a8a; color:#dbeafe; border:1px solid #60a5fa; padding:2px 9px; border-radius:999px; font-size:10.5px; font-weight:800;">&#11088; Oficiales: ${nOf}</span>
+                  <span style="background:#065f46; color:#d1fae5; border:1px solid #34d399; padding:2px 9px; border-radius:999px; font-size:10.5px; font-weight:800;">&#128110; SO. Mandos: ${nSo}</span>
+                  <span style="background:rgba(255,255,255,0.2); color:#fff; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:800;">Total: ${items.length}</span>
+                </div>
+              </div>
+            </td>
+          </tr>`;
+        out += items.map(it => it.html).join('');
+      });
+      tbody.innerHTML = out;
     }
 
     function render() {
@@ -9947,6 +10050,7 @@
             const isOficial = rScore <= 7;
             if (moduloFiltro === 'SOLO_OFICIALES') return isOficial;
             if (moduloFiltro === 'SOLO_SUBOFICIALES') return !isOficial;
+            if (moduloFiltro.startsWith('DIV:')) return getDivisionOficial(r) === moduloFiltro.slice(4);
             if (moduloFiltro) {
               const gradoUpper = String(firstValue(r, ['grado', 'GRADO']) || '').toUpperCase();
               return gradoUpper.startsWith(moduloFiltro);
@@ -10202,7 +10306,12 @@
           box.innerHTML = '<div class="person-card"><h3>Sin registros</h3><div class="meta">No se encontraron oficiales o mandos con el filtro seleccionado.</div></div>';
           return;
         }
-        box.innerHTML = filtered.slice(0, 80).map(r => {
+        let _lastDivMobile = null;
+        const _sortedMobile = filtered.slice(0, 150).sort((a, b) => getDivisionOrderIndex(getDivisionOficial(a)) - getDivisionOrderIndex(getDivisionOficial(b)));
+        box.innerHTML = _sortedMobile.map(r => {
+          const _divM = getDivisionOficial(r);
+          const _divHeader = (_divM !== _lastDivMobile) ? `<div style="background:linear-gradient(90deg,#06351f,#0b5a3c); color:#fde047; font-weight:900; padding:8px 12px; border-radius:8px; margin:10px 0 6px; font-size:12.5px;">&#127963;&#65039; ${esc(_divM)}</div>` : '';
+          _lastDivMobile = _divM;
           const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
           const id = esc(rawId);
           const cip = esc(firstValue(r, ['cip', 'CIP']) || '\u2014');
@@ -10210,7 +10319,7 @@
           const nombres = esc(firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']) || '\u2014');
           const cargo = esc(firstValue(r, ['cargo', 'CARGO']) || 'SIN CARGO');
           const rev = esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '\u2014');
-          return `
+          return `${_divHeader}
             <article class="person-card" onclick="openForm('${id}')">
               <h3>${grado} ${nombres} <small style="color:#0369a1;">(CIP: ${cip})</small></h3>
               <div class="meta">
@@ -10218,7 +10327,7 @@
                 <div style="grid-column:1/-1;"><b>Lista de Revista</b><span style="color:#0369a1; font-weight:800;">${rev}</span></div>
               </div>
               <div class="actions">
-                <button class="secondary" onclick="event.stopPropagation(); openFichaModal('${id}')" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">&#128065; Ver Ficha</button>
+                <button class="secondary" onclick="event.stopPropagation(); openFicha('${id}')" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">&#128065; Ver Ficha</button>
                 <button class="primary" onclick="event.stopPropagation(); openForm('${id}')">&#9998; Editar</button>
               </div>
             </article>`;
