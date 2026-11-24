@@ -7673,18 +7673,20 @@
         ['CORREO PERSONAL', inputObj['CORREO PERSONAL'] || inputObj['correo_personal'] || ''],
         ['HIJOS', (inputObj['HIJOS'] !== null && inputObj['HIJOS'] !== undefined && inputObj['HIJOS'] !== '') ? Number(inputObj['HIJOS']) : (inputObj['hijos'] !== null && inputObj['hijos'] !== undefined && inputObj['hijos'] !== '' ? Number(inputObj['hijos']) : 0)],
         ['ESTADO CIVIL', inputObj['ESTADO CIVIL'] || inputObj['estado_civil'] || 'SOLTERO(A)'],
-        ['CELULAR', inputObj['CELULAR'] || inputObj['celular'] || null],
-        ['OBSERVACIONES', (inputObj['OBSERVACIONES'] !== undefined) ? inputObj['OBSERVACIONES'] : ((inputObj['observaciones'] !== undefined) ? inputObj['observaciones'] : (inputObj['observacion'] !== undefined ? inputObj['observacion'] : null))]
+        ['CELULAR', inputObj['CELULAR'] || inputObj['celular'] || null]
       ];
 
       standardFields.forEach(([stdKey, val]) => {
         const actualKey = getDbColumnKey(stdKey, sample);
-        if (sample && sample[actualKey] === undefined && (stdKey === 'OBSERVACIONES' || stdKey === 'observaciones')) {
-          // Si el esquema de Supabase aun no tiene la columna OBSERVACIONES, no enviarla en el payload para evitar error 42703
-          return;
-        }
         cleanPayload[actualKey] = val;
       });
+
+      // La tabla personal_policial en Supabase NO tiene columna OBSERVACIONES (se registran en historial_movimientos)
+      delete cleanPayload['OBSERVACIONES'];
+      delete cleanPayload['observaciones'];
+      delete cleanPayload['observacion'];
+      delete cleanPayload['OBSERVACION'];
+      delete cleanPayload['Observaciones'];
 
       return cleanPayload;
     }
@@ -13365,6 +13367,10 @@ MOTIVO: ${motivoText}`;
       }
 
       const cleanObj = buildCleanPersonalPayload(obj);
+      delete cleanObj['OBSERVACIONES'];
+      delete cleanObj['observaciones'];
+      delete cleanObj['observacion'];
+      delete cleanObj['OBSERVACION'];
 
       try {
         toast('Guardando nuevo personal y Orden de Incorporaci\u00f3n...', 'info');
@@ -18135,6 +18141,10 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
       }
 
       const cleanObj = buildCleanPersonalPayload(obj);
+      delete cleanObj['OBSERVACIONES'];
+      delete cleanObj['observaciones'];
+      delete cleanObj['observacion'];
+      delete cleanObj['OBSERVACION'];
 
       try {
         toast('Guardando personal y generando Oficio oficial...', 'info');
@@ -18371,6 +18381,10 @@ DEPENDENCIA DESTINO: ${d.lista_de_revista || d.destino || 'OFAD REGPOL HUANUCO'}
       });
 
       const cleanObj = buildCleanPersonalPayload(obj);
+      delete cleanObj['OBSERVACIONES'];
+      delete cleanObj['observaciones'];
+      delete cleanObj['observacion'];
+      delete cleanObj['OBSERVACION'];
 
       try {
         toast('Guardando nuevo personal en el padrón...', 'info');
@@ -20943,6 +20957,10 @@ REGLAS CRÍTICAS:
           }
         } else if (currentTable === 'personal' || currentTable === 'oficiales') {
           finalPayload = buildCleanPersonalPayload(obj);
+          delete finalPayload['OBSERVACIONES'];
+          delete finalPayload['observaciones'];
+          delete finalPayload['observacion'];
+          delete finalPayload['OBSERVACION'];
         } else if (currentTable === 'en_curso') {
           delete finalPayload['n_exclusion_curso'];
           delete finalPayload['fecha_exclusion_curso'];
@@ -21289,6 +21307,10 @@ REGLAS CRÍTICAS:
         }
 
         const cleanObj = buildCleanPersonalPayload(obj);
+        delete cleanObj['OBSERVACIONES'];
+        delete cleanObj['observaciones'];
+        delete cleanObj['observacion'];
+        delete cleanObj['OBSERVACION'];
 
         toast('Guardando y generando orden...', 'info');
 
