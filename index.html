@@ -6672,13 +6672,14 @@
         <div id="ocs_resumen" style="background:#f1f8f3; border:1px solid #c8e6c9; border-radius:8px; padding:10px 14px; font-size:12.5px; color:#1b5e20; line-height:1.5;"></div>
 
         <div style="border:1px solid #d5e0d8; border-radius:8px; padding:10px 14px; background:#fff;">
-          <div style="font-size:11.5px; font-weight:900; color:#06351f; text-transform:uppercase; margin-bottom:8px;">&#128221; Datos complementarios para la Orden de Incorporaci&oacute;n</div>
+          <div style="font-size:11.5px; font-weight:900; color:#06351f; text-transform:uppercase; margin-bottom:8px;">&#128221; Datos complementarios para los documentos (Orden / Oficio)</div>
           <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:8px;">
-            <div class="field" style="grid-column:span 2;"><label for="ocs_nro" style="font-weight:900; color:#06351f;">NRO. DE ORDEN <span style="color:#dc2626;">*</span></label><input id="ocs_nro" type="text" placeholder="Ej. 001-2026" style="border:2px solid #059669; font-weight:800; color:#064e3b; background:#f0fdf4;" /></div>
+            <div class="field" style="grid-column:span 2;"><label for="ocs_nro" style="font-weight:900; color:#06351f;">NRO. DE ORDEN <span style="font-size:10px; font-weight:normal; color:#64748b;">(Solo para Orden)</span> <span style="color:#dc2626;">*</span></label><input id="ocs_nro" type="text" placeholder="Ej. 001-2026" style="border:2px solid #059669; font-weight:800; color:#064e3b; background:#f0fdf4;" /></div>
             <div class="field" style="grid-column:span 4;"><label for="ocs_siglas">SIGLAS</label><input id="ocs_siglas" type="text" /></div>
             <div class="field" style="grid-column:span 6;"><label for="ocs_lugar">DOC DE REFERENCIA</label><input id="ocs_lugar" type="text" placeholder="Documento de referencia o sustento" /></div>
+            <div class="field" style="grid-column:span 6;" id="ocs_dest_wrap"><label for="ocs_destinatario" style="font-weight:900; color:#0369a1;">DESTINATARIO <span style="font-size:10px; font-weight:normal; color:#64748b;">(Solo para Oficio - Opcional)</span></label><input id="ocs_destinatario" type="text" placeholder="Ej. JEFE DE LA SUBUNIDAD / COMISARIO" style="border:1.5px solid #0284c7;" /></div>
             <div class="field" style="grid-column:span 2;"><label for="ocs_hora">HORA</label><input id="ocs_hora" type="text" placeholder="08:00" /></div>
-            <div class="field" style="grid-column:span 6;"><label for="ocs_vacaciones">VACACIONES</label><input id="ocs_vacaciones" type="text" placeholder="Ej. NO REGISTRA / PENDIENTE 2025" /></div>
+            <div class="field" style="grid-column:span 4;"><label for="ocs_vacaciones">VACACIONES</label><input id="ocs_vacaciones" type="text" placeholder="Ej. NO REGISTRA / PENDIENTE 2025" /></div>
             <div class="field" style="grid-column:span 6;">
               <label for="ocs_obs_select">OBSERVACIONES</label>
               <select id="ocs_obs_select" onchange="onChangeOcsObservaciones(this.value)" style="font-weight:700; color:#0f172a; background:#ffffff; border:1px solid #cbd5e1; margin-bottom:4px;">
@@ -6694,6 +6695,7 @@
         </div>
 
         <div style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Opción 1: Guardar y Generar Orden de Incorporación -->
           <button type="button" id="ocs_btn_generar" class="primary" onclick="ejecutarGuardadoCambioSubunidad(true)" style="background:linear-gradient(135deg, #0b5a3c, #0a6370); padding:13px 16px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; text-align:left; border:none; cursor:pointer;">
             <div style="display:flex; align-items:center; gap:10px;">
               <span style="font-size:22px;">&#128196;</span>
@@ -6704,6 +6706,20 @@
             </div>
             <span style="font-size:18px; color:#fff;">&#10132;</span>
           </button>
+
+          <!-- Opción 2 (NUEVA): Guardar y Generar Oficio (Piloto) -->
+          <button type="button" id="ocs_btn_generar_oficio" class="primary" onclick="ejecutarGuardadoCambioSubunidadOficio()" style="background:linear-gradient(135deg, #0284c7, #0369a1); padding:13px 16px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; text-align:left; border:none; cursor:pointer; box-shadow:0 3px 8px rgba(2,132,199,0.3);">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:22px;">&#128196;</span>
+              <div>
+                <div style="font-size:14px; color:#fff; font-weight:800;">Guardar y Generar Oficio (Piloto)</div>
+                <div style="font-size:11.5px; color:#e0f2fe; font-weight:normal;">Guarda el cambio y abre el Oficio oficial en hoja A4 (plantilla piloto editable y descargable en Word)</div>
+              </div>
+            </div>
+            <span style="font-size:18px; color:#fff;">&#10132;</span>
+          </button>
+
+          <!-- Opción 3: Guardar sin Generar Documento -->
           <button type="button" id="ocs_btn_sin_doc" class="primary" onclick="ejecutarGuardadoCambioSubunidad(false)" style="background:linear-gradient(135deg, #475569, #334155); padding:13px 16px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; text-align:left; border:none; cursor:pointer;">
             <div style="display:flex; align-items:center; gap:10px;">
               <span style="font-size:22px;">&#128190;</span>
@@ -6739,6 +6755,34 @@
       </div>
       <div style="background:#e5e7eb; padding:18px; max-height:calc(85vh - 150px); overflow:auto;">
         <div id="ocsSheet" contenteditable="true" spellcheck="false" style="width:21cm; min-height:29.7cm; margin:0 auto; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,0.25); padding:0.3cm; box-sizing:border-box; outline:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILOTO: Vista previa editable Oficio de Puesta a Disposicion (Cambio de Subunidad) - 1 hoja A4 Oficial -->
+  <div id="oficioCambioSubunidadPreviewModal" class="modal" style="z-index: 240;">
+    <div class="dialog" style="max-width: 920px; border-top: 5px solid #0284c7;">
+      <header style="background: linear-gradient(90deg, #ffffff 0%, #e0f2fe 100%);">
+        <div>
+          <h1 style="color:#0369a1; font-size:17px; display:flex; align-items:center; gap:8px;">&#128196; Oficio de Puesta a Disposici&oacute;n &middot; Cambio de Subunidad (Piloto)</h1>
+          <div class="sub">Plantilla editable en hoja A4 oficial PNP. Puede hacer clic sobre cualquier texto para adecuarlo antes de descargar en Word o imprimir.</div>
+        </div>
+        <button class="close-btn" onclick="cerrarOficioCambioSubunidadPreview()" title="Cerrar">&times;</button>
+      </header>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 20px; background:#f0f9ff; border-bottom:1px solid #bae6fd;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label for="oficioCsFirmanteSelect" style="font-size:12px; font-weight:bold; color:#0369a1; white-space:nowrap;">Firmante:</label>
+          <select id="oficioCsFirmanteSelect" onchange="cambiarFirmanteOficioCambioSubunidad(this.value)" style="height:34px; padding:2px 8px; border-radius:6px; border:1px solid #7dd3fc; font-size:12px; font-weight:600; color:#0c4a6e; background:#fff;"></select>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button type="button" class="secondary" onclick="regenerarOficioCambioSubunidad()" title="Volver a cargar los datos originales">&#8635; Restablecer</button>
+          <button type="button" class="secondary" onclick="copiarTextoOficioCambioSubunidad()" title="Copiar resumen al portapapeles">&#128203; Copiar datos</button>
+          <button type="button" class="primary" onclick="descargarOficioCambioSubunidadWord()" style="background:linear-gradient(135deg, #1d4ed8, #1e3a8a);">&#128221; Descargar Word (.doc)</button>
+          <button type="button" class="primary" onclick="imprimirOficioCambioSubunidad()" style="background:linear-gradient(135deg, #0284c7, #0369a1);">&#128424; Imprimir / PDF A4</button>
+        </div>
+      </div>
+      <div style="background:#e5e7eb; padding:18px; max-height:calc(85vh - 150px); overflow:auto;">
+        <div id="oficioCsSheet" contenteditable="true" spellcheck="false" style="width:21cm; min-height:29.7cm; margin:0 auto; background:#fff; box-shadow:0 4px 18px rgba(0,0,0,0.25); padding:0.5cm 1.5cm 0.5cm 2.8cm; box-sizing:border-box; outline:none; font-family:Arial, Helvetica, sans-serif; color:#000;"></div>
       </div>
     </div>
   </div>
@@ -13167,6 +13211,14 @@ MOTIVO: ${motivoText}`;
       if (selObs) selObs.value = 'OPCION_1';
       document.getElementById('ocs_observaciones').value = OCS_OBS_TEXTS.OPCION_1;
       document.getElementById('ocs_vacaciones').value = document.getElementById('ocs_vacaciones').value || '';
+      const destInp = document.getElementById('ocs_destinatario');
+      if (destInp) {
+        let defaultDest = `JEFE DE ${nuevaRevista}`;
+        if (nuevaRevista.startsWith('COMISARIA') || nuevaRevista.startsWith('CIA') || nuevaRevista.startsWith('COM.')) {
+          defaultDest = `COMISARIO DE LA ${nuevaRevista}`;
+        }
+        destInp.value = defaultDest;
+      }
 
       const sel = document.getElementById('ocs_firmante');
       const prev = sel.value;
@@ -13518,7 +13570,7 @@ MOTIVO: ${motivoText}`;
         } : null
       });
 
-      const btns = [document.getElementById('ocs_btn_generar'), document.getElementById('ocs_btn_sin_doc')];
+      const btns = [document.getElementById('ocs_btn_generar'), document.getElementById('ocs_btn_generar_oficio'), document.getElementById('ocs_btn_sin_doc')];
       btns.forEach(b => { if (b) b.disabled = true; });
       try {
         let ok = false;
@@ -13657,6 +13709,352 @@ p { margin:0; }
 <style>@page { size:A4 portrait; margin:0.3cm; } body { margin:0; font-family:Arial, sans-serif; } .ocs-copia { min-height:12.6cm; }</style>
 </head><body>${content}<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); };<\/script></body></html>`);
       w.document.close();
+    }
+
+    // ========================================================
+    // PILOTO: OFICIO DE PUESTA A DISPOSICIÓN (CAMBIO DE SUBUNIDAD)
+    // 1 hoja A4 Oficial, editable directamente, descargable en Word y lista para imprimir
+    // ========================================================
+    let _csOficioData = null;
+
+    async function ejecutarGuardadoCambioSubunidadOficio() {
+      if (!_csOrdenData) return;
+
+      const idx = parseInt(document.getElementById('ocs_firmante')?.value, 10);
+      const j = (jefesList || [])[idx] || null;
+      const docRefInput = String(document.getElementById('ocs_lugar')?.value || '').trim().toUpperCase();
+      const obsInput = String(document.getElementById('ocs_observaciones')?.value || '').trim().toUpperCase();
+      const destInput = String(document.getElementById('ocs_destinatario')?.value || '').trim().toUpperCase();
+
+      const btns = [
+        document.getElementById('ocs_btn_generar'),
+        document.getElementById('ocs_btn_generar_oficio'),
+        document.getElementById('ocs_btn_sin_doc')
+      ];
+      btns.forEach(b => { if (b) b.disabled = true; });
+
+      try {
+        toast('Obteniendo correlativo de Oficio oficial...', 'info');
+        let nextCorr = null;
+        try {
+          nextCorr = await getNextOficioCorrelative();
+        } catch (eCorr) {
+          console.warn('Error al obtener correlativo de oficio:', eCorr);
+          const currentYear = new Date().getFullYear();
+          nextCorr = {
+            num: 1,
+            numPadded: '001',
+            currentYear: currentYear,
+            formattedDocNum: `OFICIO N°001-${currentYear}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`,
+            shortDocNum: `001-${currentYear}`,
+            fecha: getTodayPeruYMD()
+          };
+        }
+
+        if (docRefInput) _csOrdenData.docReferencia = docRefInput;
+        if (obsInput) _csOrdenData.observaciones = obsInput;
+
+        // 1. Guardar cambio de subunidad en la base de datos
+        let ok = false;
+        if (_csOrdenModo === 'nuevo_personal') {
+          ok = await guardarNuevoPersonalConOrden(_csOrdenData, false);
+        } else {
+          ok = await guardarCambioSubunidad();
+        }
+        if (!ok) return;
+
+        // 2. Registrar en la tabla 'oficios' del Sistema de Registro Documentario
+        try {
+          const usuarioReg = sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name') || 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+          const destinoFinal = _csOrdenData.destino || 'OFAD REGPOL HUANUCO';
+          const docPayload = {
+            numero_documento: nextCorr.formattedDocNum,
+            fecha_documento: _csOrdenData.fechaYmd || getTodayPeruYMD(),
+            descripcion: `PONE A DISPOSICIÓN POR CAMBIO DE SUBUNIDAD: ${_csOrdenData.grado} ${_csOrdenData.nombres} A ${destinoFinal}`,
+            destino: destinoFinal,
+            usuario_registra: usuarioReg
+          };
+          await docReq(API_OFICIOS, { method: 'POST', body: JSON.stringify(docPayload) });
+          if (typeof BroadcastChannel !== 'undefined') {
+            try { new BroadcastChannel('pnp_docs_channel').postMessage({ type: 'UPDATE_DOCUMENTOS', table: 'oficios' }); } catch (_) {}
+          }
+          try { localStorage.setItem('pnp_last_doc_update', Date.now().toString()); } catch (_) {}
+        } catch (eOfi) {
+          console.warn('Registro de oficio en documentos:', eOfi);
+        }
+
+        // 3. Preparar datos del Oficio Piloto
+        _csOficioData = {
+          ..._csOrdenData,
+          numOficio: nextCorr.numPadded,
+          yearOficio: nextCorr.currentYear || new Date().getFullYear(),
+          formattedDocNum: nextCorr.formattedDocNum,
+          fechaOficio: _csOrdenData.fechaYmd || getTodayPeruYMD(),
+          destinatario: destInput || `JEFE DE ${_csOrdenData.destino}`,
+          firmante: j ? {
+            cip: String(j.CIP || j.cip || '').trim(),
+            nombre: formatNombrePostFirma(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || ''),
+            grado: j.GRADO || j.grado || '',
+            cargo: j.CARGO || j.cargo || '',
+            oa: j.OA || j.oa || j.CIP || j.cip || '340850'
+          } : null
+        };
+
+        cerrarOpcionesGuardarCambioSubunidad();
+        if (_csOrdenModo === 'cambio_subunidad') {
+          closeCambioSubunidadModal();
+        }
+
+        // 4. Poblar selector de firmantes en el visor del Oficio Piloto y abrir
+        poblarFirmantesOficioCambioSubunidad(idx);
+        regenerarOficioCambioSubunidad(true);
+        toast(`¡Cambio de subunidad guardado y Oficio N° ${nextCorr.numPadded}-${nextCorr.currentYear} generado!`, 'success');
+
+      } catch (err) {
+        console.error('Error al generar oficio de cambio de subunidad:', err);
+        toast('Error al generar oficio: ' + (err.message || err), 'error');
+      } finally {
+        btns.forEach(b => { if (b) b.disabled = false; });
+      }
+    }
+
+    function poblarFirmantesOficioCambioSubunidad(selectedIdx = 0) {
+      const sel = document.getElementById('oficioCsFirmanteSelect');
+      if (!sel) return;
+      sel.innerHTML = (jefesList || []).map((j, idx) => {
+        const nom = j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || '';
+        const grd = j.GRADO || j.grado || '';
+        const crg = j.CARGO || j.cargo || '';
+        return `<option value="${idx}">${esc(grd)} ${esc(nom)} - ${esc(crg)}</option>`;
+      }).join('');
+      if (selectedIdx >= 0 && selectedIdx < (jefesList || []).length) {
+        sel.value = String(selectedIdx);
+      }
+    }
+
+    function cambiarFirmanteOficioCambioSubunidad(idxStr) {
+      if (!_csOficioData) return;
+      const idx = parseInt(idxStr, 10);
+      const j = (jefesList || [])[idx] || null;
+      if (j) {
+        _csOficioData.firmante = {
+          cip: String(j.CIP || j.cip || '').trim(),
+          nombre: formatNombrePostFirma(j['APELLIDOS Y NOMBRES'] || j.apellidos_y_nombres || ''),
+          grado: j.GRADO || j.grado || '',
+          cargo: j.CARGO || j.cargo || '',
+          oa: j.OA || j.oa || j.CIP || j.cip || '340850'
+        };
+        regenerarOficioCambioSubunidad(false);
+      }
+    }
+
+    function _csOficioHtml(d) {
+      if (!d) return '';
+      const e = s => esc(String(s || ''));
+      const f = d.firmante || {
+        cip: '340850',
+        nombre: 'Ricky Florian CISNEROS APAZA',
+        grado: 'CMDTE PNP',
+        cargo: 'JEFE OFAD REGPOL HUANUCO',
+        oa: '340850'
+      };
+
+      const usuarioLog = sessionStorage.getItem('pnp_user_fullname') || sessionStorage.getItem('pnp_user_name') || 'ST2 PNP MANSILLA SANTA MARIA JOSE LUIS';
+      const siglasFirmante = typeof extraerSiglasPNP === 'function' ? extraerSiglasPNP(f.nombre || 'CISNEROS APAZA RICKY FLORIAN', true) : 'RFCA';
+      const siglasUsuario = typeof extraerSiglasPNP === 'function' ? extraerSiglasPNP(usuarioLog, false) : 'jlms';
+      const siglasDoc = `${siglasFirmante}/${siglasUsuario}`;
+
+      const fechaDocTexto = _csFechaLarga(d.fechaOficio || d.fechaYmd) || `Huánuco, ${new Date().toLocaleDateString('es-PE', { day:'numeric', month:'long', year:'numeric' })}`;
+      const nroDoc = d.numOficio || '001';
+      const anioDoc = d.yearOficio || new Date().getFullYear();
+      const numDocCompleto = `OFICIO N° ${nroDoc}-${anioDoc}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+      const dest = d.destinatario || `JEFE DE ${d.destino || 'LA SUBUNIDAD'}`;
+      const refDoc = d.docReferencia || '---';
+
+      return `
+        <div class="oficio-cs-wrapper" style="font-family:Arial, Helvetica, sans-serif; color:#000; font-size:11pt; line-height:1.22; box-sizing:border-box;">
+          <!-- Banner institucional oficial superior -->
+          <div style="width:100%; margin-bottom:2px;">
+            <img src="header_oficio_pnp.png" style="width:100%; max-width:100%; height:auto; display:block;" alt="POLICÍA NACIONAL DEL PERÚ" onerror="this.style.display='none'" />
+          </div>
+
+          <!-- Lema oficial del año -->
+          <div style="text-align:center; font-size:8.5pt; font-style:italic; line-height:1.15; margin-top:10px; margin-bottom:4px; font-family:Arial, Helvetica, sans-serif;">
+            "Año de la Esperanza y el Fortalecimiento de la Democracia"
+          </div>
+
+          <!-- Lugar y fecha -->
+          <div style="text-align:right; font-size:11pt; margin-top:14px; margin-bottom:4px; font-family:Arial, Helvetica, sans-serif;">
+            ${e(fechaDocTexto)}.
+          </div>
+
+          <!-- Título y Número de Oficio -->
+          <div style="font-family:Impact, 'Arial Narrow', sans-serif; font-size:15.5pt; font-weight:normal; text-decoration:underline; margin-top:14px; margin-bottom:4px; line-height:1.18; letter-spacing:0.3px;">
+            ${e(numDocCompleto)}
+          </div>
+
+          <!-- Bloque SEÑOR, ASUNTO, REF -->
+          <div style="display:grid; grid-template-columns:90px 14px 1fr; row-gap:2px; align-items:baseline; font-size:11pt; margin-top:16px; margin-bottom:4px; font-family:Arial, Helvetica, sans-serif;">
+            <div style="font-weight:bold;">SEÑOR</div>
+            <div style="font-weight:bold; text-align:center;">:</div>
+            <div style="padding-left:10px; line-height:1.2;">
+              <span style="font-weight:bold;">${e(dest)}</span><br/>
+              <span style="font-weight:bold;">REGPOL HUÁNUCO</span>
+            </div>
+
+            <div style="font-weight:bold; margin-top:14px;">ASUNTO</div>
+            <div style="font-weight:bold; text-align:center; margin-top:14px;">:</div>
+            <div style="padding-left:10px; line-height:1.2; margin-top:14px; font-weight:bold;">
+              Pone a disposición a personal policial, por motivo que se indica.
+            </div>
+
+            <div style="font-weight:bold; margin-top:14px;">REF.</div>
+            <div style="font-weight:bold; text-align:center; margin-top:14px;">:</div>
+            <div style="padding-left:10px; line-height:1.2; margin-top:14px;">
+              ${e(refDoc)}
+            </div>
+          </div>
+
+          <!-- Párrafo 1 -->
+          <div style="text-align:justify; text-indent:3.5em; line-height:1.25; margin-top:16px; margin-bottom:12px; font-size:11pt; font-family:Arial, Helvetica, sans-serif;">
+            Tengo el agrado de dirigirme a usted, en atención al documento de la referencia, a fin de poner a su disposición al personal policial que pasa a prestar servicios en la dependencia policial a su digno cargo, el mismo que a continuación se detalla:
+          </div>
+
+          <!-- Detalle del Personal Policial -->
+          <div style="display:grid; grid-template-columns:230px 14px 1fr; row-gap:2px; align-items:baseline; font-size:11pt; margin:12px 0 12px 20px; font-family:Arial, Helvetica, sans-serif;">
+            <div style="font-weight:bold;">CIP</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.cip || '---')}</div>
+            <div style="font-weight:bold;">GRADO</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.grado || '---')}</div>
+            <div style="font-weight:bold;">APELLIDOS Y NOMBRES</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px; font-weight:bold;">${e(d.nombres || '---')}</div>
+            <div style="font-weight:bold;">SUBUNIDAD DE PROCEDENCIA</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.procedencia || 'REGPOL HUÁNUCO')}</div>
+            <div style="font-weight:bold;">SUBUNIDAD DE DESTINO</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px; font-weight:bold;">${e(d.destino || '---')}</div>
+            <div style="font-weight:bold;">MOTIVO</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.motivo || d.motivoCambio || 'CAMBIO DE SUBUNIDAD')}</div>
+            <div style="font-weight:bold;">SITUACIÓN</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">PRESENTE</div>
+          </div>
+
+          <!-- Párrafo 2 -->
+          <div style="text-align:justify; text-indent:3.5em; line-height:1.25; margin-top:12px; margin-bottom:12px; font-size:11pt; font-family:Arial, Helvetica, sans-serif;">
+            Sobre el particular, se solicita comunicar la incorporación del citado personal policial al Área de Recursos Humanos de la REGPOL Huánuco, remitiendo el documento pertinente al correo electrónico rphuanuco.arerehum@policia.gob.pe; ello sin perjuicio de formular la documentación respectiva ante cualquier novedad que pudiera suscitarse, a fin de dar cuenta a la jefatura de esta región policial.
+          </div>
+
+          <!-- Párrafo 3: Cortesía -->
+          <div style="text-align:justify; text-indent:3.5em; line-height:1.25; margin-top:12px; margin-bottom:12px; font-size:11pt; font-family:Arial, Helvetica, sans-serif;">
+            Es propicia la oportunidad para expresarle los sentimientos de mi consideración y estima personal.
+          </div>
+
+          <!-- Despedida -->
+          <div style="text-align:center; font-style:italic; font-size:11pt; margin-top:14px; margin-bottom:12px; font-family:Arial, Helvetica, sans-serif;">
+            Dios guarde a Ud.
+          </div>
+
+          <!-- Siglas -->
+          <div style="font-size:8.5pt; font-family:Arial, Helvetica, sans-serif; text-align:left; margin-bottom:10px;">
+            ${e(siglasDoc)}
+          </div>
+
+          <!-- Sección de Firma y Sello -->
+          <div style="display:flex; justify-content:flex-end; margin-top:16px; margin-bottom:16px; padding-right:20px;">
+            <div style="position:relative; display:inline-flex; flex-direction:column; align-items:center; min-width:240px; text-align:center;">
+              <img src="sello_ofad_regpol.png" style="position:absolute; left:-40px; top:-25px; width:2.8cm; height:2.8cm; object-fit:contain; opacity:0.88; pointer-events:none;" alt="" onerror="this.style.display='none'" />
+              <div style="width:100%; border-top:1.3px solid #000; margin-bottom:4px;"></div>
+              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2;">OA - ${e(f.oa || f.cip || '340850')}</div>
+              <div style="font-size:9.5pt; font-family:'Arial Narrow', Arial, sans-serif; font-weight:bold; line-height:1.2;">${e(f.nombre)}</div>
+              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2;">${e(f.grado)}</div>
+              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2;">${e(f.cargo)}</div>
+            </div>
+          </div>
+
+          <!-- Pie de página institucional oficial -->
+          <div style="border-top:1px solid #94a3b8; padding-top:6px; margin-top:24px; font-size:8pt; text-align:center; color:#475569; font-family:Arial, Helvetica, sans-serif; line-height:1.2;">
+            REGIÓN POLICIAL HUÁNUCO – COMPLEJO POLICIAL "SANTA ROSA DE LIMA" – JIRÓN CONSTITUCIÓN N°501- HUÁNUCO<br/>
+            Email @ rphuanuco.arerehum@policia.gob.pe
+          </div>
+
+        </div>
+      `;
+    }
+
+    function regenerarOficioCambioSubunidad(abrir) {
+      if (!_csOficioData) return;
+      const sheet = document.getElementById('oficioCsSheet');
+      if (sheet) sheet.innerHTML = _csOficioHtml(_csOficioData);
+      if (abrir === true) {
+        document.getElementById('oficioCambioSubunidadPreviewModal').classList.add('open');
+      }
+    }
+
+    function abrirOficioCambioSubunidadPreview() {
+      regenerarOficioCambioSubunidad(true);
+    }
+
+    function cerrarOficioCambioSubunidadPreview() {
+      document.getElementById('oficioCambioSubunidadPreviewModal').classList.remove('open');
+    }
+
+    function _csNombreArchivoOficio() {
+      const n = String(_csOficioData?.nombres || 'EFECTIVO').replace(/[^A-Za-z0-9\u00d1\u00f1 ]/g, '').trim().replace(/\s+/g, '_');
+      const num = _csOficioData?.numOficio || '001';
+      const yr = _csOficioData?.yearOficio || new Date().getFullYear();
+      return `OFICIO_${num}-${yr}_CAMBIO_SUBUNIDAD_${n}`;
+    }
+
+    function descargarOficioCambioSubunidadWord() {
+      const sheet = document.getElementById('oficioCsSheet');
+      if (!sheet) return;
+      const clone = sheet.cloneNode(true);
+
+      const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>Oficio de Puesta a Disposicion</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+<style>
+@page WordSection1 { size:21.0cm 29.7cm; margin:0.8cm 1.5cm 0.8cm 2.6cm; }
+div.WordSection1 { page:WordSection1; }
+body { font-family:Arial, sans-serif; font-size:11pt; line-height:1.22; }
+table { border-collapse:collapse; }
+p { margin:0; }
+</style></head>
+<body><div class="WordSection1">${clone.innerHTML}</div></body></html>`;
+
+      const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = _csNombreArchivoOficio() + '.doc';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      toast('Oficio descargado en formato Word (.doc)', 'success');
+    }
+
+    function imprimirOficioCambioSubunidad() {
+      const sheet = document.getElementById('oficioCsSheet');
+      if (!sheet) return;
+      const content = sheet.innerHTML;
+
+      const w = window.open('', '_blank');
+      if (!w) { toast('Permita las ventanas emergentes para imprimir', 'warning'); return; }
+      w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><base href="${location.href}"><title>${_csNombreArchivoOficio()}</title>
+<style>
+@page { size: A4 portrait; margin: 0.8cm 1.5cm 0.8cm 2.5cm; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #000; font-size: 11pt; line-height: 1.22; }
+</style>
+</head><body>${content}<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 350); };<\/script></body></html>`);
+      w.document.close();
+    }
+
+    function copiarTextoOficioCambioSubunidad() {
+      if (!_csOficioData) return;
+      const d = _csOficioData;
+      const text = `OFICIO N° ${d.numOficio}-${d.yearOficio}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+ASUNTO: Pone a disposición a personal policial, por motivo que se indica.
+REF.: ${d.docReferencia || '---'}
+EFECTIVO: ${d.grado} ${d.nombres} (CIP: ${d.cip})
+PROCEDENCIA: ${d.procedencia || 'REGPOL HUÁNUCO'}
+DESTINO: ${d.destino || '---'}
+MOTIVO: ${d.motivo || d.motivoCambio || 'CAMBIO DE SUBUNIDAD'}`;
+      navigator.clipboard.writeText(text).then(() => {
+        toast('Resumen del Oficio copiado al portapapeles', 'success');
+      }).catch(() => {
+        toast('No se pudo copiar al portapapeles', 'warning');
+      });
     }
 
     function onUnidadDivisionInput(keepExacto1 = false) {
