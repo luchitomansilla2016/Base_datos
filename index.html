@@ -13303,12 +13303,14 @@ MOTIVO: ${motivoText}`;
       // Capturar datos ANTES de guardar (luego la lista de revista actual cambia)
       const grado = String(firstValue(r, ['grado', 'GRADO']) || '').trim();
       const nombres = String(firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombres', 'apellidos_nombre']) || '').trim();
-      const cip = String(firstValue(r, ['cip', 'CIP']) || '').trim();
-      const dni = String(firstValue(r, ['dni', 'DNI']) || '').trim();
+      const cip = String(firstValue(r, ['cip', 'CIP', 'Cip']) || document.getElementById('cs_cip')?.value || '').trim();
+      const dni = String(firstValue(r, ['dni', 'DNI', 'Dni']) || '').trim();
       const domicilio = String(firstValue(r, ['DOMICILIO ACTUAL', 'domicilio_actual', 'DOMICILIO', 'domicilio', 'DIRECCION', 'direccion', 'DIRECCI\u00d3N']) || '').trim().toUpperCase();
       const procedencia = String(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA', 'lista_revista']) || '').trim();
 
       _csOrdenData = {
+        cip,
+        dni,
         grado,
         nombres,
         claseNombre: [grado, nombres].filter(Boolean).join(' '),
@@ -14179,6 +14181,8 @@ p { margin:0; }
         // 3. Preparar datos del Oficio Piloto
         _csOficioData = {
           ..._csOrdenData,
+          cip: _csOrdenData?.cip || String(firstValue(_currentCambioSubunidadRecord, ['cip', 'CIP', 'Cip']) || document.getElementById('cs_cip')?.value || '').trim(),
+          dni: _csOrdenData?.dni || String(firstValue(_currentCambioSubunidadRecord, ['dni', 'DNI', 'Dni']) || '').trim(),
           numOficio: nextCorr.numPadded,
           yearOficio: nextCorr.currentYear || new Date().getFullYear(),
           formattedDocNum: nextCorr.formattedDocNum,
@@ -14379,10 +14383,10 @@ p { margin:0; }
           </div>
 
           <!-- Detalle del Personal Policial -->
-          <div style="display:grid; grid-template-columns:180px 14px 1fr; row-gap:2px; align-items:baseline; font-size:11pt; margin:10px 0 10px 1.875cm; font-family:Arial, Helvetica, sans-serif;">
-            <div style="font-weight:bold;">CIP</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.cip || '---')}</div>
-            <div style="font-weight:bold;">GRADO</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.grado || '---')}</div>
-            <div style="font-weight:bold;">APELLIDOS Y NOMBRES</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px; font-weight:bold;">${e(d.nombres || '---')}</div>
+          <div style="display:grid; grid-template-columns:180px 14px 1fr; row-gap:2px; align-items:baseline; font-size:10pt; margin:10px 0 10px 1.875cm; font-family:Arial, Helvetica, sans-serif;">
+            <div style="font-weight:bold;">CIP</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.cip || d.CIP || '---')}</div>
+            <div style="font-weight:bold;">GRADO</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.grado || d.GRADO || '---')}</div>
+            <div style="font-weight:bold;">APELLIDOS Y NOMBRES</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px; font-weight:bold;">${e(d.nombres || d.apellidos_y_nombres || d['APELLIDOS Y NOMBRES'] || '---')}</div>
             <div style="font-weight:bold;">PROCEDENCIA</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.procedencia || 'REGPOL HUÁNUCO')}</div>
             <div style="font-weight:bold;">DESTINO</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px; font-weight:bold;">${e(d.destino || '---')}</div>
             <div style="font-weight:bold;">MOTIVO</div><div style="font-weight:bold; text-align:center;">:</div><div style="padding-left:10px;">${e(d.motivo || d.motivoCambio || 'CAMBIO DE SUBUNIDAD')}</div>
