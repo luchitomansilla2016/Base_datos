@@ -7966,8 +7966,28 @@
     const retornoCursoModalFields = ['fecha_de_retorno', 'documento_referencia_retorno', 'n_inclusion_curso', 'fecha_de_inclusion', 'doc_pone_disposicion_subunidad', 'fecha_doc'];
 
     let _staticCatalogsReady = false;
+    let _uniqueRowCounter = 0;
     function _preindexRow(r) {
       if (!r || typeof r !== 'object') return r;
+      if (!r._rowId) {
+        if (r.id !== undefined && r.id !== null && String(r.id).trim() !== '') {
+          r._rowId = String(r.id).trim();
+        } else {
+          _uniqueRowCounter++;
+          const cipPart = String(firstValue(r, ['CIP', 'cip']) || 'rec').trim();
+          r._rowId = 'row_' + cipPart + '_' + _uniqueRowCounter + '_' + Math.random().toString(36).substr(2, 6);
+        }
+      }
+      if (!r._origSnapshot) {
+        r._origSnapshot = {
+          cip: firstValue(r, ['CIP', 'cip']),
+          docPoneDisp: firstValue(r, ['DOC PONE A DISPOSICION', 'DOC PONE DISPOSICION', 'doc_pone_a_disposicion', 'numero_oficio_pone_disposición']),
+          fechaDoc: firstValue(r, ['FECHA DOC', 'fecha_doc', 'fecha_de_oficio']),
+          docRef: firstValue(r, ['DOCUMENTO DE REFERENCIA', 'documento_referencia']),
+          situacion: firstValue(r, ['SITUACION ACTUAL', 'SITUACIÓN ACTUAL', 'situacion_actual', 'situacion']),
+          diagnostico: firstValue(r, ['DIAGNOSTICO', 'diagnostico'])
+        };
+      }
       r._sitActualNorm = normalizeText(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL', 'SITUACION ACTUAL', 'situacion', 'estado']) || '');
       r._searchBlob = normalizeText([
         firstValue(r, ['cip', 'CIP']),
@@ -7990,6 +8010,35 @@
         firstValue(r, ['EXACTO4', 'nivel_4_nombre'])
       ].join(' '));
       return r;
+    }
+
+    function buildReferidosTargetFilter(rec) {
+      if (!rec) return '';
+      if (rec.id !== undefined && rec.id !== null && String(rec.id).trim() !== '') {
+        return '?id=eq.' + encodeURIComponent(String(rec.id).trim());
+      }
+      const cip = firstValue(rec, ['CIP', 'cip']) || rec._origSnapshot?.cip;
+      if (!cip) return '';
+      let filter = '?CIP=eq.' + encodeURIComponent(String(cip).trim());
+
+      const orig = rec._origSnapshot || {};
+      const docPoneDisp = orig.docPoneDisp !== undefined ? orig.docPoneDisp : firstValue(rec, ['DOC PONE A DISPOSICION', 'DOC PONE DISPOSICION', 'doc_pone_a_disposicion', 'numero_oficio_pone_disposición']);
+      const fechaDoc = orig.fechaDoc !== undefined ? orig.fechaDoc : firstValue(rec, ['FECHA DOC', 'fecha_doc', 'fecha_de_oficio']);
+      const docRef = orig.docRef !== undefined ? orig.docRef : firstValue(rec, ['DOCUMENTO DE REFERENCIA', 'documento_referencia']);
+      const situacion = orig.situacion !== undefined ? orig.situacion : firstValue(rec, ['SITUACION ACTUAL', 'SITUACIÓN ACTUAL', 'situacion_actual', 'situacion']);
+
+      if (docPoneDisp !== undefined && docPoneDisp !== null && String(docPoneDisp).trim() !== '') {
+        filter += '&DOC%20PONE%20A%20DISPOSICION=eq.' + encodeURIComponent(String(docPoneDisp).trim());
+      }
+      if (fechaDoc !== undefined && fechaDoc !== null && String(fechaDoc).trim() !== '') {
+        filter += '&FECHA%20DOC=eq.' + encodeURIComponent(String(fechaDoc).trim());
+      }
+      if (situacion !== undefined && situacion !== null && String(situacion).trim() !== '') {
+        filter += '&SITUACION%20ACTUAL=eq.' + encodeURIComponent(String(situacion).trim());
+      } else if (docRef !== undefined && docRef !== null && String(docRef).trim() !== '') {
+        filter += '&DOCUMENTO%20DE%20REFERENCIA=eq.' + encodeURIComponent(String(docRef).trim());
+      }
+      return filter;
     }
 
     const CUSTOM_ESP_STORAGE_KEY = 'pnp_custom_especialidades_v1';
@@ -9772,7 +9821,7 @@
         return;
       }
       const rowHtmls = filtered.map(r => {
-        const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
+        const rawId = (r._rowId !== undefined && r._rowId !== null && r._rowId !== '') ? r._rowId : ((r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']));
         const id = esc(rawId);
         const cip = esc(firstValue(r, ['cip', 'CIP']) || '—');
         const grado = esc(firstValue(r, ['grado', 'GRADO']) || '—');
@@ -10456,12 +10505,15 @@
       } else {
         const tbody = document.getElementById('tbody');
         if (tbody) {
-          tbody.innerHTML = filtered.map(r => `
-            <tr class="data-row" onclick="openForm('${r.id}')">
+          tbody.innerHTML = filtered.map(r => {
+            const rawId = (r._rowId !== undefined && r._rowId !== null && r._rowId !== '') ? r._rowId : ((r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']));
+            return `
+            <tr class="data-row" onclick="openForm('${esc(rawId)}')">
               <td>${esc(firstValue(r, ['cip', 'CIP']))}</td><td>${esc(firstValue(r, ['dni', 'DNI']))}</td><td><span class="pill">${esc(firstValue(r, ['grado', 'GRADO']))}</span></td><td><b>${esc(firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES']))}</b></td>
               <td>${esc(firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN']))}</td><td>${esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA']))}</td><td>${esc(formatDateDisplay(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN'])))}</td>
               <td>${esc(tiempoTranscurrido(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN'])))}</td><td>${esc(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL']))}</td><td>${esc(firstValue(r, ['condicion', 'CONDICIÓN']))}</td><td>${observacionButton(getObservacionEfectivo(r))}</td>
-            </tr>`).join('');
+            </tr>`;
+          }).join('');
         }
       }
     }
@@ -10481,7 +10533,7 @@
           const _divM = getDivisionOficial(r);
           const _divHeader = (_divM !== _lastDivMobile) ? `<div style="background:linear-gradient(90deg,#06351f,#0b5a3c); color:#fde047; font-weight:900; padding:8px 12px; border-radius:8px; margin:10px 0 6px; font-size:12.5px;">&#127963;&#65039; ${esc(_divM)}</div>` : '';
           _lastDivMobile = _divM;
-          const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
+          const rawId = (r._rowId !== undefined && r._rowId !== null && r._rowId !== '') ? r._rowId : ((r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']));
           const id = esc(rawId);
           const cip = esc(firstValue(r, ['cip', 'CIP']) || '\u2014');
           const grado = esc(firstValue(r, ['grado', 'GRADO']) || '');
@@ -10509,7 +10561,7 @@
           return;
         }
         box.innerHTML = filtered.slice(0, 80).map(r => {
-          const rawId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
+          const rawId = (r._rowId !== undefined && r._rowId !== null && r._rowId !== '') ? r._rowId : ((r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']));
           const id = esc(rawId);
           const cip = esc(firstValue(r, ['cip', 'CIP']) || '\u2014');
           const grado = esc(firstValue(r, ['grado', 'GRADO']) || '');
@@ -10775,17 +10827,19 @@
       if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') return null;
       const idStr = String(id).trim();
       return rows.find(r => 
-        (r.id !== undefined && r.id !== null && String(r.id).trim() === idStr) ||
+        (r._rowId !== undefined && String(r._rowId).trim() === idStr) ||
+        (r.id !== undefined && r.id !== null && String(r.id).trim() === idStr)
+      ) || rows.find(r =>
         String(firstValue(r, ['CIP', 'cip', 'dni', 'DNI'])).trim() === idStr
       ) || null;
     }
 
     function openFicha(id) {
       const idStr = String(id || '').trim();
-      const r = (current && ((current.id !== undefined && current.id !== null && String(current.id).trim() === idStr) || String(firstValue(current, ['CIP', 'cip', 'dni', 'DNI'])).trim() === idStr)) ? current : findRecordById(id);
+      const r = (current && ((current._rowId !== undefined && String(current._rowId).trim() === idStr) || (current.id !== undefined && current.id !== null && String(current.id).trim() === idStr) || String(firstValue(current, ['CIP', 'cip', 'dni', 'DNI'])).trim() === idStr)) ? current : findRecordById(id);
       if (!r) return;
 
-      currentFichaId = (r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']);
+      currentFichaId = (r._rowId !== undefined && r._rowId !== null && r._rowId !== '') ? r._rowId : ((r.id !== undefined && r.id !== null && r.id !== '') ? r.id : firstValue(r, ['CIP', 'cip']));
       const configFicha = moduloFichaConfigs[currentTable] || moduloFichaConfigs.personal;
       document.getElementById('fichaSub').textContent = (firstValue(r, ['grado', 'GRADO']) || '') + ' - ' + firstValue(r, ['apellidos_nombres', 'APELLIDOS Y NOMBRES', 'apellidos_nombre', 'apellidos_y_nombres']);
 
@@ -12235,8 +12289,9 @@ MOTIVO: ${motivoText}`;
           "FECHA_DOC_RETORNO": fFDoc || fFechaRetorno || todayYMD
         };
 
-        if (current?.id) {
-          await req(API_REFERIDOS + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(referidosPayload) });
+        const refFilter = buildReferidosTargetFilter(current);
+        if (refFilter) {
+          await req(API_REFERIDOS + refFilter, { method: 'PATCH', body: JSON.stringify(referidosPayload) });
         } else if (cipVal) {
           await req(API_REFERIDOS + '?CIP=eq.' + encodeURIComponent(cipVal), { method: 'PATCH', body: JSON.stringify(referidosPayload) });
         }
@@ -15015,12 +15070,13 @@ MOTIVO: ${d.motivo || d.motivoCambio || 'CAMBIO DE SUBUNIDAD'}`;
         "OBSERVACION": observacion || null
       };
 
-      if (current?.id !== undefined && current.id !== null && current.id !== '') {
+      const refFilter = buildReferidosTargetFilter(current);
+      if (refFilter) {
         try {
-          await req(API_REFERIDOS + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(updateReferidoPayload) });
+          await req(API_REFERIDOS + refFilter, { method: 'PATCH', body: JSON.stringify(updateReferidoPayload) });
         } catch (ePatch) {
           console.warn('Error en primer intento de actualización referidos, reintentando con payload esencial:', ePatch);
-          await req(API_REFERIDOS + '?id=eq.' + encodeURIComponent(current.id), {
+          await req(API_REFERIDOS + refFilter, {
             method: 'PATCH',
             body: JSON.stringify({
               "SITUACION ACTUAL": "PRESENTE",
@@ -21982,8 +22038,8 @@ REGLAS CRÍTICAS:
             if (current.id !== undefined && current.id !== null && current.id !== '') {
               return await req(API + '?id=eq.' + encodeURIComponent(current.id), { method: 'PATCH', body: JSON.stringify(payload) });
             } else if (currentTable === 'referidos') {
-              const cipKey = firstValue(current, ['CIP', 'cip']);
-              return await req(API + '?CIP=eq.' + encodeURIComponent(cipKey), { method: 'PATCH', body: JSON.stringify(payload) });
+              const refFilter = buildReferidosTargetFilter(current);
+              return await req(API + refFilter, { method: 'PATCH', body: JSON.stringify(payload) });
             } else if (currentTable === 'personal' || currentTable === 'oficiales' || currentTable === 'cambio_subunidad') {
               const cipKey = firstValue(current, ['CIP', 'cip']);
               const dbCipCol = getDbColumnKey('CIP', tableSampleRows['personal'] || rows?.[0]);
@@ -22230,6 +22286,16 @@ REGLAS CRÍTICAS:
           toast('Registro guardado exitosamente', 'success');
           closeForm();
           Object.assign(current, finalPayload);
+          if (current._origSnapshot) {
+            current._origSnapshot = {
+              cip: firstValue(current, ['CIP', 'cip']),
+              docPoneDisp: firstValue(current, ['DOC PONE A DISPOSICION', 'DOC PONE DISPOSICION', 'doc_pone_a_disposicion', 'numero_oficio_pone_disposición']),
+              fechaDoc: firstValue(current, ['FECHA DOC', 'fecha_doc', 'fecha_de_oficio']),
+              docRef: firstValue(current, ['DOCUMENTO DE REFERENCIA', 'documento_referencia']),
+              situacion: firstValue(current, ['SITUACION ACTUAL', 'SITUACIÓN ACTUAL', 'situacion_actual', 'situacion']),
+              diagnostico: firstValue(current, ['DIAGNOSTICO', 'diagnostico'])
+            };
+          }
           _preindexRow(current);
           ordenarRegistros(rows);
           render();
@@ -22598,7 +22664,9 @@ REGLAS CRÍTICAS:
         let deleteUrl = API;
         if (current.id !== undefined && current.id !== null && current.id !== '') {
           deleteUrl += '?id=eq.' + encodeURIComponent(current.id);
-        } else if (currentTable === 'referidos' || currentTable === 'personal') {
+        } else if (currentTable === 'referidos') {
+          deleteUrl += buildReferidosTargetFilter(current);
+        } else if (currentTable === 'personal') {
           const cipVal = firstValue(current, ['CIP', 'cip']);
           if (!cipVal) throw new Error('No se encontró identificador CIP válido para eliminar el registro');
           deleteUrl += '?CIP=eq.' + encodeURIComponent(cipVal);
