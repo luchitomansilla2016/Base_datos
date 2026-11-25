@@ -14133,7 +14133,7 @@ p { margin:0; }
             num: 1,
             numPadded: '001',
             currentYear: currentYear,
-            formattedDocNum: `OFICIO N°001-${currentYear}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`,
+            formattedDocNum: `OFICIO N°001-${currentYear}-REGPOL HCO/EM-OFAD.AREREHUM.MP`,
             shortDocNum: `001-${currentYear}`,
             fecha: getTodayPeruYMD()
           };
@@ -14318,7 +14318,7 @@ p { margin:0; }
       const fechaDocTexto = _csFechaLarga(d.fechaOficio || d.fechaYmd) || `Huánuco, ${new Date().toLocaleDateString('es-PE', { day:'numeric', month:'long', year:'numeric' })}`;
       const nroDoc = d.numOficio || '001';
       const anioDoc = d.yearOficio || new Date().getFullYear();
-      const numDocCompleto = `OFICIO N° ${nroDoc}-${anioDoc}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+      const numDocCompleto = `OFICIO N° ${nroDoc}-${anioDoc}-REGPOL HCO/EM-OFAD.AREREHUM.MP`;
       const dest = d.destinatario || `JEFE DE ${d.destino || 'LA SUBUNIDAD'}`;
       const refDoc = d.docReferencia || '---';
       const destGradoTexto = [d.destinatarioGrado, d.destinatario, d.destinatarioNombre].filter(Boolean).join(' ');
@@ -14346,7 +14346,7 @@ p { margin:0; }
           </div>
 
           <!-- Título y Número de Oficio -->
-          <div style="font-family:Impact, 'Arial Narrow', sans-serif; font-size:13.5pt; font-weight:normal; text-decoration:underline; margin-top:12px; margin-bottom:4px; margin-left:1.875cm; line-height:1.18; letter-spacing:0.3px;">
+          <div style="font-family:Impact, 'Arial Narrow', sans-serif; font-size:16pt; font-weight:normal; text-decoration:underline; margin-top:12px; margin-bottom:4px; margin-left:1.875cm; line-height:1.18; letter-spacing:0.3px;">
             ${e(numDocCompleto)}
           </div>
 
@@ -14501,7 +14501,7 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #000; font-s
     function copiarTextoOficioCambioSubunidad() {
       if (!_csOficioData) return;
       const d = _csOficioData;
-      const text = `OFICIO N° ${d.numOficio}-${d.yearOficio}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP
+      const text = `OFICIO N° ${d.numOficio}-${d.yearOficio}-REGPOL HCO/EM-OFAD.AREREHUM.MP
 ASUNTO: Pone a disposición a personal policial, por motivo que se indica.
 REF.: ${d.docReferencia || '---'}
 EFECTIVO: ${d.grado} ${d.nombres} (CIP: ${d.cip})
