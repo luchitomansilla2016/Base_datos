@@ -14185,47 +14185,51 @@ p { margin:0; }
       const dGrd = String(destGradoRaw || '').toUpperCase();
       const fGrd = String(firmGradoRaw || '').toUpperCase();
 
-      // Si el firmante es CMDTE = COMANDANTE (o por defecto si no se especifica)
-      const esFirmanteCmdte = fGrd.includes('CMDTE') || fGrd.includes('COMANDANTE') || !fGrd;
-
-      if (esFirmanteCmdte) {
-        // A superior (CRNL = CORONEL, GRAL = GENERAL)
-        if (/GRAL|GENERAL|CRNL|CORONEL/.test(dGrd)) {
-          return 'Tengo el honor de dirigirme a Ud.,';
-        }
-        // A igual jerarquía (CMDTE = COMANDANTE)
-        if (/CMDTE|COMANDANTE/.test(dGrd)) {
-          return 'Tengo el agrado de dirigirme a Ud.,';
-        }
-        // A otro grado (menor jerarquía / subalternos)
-        return 'Me dirijo a Ud.,';
-      }
-
-      // Regla protocolar general si el firmante tuviera otro grado
-      const jerarquia = [
-        { regex: /GRAL|GENERAL/, nivel: 1 },
-        { regex: /CRNL|CORONEL/, nivel: 2 },
-        { regex: /CMDTE|COMANDANTE/, nivel: 3 },
-        { regex: /MAYOR|MY/, nivel: 4 },
-        { regex: /CAPITAN|CAP/, nivel: 5 },
-        { regex: /TENIENTE|TNTE/, nivel: 6 },
-        { regex: /ALFEREZ|ALFZ/, nivel: 7 }
+      // Escala jerárquica oficial de la PNP (número menor = mayor jerarquía)
+      const escalaGrados = [
+        // Oficiales Generales
+        { regex: /\b(TTE\.?\s*GRAL|TENIENTE\s+GENERAL)\b/, nivel: 1 },
+        { regex: /\b(GRAL|GENERAL)\b/, nivel: 2 },
+        // Oficiales Superiores
+        { regex: /\b(CRNL|CORONEL|CNL)\b/, nivel: 3 },
+        { regex: /\b(CMDTE|COMANDANTE|CMTE)\b/, nivel: 4 },
+        { regex: /\b(MAYOR|MY)\b/, nivel: 5 },
+        // Oficiales Subalternos
+        { regex: /\b(CAPIT[AÁ]N|CAP)\b/, nivel: 6 },
+        { regex: /\b(TENIENTE|TNTE)\b/, nivel: 7 },
+        { regex: /\b(ALF[EÉ]REZ|ALFZ)\b/, nivel: 8 },
+        // Suboficiales
+        { regex: /\b(SS|SO\s*SUP|SUBOFICIAL\s+SUPERIOR)\b/, nivel: 9 },
+        { regex: /\b(SB|SO\s*BRIG|SUBOFICIAL\s+BRIGADIER)\b/, nivel: 10 },
+        { regex: /\b(ST1|ST-1|SO\s*TEC\s*1|T[EÉ]CNICO\s+DE\s+1|TECNICO\s+DE\s+PRIMERA)\b/, nivel: 11 },
+        { regex: /\b(ST2|ST-2|SO\s*TEC\s*2|T[EÉ]CNICO\s+DE\s+2|TECNICO\s+DE\s+SEGUNDA)\b/, nivel: 12 },
+        { regex: /\b(ST3|ST-3|SO\s*TEC\s*3|T[EÉ]CNICO\s+DE\s+3|TECNICO\s+DE\s+TERCERA)\b/, nivel: 13 },
+        { regex: /\b(S1|S-1|SO\s*1|SUBOFICIAL\s+DE\s+1|SUBOFICIAL\s+DE\s+PRIMERA)\b/, nivel: 14 },
+        { regex: /\b(S2|S-2|SO\s*2|SUBOFICIAL\s+DE\s+2|SUBOFICIAL\s+DE\s+SEGUNDA)\b/, nivel: 15 },
+        { regex: /\b(S3|S-3|SO\s*3|SUBOFICIAL\s+DE\s+3|SUBOFICIAL\s+DE\s+TERCERA)\b/, nivel: 16 }
       ];
-      const getNivel = g => {
-        for (const item of jerarquia) {
-          if (item.regex.test(g)) return item.nivel;
+
+      const obtenerNivel = str => {
+        if (!str) return 99;
+        for (const item of escalaGrados) {
+          if (item.regex.test(str)) return item.nivel;
         }
-        return 8;
+        return 99; // Si no tiene grado militar/policial o es civil/otro
       };
 
-      const nivelDest = getNivel(dGrd);
-      const nivelFirm = getNivel(fGrd);
+      const nivelDest = obtenerNivel(dGrd);
+      const nivelFirm = obtenerNivel(fGrd || 'CMDTE PNP');
 
+      // 1. Destinatario de grado SUPERIOR al firmante
       if (nivelDest < nivelFirm) {
         return 'Tengo el honor de dirigirme a Ud.,';
-      } else if (nivelDest === nivelFirm) {
+      }
+      // 2. Destinatario del MISMO GRADO que el firmante
+      else if (nivelDest === nivelFirm && nivelDest !== 99) {
         return 'Tengo el agrado de dirigirme a Ud.,';
-      } else {
+      }
+      // 3. Destinatario de grado INFERIOR al firmante
+      else {
         return 'Me dirijo a Ud.,';
       }
     }
@@ -14252,7 +14256,8 @@ p { margin:0; }
       const numDocCompleto = `OFICIO N° ${nroDoc}-${anioDoc}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
       const dest = d.destinatario || `JEFE DE ${d.destino || 'LA SUBUNIDAD'}`;
       const refDoc = d.docReferencia || '---';
-      const saludoParrafo1 = _csSaludoPrimerParrafo(d.destinatarioGrado || d.destinatario || '', f.grado || 'CMDTE PNP');
+      const destGradoTexto = [d.destinatarioGrado, d.destinatario, d.destinatarioNombre].filter(Boolean).join(' ');
+      const saludoParrafo1 = _csSaludoPrimerParrafo(destGradoTexto, f.grado || 'CMDTE PNP');
 
       return `
         <div class="oficio-cs-wrapper" style="font-family:Arial, Helvetica, sans-serif; color:#000; font-size:11pt; line-height:1.22; box-sizing:border-box;">
