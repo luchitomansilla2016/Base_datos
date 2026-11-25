@@ -13327,7 +13327,7 @@ MOTIVO: ${motivoText}`;
       const hh = String(now.getHours()).padStart(2, '0');
       const mi = String(now.getMinutes()).padStart(2, '0');
       document.getElementById('ocs_nro').value = '';
-      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
       document.getElementById('ocs_lugar').value = docReferencia || '';
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
       const selObs = document.getElementById('ocs_obs_select');
@@ -13457,7 +13457,7 @@ MOTIVO: ${motivoText}`;
       ocsNroEl.value = '';
       ocsNroEl.placeholder = 'Ej. 001-2026';
 
-      document.getElementById('ocs_siglas').value = `${fechaYmd.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+      document.getElementById('ocs_siglas').value = `${fechaYmd.slice(0, 4)}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
       document.getElementById('ocs_lugar').value = _csOrdenData.docReferencia || '';
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
       document.getElementById('ocs_vacaciones').value = 'NO REGISTRA';
@@ -14133,7 +14133,7 @@ p { margin:0; }
             num: 1,
             numPadded: '001',
             currentYear: currentYear,
-            formattedDocNum: `OFICIO N°001-${currentYear}-REGPOL HCO/EM-OFAD.AREREHUM.MP`,
+            formattedDocNum: `OFICIO N°001-${currentYear}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`,
             shortDocNum: `001-${currentYear}`,
             fecha: getTodayPeruYMD()
           };
@@ -14318,7 +14318,7 @@ p { margin:0; }
       const fechaDocTexto = _csFechaLarga(d.fechaOficio || d.fechaYmd) || `Huánuco, ${new Date().toLocaleDateString('es-PE', { day:'numeric', month:'long', year:'numeric' })}`;
       const nroDoc = d.numOficio || '001';
       const anioDoc = d.yearOficio || new Date().getFullYear();
-      const numDocCompleto = `OFICIO N° ${nroDoc}-${anioDoc}-REGPOL HCO/EM-OFAD.AREREHUM.MP`;
+      const numDocCompleto = `OFICIO N° ${nroDoc}-${anioDoc}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
       const dest = d.destinatario || `JEFE DE ${d.destino || 'LA SUBUNIDAD'}`;
       const refDoc = d.docReferencia || '---';
       const destGradoTexto = [d.destinatarioGrado, d.destinatario, d.destinatarioNombre].filter(Boolean).join(' ');
@@ -14501,7 +14501,7 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #000; font-s
     function copiarTextoOficioCambioSubunidad() {
       if (!_csOficioData) return;
       const d = _csOficioData;
-      const text = `OFICIO N° ${d.numOficio}-${d.yearOficio}-REGPOL HCO/EM-OFAD.AREREHUM.MP
+      const text = `OFICIO N° ${d.numOficio}-${d.yearOficio}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP
 ASUNTO: Pone a disposición a personal policial, por motivo que se indica.
 REF.: ${d.docReferencia || '---'}
 EFECTIVO: ${d.grado} ${d.nombres} (CIP: ${d.cip})
