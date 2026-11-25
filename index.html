@@ -13329,7 +13329,7 @@ MOTIVO: ${motivoText}`;
       const hh = String(now.getHours()).padStart(2, '0');
       const mi = String(now.getMinutes()).padStart(2, '0');
       document.getElementById('ocs_nro').value = '';
-      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
+      document.getElementById('ocs_siglas').value = document.getElementById('ocs_siglas').value || `${fechaCambio.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
       document.getElementById('ocs_lugar').value = docReferencia || '';
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
       const selObs = document.getElementById('ocs_obs_select');
@@ -13459,7 +13459,7 @@ MOTIVO: ${motivoText}`;
       ocsNroEl.value = '';
       ocsNroEl.placeholder = 'Ej. 001-2026';
 
-      document.getElementById('ocs_siglas').value = `${fechaYmd.slice(0, 4)}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
+      document.getElementById('ocs_siglas').value = `${fechaYmd.slice(0, 4)}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
       document.getElementById('ocs_lugar').value = _csOrdenData.docReferencia || '';
       document.getElementById('ocs_hora').value = `${hh}:${mi}`;
       document.getElementById('ocs_vacaciones').value = 'NO REGISTRA';
@@ -13846,12 +13846,142 @@ p { margin:0; }
     let currentOficioCambioSubunidadDestinatario = null;
     let _isEditingDestFromPreview = false;
 
+    function _csFormatearGradoOficio(gradoRaw) {
+      if (!gradoRaw) return '';
+      const g = String(gradoRaw).trim();
+      const up = g.toUpperCase().replace(/\./g, '').replace(/\s+/g, ' ');
+
+      if (/^(GRAL|GENERAL)(\s+PNP)?$/.test(up)) return 'General PNP';
+      if (/^(TTE\s*GRAL|TENIENTE\s+GENERAL)(\s+PNP)?$/.test(up)) return 'Teniente General PNP';
+      if (/^(CRNL|CORONEL|CNL)(\s+PNP)?$/.test(up)) return 'Coronel PNP';
+      if (/^(CMDTE|COMANDANTE|CMTE)(\s+PNP)?$/.test(up)) return 'Comandante PNP';
+      if (/^(MY|MAYOR)(\s+PNP)?$/.test(up)) return 'Mayor PNP';
+      if (/^(CAP|CAPITAN|CAPIT[AÁ]N)(\s+PNP)?$/.test(up)) return 'Capitán PNP';
+      if (/^(TNTE|TENIENTE)(\s+PNP)?$/.test(up)) return 'Teniente PNP';
+      if (/^(ALFZ|ALFEREZ|ALF[EÉ]REZ)(\s+PNP)?$/.test(up)) return 'Alferez PNP';
+
+      // Suboficiales
+      if (/^(SS|SO\s*SUP|SUBOFICIAL\s+SUPERIOR)(\s+PNP)?$/.test(up)) return 'Suboficial Superior PNP';
+      if (/^(SB|SO\s*BRIG|SUBOFICIAL\s+BRIGADIER)(\s+PNP)?$/.test(up)) return 'Suboficial Brigadier PNP';
+      if (/^(ST1|ST-1|SO\s*TEC\s*1|TECNICO\s+DE\s+1|TECNICO\s+DE\s+PRIMERA)(\s+PNP)?$/.test(up)) return 'Suboficial Técnico de 1ra PNP';
+      if (/^(ST2|ST-2|SO\s*TEC\s*2|TECNICO\s+DE\s+2|TECNICO\s+DE\s+SEGUNDA)(\s+PNP)?$/.test(up)) return 'Suboficial Técnico de 2da PNP';
+      if (/^(ST3|ST-3|SO\s*TEC\s*3|TECNICO\s+DE\s+3|TECNICO\s+DE\s+TERCERA)(\s+PNP)?$/.test(up)) return 'Suboficial Técnico de 3ra PNP';
+      if (/^(S1|S-1|SO\s*1|SUBOFICIAL\s+DE\s+1|SUBOFICIAL\s+DE\s+PRIMERA)(\s+PNP)?$/.test(up)) return 'Suboficial de 1ra PNP';
+      if (/^(S2|S-2|SO\s*2|SUBOFICIAL\s+DE\s+2|SUBOFICIAL\s+DE\s+SEGUNDA)(\s+PNP)?$/.test(up)) return 'Suboficial de 2da PNP';
+      if (/^(S3|S-3|SO\s*3|SUBOFICIAL\s+DE\s+3|SUBOFICIAL\s+DE\s+TERCERA)(\s+PNP)?$/.test(up)) return 'Suboficial de 3ra PNP';
+
+      return g;
+    }
+
+    function _csFormatearNombreDestinatarioOficio(rawName) {
+      if (!rawName) return '';
+      let str = String(rawName).trim().replace(/\s+/g, ' ');
+      if (!str) return '';
+
+      // Si es un cargo o título institucional, no modificarlo como persona
+      if (/^(JEFE|COMISARIO|DIRECTOR|SUBDIRECTOR|ENCARGADO|SECRETARIO|FISCAL|JUEZ)\b/i.test(str)) {
+        return str.toUpperCase();
+      }
+
+      // Limpiar prefijos de grados si vinieran en el mismo campo
+      const rankRegex = /^(TTE\.?\s*GRAL|GRAL|CRNL|CNL|CMDTE|CMTE|MAY|MY|CAP|TNTE|ALFZ|SS|SB|ST1|ST2|ST3|S1|S2|S3|SO1|SO2|SO3|CORONEL|COMANDANTE|GENERAL|CAPIT[AÁ]N|TENIENTE|ALF[EÉ]REZ)\.?\s*(PNP)?\s*\.?\s*/i;
+      str = str.replace(rankRegex, '').trim();
+
+      const words = str.split(' ').filter(Boolean);
+      if (words.length <= 1) return str.toUpperCase();
+
+      const toTitle = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+
+      // Si ya tiene mezcla de mayúsculas y minúsculas (ej: "Ricky Florian CISNEROS APAZA")
+      const hasLower = words.some(w => /[a-z]/.test(w));
+      const hasUpperOnly = words.some(w => w === w.toUpperCase() && w.length > 1);
+      if (hasLower && hasUpperOnly) {
+        const givenParts = [];
+        const surnameParts = [];
+        words.forEach(w => {
+          if (/[a-z]/.test(w)) {
+            givenParts.push(toTitle(w));
+          } else {
+            surnameParts.push(w.toUpperCase());
+          }
+        });
+        if (givenParts.length && surnameParts.length) {
+          return `${givenParts.join(' ')} ${surnameParts.join(' ')}`;
+        }
+      }
+
+      const knownGiven = new Set([
+        'JOSE', 'LUIS', 'RICKY', 'FLORIAN', 'EDWIN', 'HOMERO', 'FRANCISCO', 'GABRIEL',
+        'JUAN', 'CARLOS', 'JORGE', 'MANUEL', 'CESAR', 'MIGUEL', 'ANGEL', 'VICTOR',
+        'RAUL', 'PEDRO', 'MARCO', 'ANTONIO', 'DAVID', 'DANIEL', 'OSCAR', 'FERNANDO',
+        'HERNAN', 'WALTER', 'EDGAR', 'RICHARD', 'ELMER', 'JAVIER', 'ROBERTO', 'JULIO',
+        'ALEX', 'CHRISTIAN', 'CRISTIAN', 'DIEGO', 'ALBERTO', 'ARTURO', 'SERGIO', 'ELY',
+        'MARIO', 'HUGO', 'GUIDO', 'HECTOR', 'JAIME', 'ENRIQUE', 'GUILLERMO', 'PERCY',
+        'RUBEN', 'FREDY', 'FREDDY', 'WILDER', 'WILLY', 'WILSON', 'JHON', 'JOHN',
+        'ELVIS', 'RONALD', 'ROLANDO', 'RENZO', 'GIANCARLO', 'FRANK', 'FRANKLIN',
+        'MARTIN', 'ALEXIS', 'ANDRES', 'FELIX', 'GUSTAVO', 'REYNALDO', 'SEGUNDO',
+        'SANTOS', 'MOISES', 'TEODORO', 'DANTE', 'MAX', 'MAXIMO', 'ROMEL', 'ROGER',
+        'JOEL', 'ALDO', 'LUDWIN', 'BRAULIO', 'GARY', 'PAULO', 'PABLO', 'RAFAEL',
+        'CLAUDIO', 'ALFONSO', 'BERNARDO', 'BORIS', 'BRUNO', 'DARIO', 'EDSON',
+        'EDUARDO', 'ELI', 'EMILIO', 'ERICK', 'ERNESTO', 'FABIAN', 'FELIPE',
+        'FIDEL', 'GERARDO', 'GERMAN', 'GONZALO', 'ISMAEL', 'ISRAEL', 'IVAN',
+        'KEVIN', 'LEOPOLDO', 'LORENZO', 'LUCAS', 'LUCIO', 'MARCOS', 'MARIANO',
+        'MAURICIO', 'NELSON', 'NESTOR', 'NICOLAS', 'ORLANDO', 'RAMIRO', 'RENATO',
+        'RICARDO', 'RODOLFO', 'RODRIGO', 'SALVADOR', 'SAMUEL', 'SAUL', 'TOMAS',
+        'VICENTE', 'WILMER', 'YURI', 'MARIA', 'ANA', 'ROSA', 'CARMEN', 'LUZ',
+        'ELIZABETH', 'GLADYS', 'PATRICIA', 'SONIA', 'ROXANA', 'SILVIA', 'MIRIAM',
+        'MARITZA', 'YOLANDA', 'JUANA', 'IRMA', 'BERTHA', 'ELENA', 'LUCIA',
+        'PILAR', 'ROCIO', 'SANDRA', 'VANESSA', 'MONICA', 'LILIANA', 'GABRIELA',
+        'DIANA', 'KAREN'
+      ]);
+
+      const isGiven = w => knownGiven.has(w.toUpperCase());
+
+      if (words.length >= 4) {
+        const firstTwoAreGiven = isGiven(words[0]) && isGiven(words[1]);
+        const lastTwoAreGiven = isGiven(words[words.length - 2]) && isGiven(words[words.length - 1]);
+        const lastOneIsGiven = isGiven(words[words.length - 1]);
+
+        if (firstTwoAreGiven && !lastTwoAreGiven) {
+          const gNames = words.slice(0, 2).map(toTitle).join(' ');
+          const sNames = words.slice(2).map(w => w.toUpperCase()).join(' ');
+          return `${gNames} ${sNames}`;
+        } else if (lastTwoAreGiven) {
+          const gNames = words.slice(-2).map(toTitle).join(' ');
+          const sNames = words.slice(0, -2).map(w => w.toUpperCase()).join(' ');
+          return `${gNames} ${sNames}`;
+        } else if (lastOneIsGiven) {
+          const gNames = toTitle(words[words.length - 1]);
+          const sNames = words.slice(0, -1).map(w => w.toUpperCase()).join(' ');
+          return `${gNames} ${sNames}`;
+        } else {
+          const gNames = words.slice(-2).map(toTitle).join(' ');
+          const sNames = words.slice(0, -2).map(w => w.toUpperCase()).join(' ');
+          return `${gNames} ${sNames}`;
+        }
+      } else if (words.length === 3) {
+        if (isGiven(words[0]) && !isGiven(words[2])) {
+          return `${toTitle(words[0])} ${words[1].toUpperCase()} ${words[2].toUpperCase()}`;
+        } else {
+          return `${toTitle(words[2])} ${words[0].toUpperCase()} ${words[1].toUpperCase()}`;
+        }
+      } else if (words.length === 2) {
+        if (isGiven(words[0]) && !isGiven(words[1])) {
+          return `${toTitle(words[0])} ${words[1].toUpperCase()}`;
+        } else {
+          return `${toTitle(words[1])} ${words[0].toUpperCase()}`;
+        }
+      }
+
+      return str;
+    }
+
     function actualizarTextoPreviewDestinatarioCs() {
       const el = document.getElementById('ocs_destinatario_preview_text');
       if (!el || !currentOficioCambioSubunidadDestinatario) return;
       const partes = [
-        currentOficioCambioSubunidadDestinatario.grado,
-        currentOficioCambioSubunidadDestinatario.nombres,
+        _csFormatearGradoOficio(currentOficioCambioSubunidadDestinatario.grado),
+        _csFormatearNombreDestinatarioOficio(currentOficioCambioSubunidadDestinatario.nombres),
         currentOficioCambioSubunidadDestinatario.cargo
       ].filter(Boolean);
       el.textContent = partes.join(' - ') || 'JEFE DE LA SUBUNIDAD DE DESTINO';
@@ -13986,9 +14116,9 @@ p { margin:0; }
       const crg = item.CARGO || item.cargo || '';
 
       const inpGrd = document.getElementById('csDestGrado');
-      if (inpGrd) inpGrd.value = grd;
+      if (inpGrd) inpGrd.value = _csFormatearGradoOficio(grd);
       const inpNom = document.getElementById('csDestNombres');
-      if (inpNom) inpNom.value = nom;
+      if (inpNom) inpNom.value = _csFormatearNombreDestinatarioOficio(nom);
       const inpCrg = document.getElementById('csDestCargo');
       if (inpCrg) inpCrg.value = crg || 'REGPOL HUÁNUCO';
     }
@@ -14022,11 +14152,12 @@ p { margin:0; }
         const grd = String(firstValue(r, ['GRADO', 'grado']) || '');
         const rawNom = String(firstValue(r, ['APELLIDOS Y NOMBRES', 'apellidos_y_nombres']) || '');
         const crg = String(firstValue(r, ['CARGO', 'cargo', 'LISTA DE REVISTA', 'lista_de_revista']) || 'REGPOL HUÁNUCO');
-        const nomFormatted = typeof convertirApellidosNombresANombresApellidos === 'function' ? convertirApellidosNombresANombresApellidos(rawNom) : rawNom;
-        const encoded = encodeURIComponent(JSON.stringify({ grado: grd, nombres: nomFormatted, cargo: crg }));
+        const grdFormatted = typeof _csFormatearGradoOficio === 'function' ? _csFormatearGradoOficio(grd) : grd;
+        const nomFormatted = typeof _csFormatearNombreDestinatarioOficio === 'function' ? _csFormatearNombreDestinatarioOficio(rawNom) : rawNom;
+        const encoded = encodeURIComponent(JSON.stringify({ grado: grdFormatted, nombres: nomFormatted, cargo: crg }));
         return `
           <div onclick="selectPersonalForCsDestinatario('${encoded}')" style="padding:6px 12px; border-bottom:1px solid #f1f5f9; cursor:pointer; font-size:11.5px;" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='transparent'">
-            <span style="font-weight:bold; color:#0369a1;">${esc(grd)} ${esc(rawNom)}</span>
+            <span style="font-weight:bold; color:#0369a1;">${esc(grdFormatted)} ${esc(rawNom)}</span>
             <span style="color:#64748b; font-size:10.5px;">(CIP: ${esc(cip)} | ${esc(crg)})</span>
           </div>
         `;
@@ -14135,7 +14266,7 @@ p { margin:0; }
             num: 1,
             numPadded: '001',
             currentYear: currentYear,
-            formattedDocNum: `OFICIO N°001-${currentYear}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`,
+            formattedDocNum: `OFICIO N°001-${currentYear}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`,
             shortDocNum: `001-${currentYear}`,
             fecha: getTodayPeruYMD()
           };
@@ -14322,10 +14453,22 @@ p { margin:0; }
       const fechaDocTexto = _csFechaLarga(d.fechaOficio || d.fechaYmd) || `Huánuco, ${new Date().toLocaleDateString('es-PE', { day:'numeric', month:'long', year:'numeric' })}`;
       const nroDoc = d.numOficio || '001';
       const anioDoc = d.yearOficio || new Date().getFullYear();
-      const numDocCompleto = `OFICIO N° ${nroDoc}-${anioDoc}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
+      const numDocCompleto = `OFICIO N°${nroDoc}-${anioDoc}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP`;
       const dest = d.destinatario || `JEFE DE ${d.destino || 'LA SUBUNIDAD'}`;
       const refDoc = d.docReferencia || '---';
-      const destGradoTexto = [d.destinatarioGrado, d.destinatario, d.destinatarioNombre].filter(Boolean).join(' ');
+
+      let destGrdFormatted = _csFormatearGradoOficio(d.destinatarioGrado);
+      let destNomFormatted = _csFormatearNombreDestinatarioOficio(d.destinatarioNombre || d.destinatario || 'JEFE DE LA SUBUNIDAD');
+
+      if (!destGrdFormatted && destNomFormatted) {
+        const matchGrd = String(destNomFormatted).match(/^((?:TTE\.?\s*GRAL|GRAL|CRNL|CNL|CMDTE|CMTE|MY|MAYOR|CAP|TNTE|ALFZ|SS|SB|ST1|ST2|ST3|S1|S2|S3)\.?\s*(?:PNP)?)\s+(.+)$/i);
+        if (matchGrd) {
+          destGrdFormatted = _csFormatearGradoOficio(matchGrd[1]);
+          destNomFormatted = _csFormatearNombreDestinatarioOficio(matchGrd[2]);
+        }
+      }
+
+      const destGradoTexto = [destGrdFormatted, d.destinatarioGrado, d.destinatario, d.destinatarioNombre].filter(Boolean).join(' ');
       const saludoParrafo1 = _csSaludoPrimerParrafo(destGradoTexto, f.grado || 'CMDTE PNP');
 
       const docsArr = Array.isArray(d.documentosLleva) && d.documentosLleva.length > 0 ? d.documentosLleva : ['CIP', 'DNI'];
@@ -14360,8 +14503,8 @@ p { margin:0; }
             <div style="font-weight:bold;">SEÑOR</div>
             <div style="font-weight:bold; text-align:center;">:</div>
             <div style="padding-left:10px; line-height:1.2;">
-              ${d.destinatarioGrado ? `<span style="font-weight:bold;">${e(d.destinatarioGrado)}</span><br/>` : ''}
-              <span style="font-weight:bold;">${e(d.destinatarioNombre || d.destinatario || 'JEFE DE LA SUBUNIDAD')}</span><br/>
+              ${destGrdFormatted ? `<span style="font-weight:bold;">${e(destGrdFormatted)}</span><br/>` : ''}
+              <span style="font-weight:bold;">${e(destNomFormatted)}</span><br/>
               <span style="font-weight:bold;">${e(d.destinatarioCargo || 'REGPOL HUÁNUCO')}</span>
             </div>
 
@@ -14511,7 +14654,7 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #000; font-s
     function copiarTextoOficioCambioSubunidad() {
       if (!_csOficioData) return;
       const d = _csOficioData;
-      const text = `OFICIO N° ${d.numOficio}-${d.yearOficio}-DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP
+      const text = `OFICIO N°${d.numOficio}-${d.yearOficio}-COMOPPOL/DIRNOS PNP/REGPOL HUANUCO/EM-OFAD.AREREHUM.MP
 ASUNTO: Pone a disposición a personal policial, por motivo que se indica.
 REF.: ${d.docReferencia || '---'}
 EFECTIVO: ${d.grado} ${d.nombres} (CIP: ${d.cip})
