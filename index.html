@@ -14404,25 +14404,28 @@ p { margin:0; }
           </div>
 
           <!-- Fila de Siglas (izq) y Despedida (der) según modelo oficial -->
-          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-left:1.875cm; margin-right:20px; margin-top:16px; margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-left:1.875cm; margin-right:25px; margin-top:16px; margin-bottom:12px;">
             <div style="font-size:8.5pt; font-family:Arial, Helvetica, sans-serif; text-align:left;">
               ${e(siglasDoc)}
             </div>
-            <div style="font-size:11pt; font-family:Arial, Helvetica, sans-serif; text-align:center; min-width:240px; margin-right:15px;">
+            <div style="font-size:11pt; font-family:Arial, Helvetica, sans-serif; text-align:center; min-width:200px;">
               Dios guarde a Ud.
             </div>
           </div>
 
-          <!-- Sección de Firma y Sello Oficial -->
-          <div style="display:flex; justify-content:flex-end; margin-top:20px; margin-bottom:14px; padding-right:20px;">
-            <div style="position:relative; display:inline-flex; flex-direction:column; align-items:center; min-width:240px; text-align:center;">
-              <div style="position:relative; width:100%; border-top:1.3px solid #000; margin-bottom:4px;">
-                <img src="sello_ofad_regpol.png" style="position:absolute; left:-2.7cm; top:-1.4cm; width:2.8cm; height:2.8cm; object-fit:contain; opacity:0.88; pointer-events:none; z-index:2;" alt="" onerror="this.style.display='none'" />
+          <!-- Sección de Firma y Sello Oficial: bajado 4 espacios (~70px) y línea regulada al tamaño del nombre -->
+          <div style="display:flex; justify-content:flex-end; margin-top:70px; margin-bottom:14px; padding-right:25px;">
+            <div style="position:relative; display:inline-flex; flex-direction:column; align-items:center; width:max-content; text-align:center;">
+              <!-- Sub-bloque que fija la línea exactamente al ancho del nombre del firmante -->
+              <div style="position:relative; display:inline-flex; flex-direction:column; align-items:center; width:max-content;">
+                <div style="position:relative; width:100%; border-top:1.3px solid #000; margin-bottom:4px;">
+                  <img src="sello_ofad_regpol.png" style="position:absolute; left:-2.7cm; top:-1.4cm; width:2.8cm; height:2.8cm; object-fit:contain; opacity:0.88; pointer-events:none; z-index:2;" alt="" onerror="this.style.display='none'" />
+                </div>
+                <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">OA - ${e(f.oa || f.cip || '340850')}</div>
+                <div style="font-size:9.5pt; font-family:'Arial Narrow', Arial, sans-serif; font-weight:bold; line-height:1.2; white-space:nowrap;">${e(f.nombre)}</div>
               </div>
-              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2;">OA - ${e(f.oa || f.cip || '340850')}</div>
-              <div style="font-size:9.5pt; font-family:'Arial Narrow', Arial, sans-serif; font-weight:bold; line-height:1.2;">${e(f.nombre)}</div>
-              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2;">${e(f.grado)}</div>
-              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2;">${e(f.cargo)}</div>
+              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">${e(f.grado)}</div>
+              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">${e(f.cargo)}</div>
             </div>
           </div>
 
