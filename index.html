@@ -13722,9 +13722,10 @@ MOTIVO: ${motivoText}`;
 
     function _csOrdenCopiaHtml(d, esCopiaInferior = false) {
       const e = s => esc(String(s || ''));
-      const L = 'width:5.2cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:8pt; white-space:nowrap; vertical-align:top;';
-      const S = 'width:0.4cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:8pt; vertical-align:top;';
-      const V = 'padding:3px 4px 3px 4px; font-family:Arial, sans-serif; font-size:8pt; font-weight:normal; vertical-align:top;';
+      const L = 'width:5.2cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:8pt; font-weight:bold; white-space:nowrap; vertical-align:top;';
+      const S = 'width:0.4cm; padding:3px 0 3px 0; font-family:Arial, sans-serif; font-size:8pt; font-weight:bold; text-align:center; vertical-align:top;';
+      const V = 'padding:3px 4px 3px 4px; font-family:\'Arial Narrow\', Arial, sans-serif; font-size:8pt; font-weight:normal; vertical-align:top;';
+      const V_obs = 'padding:3px 4px 3px 4px; font-family:\'Arial Narrow\', Arial, sans-serif; font-size:7pt; font-weight:normal; line-height:1.2; text-align:justify; vertical-align:top;';
       const row = (lbl, val) => `<tr><td style="${L}">${lbl}</td><td style="${S}">:</td><td colspan="3" style="${V}">${e(val)}</td></tr>`;
       const f = d.firmante || { cip: '', nombre: '', grado: '', cargo: '' };
       const nroVal = d.nro ? e(d.nro) : '01';
@@ -13733,7 +13734,7 @@ MOTIVO: ${motivoText}`;
       const efGrado = e(d.grado || '');
 
       return `
-        <div class="ocs-copia" style="position:relative; font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm; padding:0 0.3cm; box-sizing:border-box;">
+        <div class="ocs-copia" style="position:relative; font-family:Arial, Helvetica, sans-serif; color:#000; min-height:12.6cm; padding:0 0.3cm; box-sizing:border-box; ${esCopiaInferior ? 'margin-top:24px;' : ''}">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
             <div style="display:inline-block;">
               <img src="escudo_header_regpol.png" style="width:165px; max-width:175px; height:auto; display:block;" alt="Policia Nacional del Peru - Region Policial Huanuco" onerror="this.style.display='none'" />
@@ -13743,7 +13744,7 @@ MOTIVO: ${motivoText}`;
               <img src="sello_cargo_regpol.png" style="width:115px; max-width:125px; height:auto; display:block;" alt="CARGO" onerror="this.style.display='none'" />
             </div>` : '<div></div>'}
           </div>
-          <p style="text-align:center; margin:6px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:15pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${nroVal} - ${siglasVal}</p>
+          <p style="text-align:center; margin:6px 0 10px 0; font-family:Impact, 'Arial Narrow', sans-serif; font-size:15pt; font-weight:normal; text-decoration:underline; letter-spacing:0.5px; line-height:1.15;">ORDEN DE INCORPORACI&Oacute;N N&deg; ${nroVal} - ${siglasVal}</p>
           <table style="width:calc(100% - 1.875cm); margin-left:1.875cm; margin-right:0; border-collapse:collapse; margin-bottom:6px;">
             ${row('GRADO, APELLIDOS Y NOMBRES', d.claseNombre)}
             ${row('UNIDAD DE PROCEDENCIA', d.procedencia)}
@@ -13752,13 +13753,13 @@ MOTIVO: ${motivoText}`;
             <tr>
               <td style="${L}">FECHA DE SALIDA</td><td style="${S}">:</td>
               <td style="${V} width:5cm;">${e(_csFechaCorta(d.fechaYmd))}</td>
-              <td style="padding:3px 4px 3px 12px; font-family:Arial, sans-serif; font-size:8pt; width:1.6cm; vertical-align:top;">HORA:</td>
+              <td style="padding:3px 4px 3px 12px; font-family:Arial, sans-serif; font-size:8pt; font-weight:bold; width:1.6cm; vertical-align:top;">HORA:</td>
               <td style="${V}">${e(d.hora)}</td>
             </tr>
             ${row('MOTIVO', d.motivo)}
             ${row('CARNET DE IDENTIDAD', d.carnet)}
             ${row('VACACIONES', d.vacaciones)}
-            ${row('OBSERVACIONES', d.observaciones)}
+            <tr><td style="${L}">OBSERVACIONES</td><td style="${S}">:</td><td colspan="3" style="${V_obs}">${e(d.observaciones)}</td></tr>
           </table>
           <div style="width:100%; border-top:1px solid #000; margin:6px 0 6px 0;"></div>
           <p style="text-align:right; margin:0; padding-right:50px; font-family:'Arial Narrow', Arial, sans-serif; font-size:8.5pt;">${e(_csFechaLarga(d.fechaYmd))}</p>
