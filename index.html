@@ -14181,6 +14181,55 @@ p { margin:0; }
       }
     }
 
+    function _csSaludoPrimerParrafo(destGradoRaw, firmGradoRaw) {
+      const dGrd = String(destGradoRaw || '').toUpperCase();
+      const fGrd = String(firmGradoRaw || '').toUpperCase();
+
+      // Si el firmante es CMDTE = COMANDANTE (o por defecto si no se especifica)
+      const esFirmanteCmdte = fGrd.includes('CMDTE') || fGrd.includes('COMANDANTE') || !fGrd;
+
+      if (esFirmanteCmdte) {
+        // A superior (CRNL = CORONEL, GRAL = GENERAL)
+        if (/GRAL|GENERAL|CRNL|CORONEL/.test(dGrd)) {
+          return 'Tengo el honor de dirigirme a Ud.,';
+        }
+        // A igual jerarquía (CMDTE = COMANDANTE)
+        if (/CMDTE|COMANDANTE/.test(dGrd)) {
+          return 'Tengo el agrado de dirigirme a Ud.,';
+        }
+        // A otro grado (menor jerarquía / subalternos)
+        return 'Me dirijo a Ud.,';
+      }
+
+      // Regla protocolar general si el firmante tuviera otro grado
+      const jerarquia = [
+        { regex: /GRAL|GENERAL/, nivel: 1 },
+        { regex: /CRNL|CORONEL/, nivel: 2 },
+        { regex: /CMDTE|COMANDANTE/, nivel: 3 },
+        { regex: /MAYOR|MY/, nivel: 4 },
+        { regex: /CAPITAN|CAP/, nivel: 5 },
+        { regex: /TENIENTE|TNTE/, nivel: 6 },
+        { regex: /ALFEREZ|ALFZ/, nivel: 7 }
+      ];
+      const getNivel = g => {
+        for (const item of jerarquia) {
+          if (item.regex.test(g)) return item.nivel;
+        }
+        return 8;
+      };
+
+      const nivelDest = getNivel(dGrd);
+      const nivelFirm = getNivel(fGrd);
+
+      if (nivelDest < nivelFirm) {
+        return 'Tengo el honor de dirigirme a Ud.,';
+      } else if (nivelDest === nivelFirm) {
+        return 'Tengo el agrado de dirigirme a Ud.,';
+      } else {
+        return 'Me dirijo a Ud.,';
+      }
+    }
+
     function _csOficioHtml(d) {
       if (!d) return '';
       const e = s => esc(String(s || ''));
@@ -14203,6 +14252,7 @@ p { margin:0; }
       const numDocCompleto = `OFICIO N° ${nroDoc}-${anioDoc}-COMOPPOL/DIRNOS PNP/REGPOL HCO/EM-OFAD.AREREHUM.MP`;
       const dest = d.destinatario || `JEFE DE ${d.destino || 'LA SUBUNIDAD'}`;
       const refDoc = d.docReferencia || '---';
+      const saludoParrafo1 = _csSaludoPrimerParrafo(d.destinatarioGrado || d.destinatario || '', f.grado || 'CMDTE PNP');
 
       return `
         <div class="oficio-cs-wrapper" style="font-family:Arial, Helvetica, sans-serif; color:#000; font-size:11pt; line-height:1.22; box-sizing:border-box;">
@@ -14251,7 +14301,7 @@ p { margin:0; }
 
           <!-- Párrafo 1 -->
           <div style="text-align:justify; margin-left:1.875cm; text-indent:114px; line-height:1.25; margin-top:16px; margin-bottom:12px; font-size:11pt; font-family:Arial, Helvetica, sans-serif;">
-            Tengo el agrado de dirigirme a usted, en atención al documento de la referencia, a fin de poner a su disposición al personal policial que pasa a prestar servicios en la dependencia policial a su digno cargo, el mismo que a continuación se detalla:
+            ${saludoParrafo1} en atención al documento de la referencia, a fin de poner a su disposición al personal policial que pasa a prestar servicios en la dependencia policial a su digno cargo, el mismo que a continuación se detalla:
           </div>
 
           <!-- Detalle del Personal Policial -->
