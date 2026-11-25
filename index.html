@@ -14333,8 +14333,9 @@ p { margin:0; }
       const textoLlevaDocs = docsCadena ? `su, ${docsCadena} y prendas policiales` : 'prendas policiales';
 
       return `
-        <div class="oficio-cs-wrapper" style="font-family:Arial, Helvetica, sans-serif; color:#000; font-size:11pt; line-height:1.22; box-sizing:border-box;">
-          <!-- Banner institucional oficial superior -->
+        <div class="oficio-cs-wrapper" style="font-family:Arial, Helvetica, sans-serif; color:#000; font-size:11pt; line-height:1.22; box-sizing:border-box; min-height:28.4cm; display:flex; flex-direction:column; justify-content:space-between;">
+          <div style="flex:1;">
+            <!-- Banner institucional oficial superior -->
           <div style="width:100%; margin-bottom:2px;">
             <img src="header_oficio_pnp.png" style="width:100%; max-width:100%; height:auto; display:block;" alt="POLICÍA NACIONAL DEL PERÚ" onerror="this.style.display='none'" />
           </div>
@@ -14350,7 +14351,7 @@ p { margin:0; }
           </div>
 
           <!-- Título y Número de Oficio -->
-          <div style="font-family:Impact, 'Arial Narrow', sans-serif; font-size:15.3pt; font-weight:normal; text-decoration:underline; margin-top:12px; margin-bottom:4px; margin-left:1.875cm; line-height:1.18; letter-spacing:0.3px;">
+          <div style="font-family:Impact, 'Arial Narrow', sans-serif; font-size:16pt; font-weight:normal; text-decoration:underline; margin-top:12px; margin-bottom:4px; margin-left:1.875cm; text-align:justify; text-align-last:justify; text-justify:inter-word; line-height:1.18;">
             ${e(numDocCompleto)}
           </div>
 
@@ -14421,16 +14422,17 @@ p { margin:0; }
                 <div style="position:relative; width:100%; border-top:1.3px solid #000; margin-bottom:4px;">
                   <img src="sello_ofad_regpol.png" style="position:absolute; left:-2.7cm; top:-1.4cm; width:2.8cm; height:2.8cm; object-fit:contain; opacity:0.88; pointer-events:none; z-index:2;" alt="" onerror="this.style.display='none'" />
                 </div>
-                <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">OA - ${e(f.oa || f.cip || '340850')}</div>
-                <div style="font-size:9.5pt; font-family:'Arial Narrow', Arial, sans-serif; font-weight:bold; line-height:1.2; white-space:nowrap;">${e(f.nombre)}</div>
+                <div style="font-size:8pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">OA - ${e(f.oa || f.cip || '340850')}</div>
+                <div style="font-size:8pt; font-family:'Arial Narrow', Arial, sans-serif; font-weight:bold; line-height:1.2; white-space:nowrap;">${e(f.nombre)}</div>
               </div>
-              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">${e(f.grado)}</div>
-              <div style="font-size:9pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">${e(f.cargo)}</div>
+              <div style="font-size:8pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">${e(f.grado)}</div>
+              <div style="font-size:7pt; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; white-space:nowrap;">${e(f.cargo)}</div>
             </div>
           </div>
+          </div><!-- Fin del contenedor flex superior -->
 
-          <!-- Pie de página institucional oficial -->
-          <div style="border-top:1px solid #94a3b8; padding-top:6px; margin-top:20px; font-size:8pt; text-align:center; color:#475569; font-family:Arial, Helvetica, sans-serif; line-height:1.2;">
+          <!-- Pie de página institucional oficial centrado en la parte más inferior (margen inferior 0.5cm) -->
+          <div style="border-top:1px solid #94a3b8; padding-top:4px; font-size:8pt; text-align:center; color:#475569; font-family:'Arial Narrow', Arial, sans-serif; line-height:1.2; margin-top:auto;">
             REGIÓN POLICIAL HUÁNUCO – COMPLEJO POLICIAL "SANTA ROSA DE LIMA" – JIRÓN CONSTITUCIÓN N°501- HUÁNUCO<br/>
             Email @ rphuanuco.arerehum@policia.gob.pe
           </div>
