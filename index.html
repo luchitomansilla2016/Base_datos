@@ -598,6 +598,13 @@
       color: #000000 !important;
       font-weight: 800 !important;
       border: 1px solid #f57c00 !important;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .pill-referido:hover {
+      transform: scale(1.05);
+      box-shadow: 0 2px 6px rgba(245, 124, 0, 0.45);
     }
 
     .obs-btn {
@@ -9633,7 +9640,11 @@
         return `<span class="pill pill-curso" style="background:#dc2626 !important; color:#ffffff !important; font-weight:800; border:1px solid #b91c1c; padding:3px 9px; font-size:11px; display:inline-block; letter-spacing:0.3px; white-space:nowrap; text-align:center; ${cursorStyle}"${clickAttr}${titleAttr}>&#128218; ${esc(raw)}</span>`;
       }
       if (upper.includes('REFERID')) {
-        return `<span class="pill pill-referido" style="background:#ff9800 !important; color:#000000 !important; font-weight:800; border:1px solid #f57c00; padding:3px 9px; font-size:11px; display:inline-block; letter-spacing:0.3px; white-space:nowrap; text-align:center;">${esc(raw)}</span>`;
+        const idParam = String(cipOrId || '').trim();
+        const clickAttr = idParam ? ` onclick="event.stopPropagation(); openFichaReferido('${esc(idParam)}', event);"` : '';
+        const cursorStyle = idParam ? 'cursor:pointer;' : '';
+        const titleAttr = idParam ? ' title="Clic para ver la Ficha con los datos de Referido"' : '';
+        return `<span class="pill pill-referido" style="background:#ff9800 !important; color:#000000 !important; font-weight:800; border:1px solid #f57c00; padding:3px 9px; font-size:11px; display:inline-block; letter-spacing:0.3px; white-space:nowrap; text-align:center; ${cursorStyle}"${clickAttr}${titleAttr}>&#127973; ${esc(raw)}</span>`;
       }
       if (isPersonalTable) {
         if (upper.includes('PRESENT')) {
@@ -10729,7 +10740,7 @@
         { section: 'Datos del Efectivo' }, ['cip', 'CIP'], ['grado', 'Grado'], ['apellidos_y_nombres', 'Apellidos y nombres', 'full'],
         { section: 'Unidad y Situación' }, ['unidad_de_origen', 'Unidad de origen', 'full'], ['lista_de_revista', 'Lista de revista', 'full'], ['fecha_de_incorporacion', 'Fecha de incorporación', 'full'], ['situacion_actual', 'Situación actual'], ['condicion', 'Condición'],
         { section: 'Documentos de Referencia' }, ['documento_referencia', 'Doc. Referencia', 'full'], ['diagnostico', 'Diagnóstico', 'full'],
-        { section: 'Historial de Exclusión' }, ['numero_oficio_pone_disposición', 'Documento que pone a disposición', 'full'], ['fecha_de_oficio', 'Fecha de documento'], ['constancia_exclusion', 'Constancia exclusión'], ['fecha_de_exclusion', 'Fecha de exclusión'],
+        { section: 'Historial de Exclusión' }, ['numero_oficio_pone_disposición', 'Documento que pone a disposición', 'full'], ['fecha_de_oficio', 'Fecha de documento'], ['tiempo_referido', 'Tiempo transcurrido'], ['constancia_exclusion', 'Constancia exclusión'], ['fecha_de_exclusion', 'Fecha de exclusión'],
         { section: 'Historial de Inclusión / Retorno' }, ['fecha_de_retorno', 'Fecha de retorno', 'full'], ['documento_de_retorno', 'Documento retorno', 'full'], ['constancia_de_inclusion', 'Constancia inclusión'], ['fecha_de_inclusion', 'Fecha inclusión'], ['tipo_de_documento', 'Tipo de documento'], ['fecha_documento_retorno', 'Fecha de documento'], ['n_de_doc', 'N° Documento', 'full'],
         { section: 'Observaciones' }, ['observaciones', 'Observaciones', 'full']
       ],
@@ -10823,9 +10834,14 @@
       if (key === 'diagnostico') return firstValue(r, ['diagnostico', 'DIAGNOSTICO', 'diagnóstico', 'observacion_medica']);
       if (key === 'lugar') return firstValue(r, ['lugar', 'sede', 'institucion', 'unidad_destino', 'subunidad_donde_se_encuentra_por_curso_o_apoyo']);
       if (key === 'numero_de_oficio') return firstValue(r, ['numero_de_oficio', 'numero_oficio', 'n_oficio']);
-      if (key === 'fecha_de_oficio') return formatDateDisplay(firstValue(r, ['fecha_de_oficio', 'fecha_oficio', 'f_oficio']));
+      if (key === 'fecha_de_oficio') return formatDateDisplay(firstValue(r, ['fecha_de_oficio', 'fecha_oficio', 'f_oficio', 'FECHA DOC', 'fecha_doc', 'f_doc']));
       if (key === 'tiempo_curso') {
         const f = firstValue(r, ['fecha_de_oficio', 'fecha_oficio', 'f_oficio', 'fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'fecha_incorporacion']);
+        if (f) return tiempoTranscurrido(f);
+        return '';
+      }
+      if (key === 'tiempo_referido') {
+        const f = firstValue(r, ['fecha_de_oficio', 'fecha_oficio', 'f_oficio', 'FECHA DOC', 'fecha_doc', 'fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'fecha_incorporacion']);
         if (f) return tiempoTranscurrido(f);
         return '';
       }
@@ -10838,7 +10854,7 @@
       if (key === 'fecha_salida') return formatDateDisplay(firstValue(r, ['fecha_salida', 'FECHA SALIDA', 'fecha_ingreso_o_salida', 'fecha_de_incorporacion', 'FECHA INCORPORACIÓN', 'FECHA INCORPORACION', 'fecha_incorporacion', 'fecha']));
       if (key === 'fecha_ingreso_o_salida') return formatDateDisplay(firstValue(r, ['FECHA INCORPORACIÓN', 'FECHA INCORPORACION', 'fecha_de_incorporacion', 'fecha_incorporacion', 'fecha_salida', 'FECHA SALIDA', 'fecha_ingreso_o_salida', 'fecha_ingreso_salida', 'fecha_documento', 'fecha']));
       if (key === 'observacion' || key === 'observaciones') return firstValue(r, ['observacion', 'OBSERVACION', 'observaciones', 'OBSERVACIONES', 'detalle', 'motivo']);
-      if (key === 'numero_oficio_pone_disposición') return firstValue(r, ['doc_pone_a_disposicion', 'DOC PONE A DISPOSICION', 'numero_oficio_pone_disposición', 'numero_oficio_pone_disposicion']);
+      if (key === 'numero_oficio_pone_disposición') return firstValue(r, ['doc_pone_a_disposicion', 'DOC PONE A DISPOSICION', 'numero_oficio_pone_disposición', 'numero_oficio_pone_disposicion', 'doc_pone_disposicion', 'numero_de_oficio', 'nro_oficio']);
       if (key === 'constancia_exclusion') return firstValue(r, ['nro_exclusion', 'NRO EXCLUSION', 'constancia_exclusion']);
       if (key === 'fecha_de_exclusion' || key === 'fecha_exclusion' || key === 'fecha_exclusion_curso') return formatDateDisplay(firstValue(r, ['fecha_exclusion', 'FECHA EXCLUSION', 'fecha_de_exclusion', 'f_exclusion']));
       if (key === 'fecha_de_retorno' || key === 'fecha_retorno') return formatDateDisplay(firstValue(r, ['fecha_retorno', 'fecha_de_retorno', 'FECHA RETORNO', 'f_retorno']));
@@ -10880,7 +10896,9 @@
       ) || null;
     }
 
-    function openFicha(id, configOverride = null, recordOverride = null, isCurso = false) {
+    function openFicha(id, configOverride = null, recordOverride = null, specialType = null) {
+      const isCurso = (specialType === true || specialType === 'curso');
+      const isReferido = (specialType === 'referido');
       const idStr = String(id || '').trim();
       const r = recordOverride || ((current && ((current._rowId !== undefined && String(current._rowId).trim() === idStr) || (current.id !== undefined && current.id !== null && String(current.id).trim() === idStr) || String(firstValue(current, ['CIP', 'cip', 'dni', 'DNI'])).trim() === idStr)) ? current : findRecordById(id));
       if (!r) return;
@@ -10894,13 +10912,21 @@
 
       const modalH1 = document.querySelector('#fichaModal header h1');
       if (modalH1) {
-        modalH1.innerHTML = isCurso ? '<span style="color:#dc2626; margin-right:6px;">📚</span> Ficha de Datos del Curso' : 'Ficha del efectivo policial';
+        if (isCurso) {
+          modalH1.innerHTML = '<span style="color:#dc2626; margin-right:6px;">📚</span> Ficha de Datos del Curso';
+        } else if (isReferido) {
+          modalH1.innerHTML = '<span style="color:#d97706; margin-right:6px;">🏥</span> Ficha de Datos de Referido';
+        } else {
+          modalH1.textContent = 'Ficha del efectivo policial';
+        }
       }
 
       const fichaSubEl = document.getElementById('fichaSub');
       if (fichaSubEl) {
         if (isCurso) {
           fichaSubEl.innerHTML = `<b>${esc(gradoVal)} ${esc(nomVal)}</b> &middot; Situaci&oacute;n: <span class="pill pill-curso" style="background:#dc2626 !important; color:#ffffff !important; font-weight:800; border:1px solid #b91c1c; padding:2px 7px; font-size:11px;">CURSO</span>`;
+        } else if (isReferido) {
+          fichaSubEl.innerHTML = `<b>${esc(gradoVal)} ${esc(nomVal)}</b> &middot; Situaci&oacute;n: <span class="pill pill-referido" style="background:#ff9800 !important; color:#000000 !important; font-weight:800; border:1px solid #f57c00; padding:2px 7px; font-size:11px;">REFERIDO</span>`;
         } else {
           fichaSubEl.textContent = (gradoVal ? gradoVal + ' - ' : '') + nomVal;
         }
@@ -10908,7 +10934,13 @@
 
       const printDocTitle = document.querySelector('#fichaModal .ficha-print-doc-title');
       if (printDocTitle) {
-        printDocTitle.textContent = isCurso ? 'FICHA DE DATOS DEL EFECTIVO POLICIAL - EN CURSO' : 'FICHA DE DATOS DEL EFECTIVO POLICIAL';
+        if (isCurso) {
+          printDocTitle.textContent = 'FICHA DE DATOS DEL EFECTIVO POLICIAL - EN CURSO';
+        } else if (isReferido) {
+          printDocTitle.textContent = 'FICHA DE DATOS DEL EFECTIVO POLICIAL - REFERIDO';
+        } else {
+          printDocTitle.textContent = 'FICHA DE DATOS DEL EFECTIVO POLICIAL';
+        }
       }
 
       const sections = [];
@@ -10946,10 +10978,16 @@
           titleLow.includes('observación') ||
           titleLow.includes('judicial') ||
           titleLow.includes('procesal') ||
-          titleLow.includes('detalles')
+          titleLow.includes('detalles') ||
+          titleLow.includes('exclusión') ||
+          titleLow.includes('referencia')
         )) {
-          // Si es ficha de curso y la sección es detalles del curso, mantenerla visible para visualización completa
-          if (!(isCurso && titleLow.includes('curso'))) {
+          // Si es ficha de curso o de referido, mantener visibles sus secciones clave
+          if (isCurso && titleLow.includes('curso')) {
+            // mantener
+          } else if (isReferido && (titleLow.includes('referencia') || titleLow.includes('exclusión'))) {
+            // mantener
+          } else {
             return;
           }
         }
@@ -10979,7 +11017,13 @@
       }
       const footerCodeEl = document.getElementById('fichaPrintFooterCode');
       if (footerCodeEl) {
-        footerCodeEl.textContent = isCurso ? `CIP: ${cipVal} · Ref: Ficha de Curso Oficial` : `CIP: ${cipVal} · Ref: Ficha Oficial`;
+        if (isCurso) {
+          footerCodeEl.textContent = `CIP: ${cipVal} · Ref: Ficha de Curso Oficial`;
+        } else if (isReferido) {
+          footerCodeEl.textContent = `CIP: ${cipVal} · Ref: Ficha de Referido Oficial`;
+        } else {
+          footerCodeEl.textContent = `CIP: ${cipVal} · Ref: Ficha Oficial`;
+        }
       }
 
       const btn = document.getElementById('fichaEditBtn');
@@ -10987,7 +11031,7 @@
       const delBtn = document.getElementById('fichaDeletePermanentBtn');
       if (delBtn) delBtn.style.display = isAdmin() ? 'inline-block' : 'none';
       const ordenBtn = document.getElementById('fichaOrdenBtn');
-      if (ordenBtn) ordenBtn.style.display = (!isCurso && currentTable === 'personal' && canEdit()) ? 'inline-block' : 'none';
+      if (ordenBtn) ordenBtn.style.display = (!isCurso && !isReferido && currentTable === 'personal' && canEdit()) ? 'inline-block' : 'none';
       document.getElementById('fichaModal').classList.add('open');
     }
 
@@ -11058,6 +11102,63 @@
 
       const cfg = moduloFichaConfigs.en_curso || moduloFichaConfigs.personal;
       openFicha(cleanCip, cfg, merged, true);
+    }
+
+    async function openFichaReferido(cipOrId, e) {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      if (!cipOrId) return;
+
+      const cleanCip = String(cipOrId).trim();
+
+      // 1. Buscar en registros locales de memoria
+      let r = findRecordById(cleanCip);
+      if (!r) {
+        r = rows.find(x => String(firstValue(x, ['cip', 'CIP'])).trim() === cleanCip);
+      }
+
+      let referidoData = null;
+
+      // 2. Si ya estamos en la tabla referidos, el propio 'r' es el registro de referido
+      if (currentTable === 'referidos' && r) {
+        referidoData = r;
+      } else {
+        // Consultar a Supabase el registro correspondiente en la tabla referidos
+        try {
+          let res = await req(API_REFERIDOS + '?CIP=eq.' + encodeURIComponent(cleanCip) + '&order=id.desc&limit=1');
+          if (!Array.isArray(res) || res.length === 0) {
+            res = await req(API_REFERIDOS + '?cip=eq.' + encodeURIComponent(cleanCip) + '&order=id.desc&limit=1');
+          }
+          if (Array.isArray(res) && res.length > 0) {
+            referidoData = res[0];
+          }
+        } catch (err) {
+          console.warn('Error al consultar datos de referidos desde Supabase:', err);
+        }
+      }
+
+      // 3. Fusionar datos: Si tenemos datos de referido, combinarlos con los del efectivo
+      let merged = Object.assign({}, r || {}, referidoData || {});
+
+      // Fallback si no hay referidoData en la tabla referidos
+      if (!referidoData) {
+        const diag = firstValue(r, ['diagnostico', 'DIAGNOSTICO', 'diagnóstico', 'observacion_medica']);
+        const docRef = firstValue(r, ['documento_referencia', 'DOCUMENTO DE REFERENCIA', 'doc_referencia']);
+        if (!diag && !docRef && !r) {
+          toast('No se encontraron datos registrados de referido para el CIP ' + cleanCip, 'warning');
+          return;
+        }
+      }
+
+      if (!merged.cip && !merged.CIP) merged.cip = cleanCip;
+      if (!merged.situacion_actual && !merged['SITUACION ACTUAL'] && !merged.situacion) {
+        merged.situacion_actual = 'REFERIDO';
+      }
+
+      const cfg = moduloFichaConfigs.referidos || moduloFichaConfigs.personal;
+      openFicha(cleanCip, cfg, merged, 'referido');
     }
     function printFicha(e) {
       if (e) e.preventDefault();
