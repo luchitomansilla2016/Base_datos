@@ -579,6 +579,20 @@
       white-space: nowrap;
     }
 
+    .pill-curso {
+      background: #dc2626 !important;
+      color: #ffffff !important;
+      font-weight: 800 !important;
+      border: 1px solid #b91c1c !important;
+    }
+
+    .pill-referido {
+      background: #ff9800 !important;
+      color: #000000 !important;
+      font-weight: 800 !important;
+      border: 1px solid #f57c00 !important;
+    }
+
     .obs-btn {
       background: #edf6ef;
       border: 1px solid #c9decb;
@@ -9600,6 +9614,25 @@
       `;
     }
 
+    function renderSituacionBadge(sitVal, isPersonalTable = false) {
+      const raw = String(sitVal || '').replace(/<[^>]*>?/gm, '').trim();
+      if (!raw || raw === '—' || raw === '-') return '—';
+      const upper = raw.toUpperCase();
+      if (upper.includes('CURSO')) {
+        return `<span class="pill pill-curso" style="background:#dc2626 !important; color:#ffffff !important; font-weight:800; border:1px solid #b91c1c; padding:3px 9px; font-size:11px; display:inline-block; letter-spacing:0.3px; white-space:nowrap; text-align:center;">${esc(raw)}</span>`;
+      }
+      if (upper.includes('REFERID')) {
+        return `<span class="pill pill-referido" style="background:#ff9800 !important; color:#000000 !important; font-weight:800; border:1px solid #f57c00; padding:3px 9px; font-size:11px; display:inline-block; letter-spacing:0.3px; white-space:nowrap; text-align:center;">${esc(raw)}</span>`;
+      }
+      if (isPersonalTable) {
+        if (upper.includes('PRESENT')) {
+          return `<span style="font-weight:700; color:#065f46; display:inline-block; white-space:nowrap;">${esc(raw)}</span>`;
+        }
+        return `<span style="font-weight:700; color:#334155; display:inline-block; white-space:nowrap;">${esc(raw)}</span>`;
+      }
+      return `<span class="pill" style="font-weight:700; font-size:11px;">${esc(raw)}</span>`;
+    }
+
     function renderGenericRows(filtered) {
       const tbody = document.getElementById('tbody');
       if (!tbody) return;
@@ -9853,7 +9886,7 @@
               <td><span class="pill" style="${gradoBadgeColor}; font-weight:800; font-size:11px;">${grado}</span></td>
               <td>
                 <div style="font-weight:800; color:#06351f; font-size:12.5px;">${nombres}</div>
-                <div style="font-size:10.5px; color:#64748b;">Situaci&oacute;n: <b>${situacion}</b></div>
+                <div style="font-size:10.5px; color:#64748b; display:flex; align-items:center; gap:4px; margin-top:2px;">Situaci&oacute;n: ${renderSituacionBadge(situacion)}</div>
               </td>
               <td>${cargoBadge}</td>
               <td>
@@ -9885,7 +9918,7 @@
               <td><span class="pill">${grado}</span></td>
               <td>
                 <div style="font-weight:800; color:#06351f;">${nombres}</div>
-                <div style="font-size:10.5px; color:#64748b;">Situaci&oacute;n: <b>${situacion}</b>${unidadAnterior ? ` &middot; Ant: ${unidadAnterior}` : ''}</div>
+                <div style="font-size:10.5px; color:#64748b; display:flex; align-items:center; gap:4px; margin-top:2px;">Situaci&oacute;n: ${renderSituacionBadge(situacion)}${unidadAnterior ? ` &middot; Ant: ${unidadAnterior}` : ''}</div>
               </td>
               <td>
                 <div style="font-weight:800; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; padding:4px 9px; border-radius:7px; display:inline-block;">&#127963;&#65039; ${listaRevistaActual}</div>
@@ -9910,7 +9943,7 @@
           return `
             <tr class="data-row" onclick="openForm('${id}')">
               <td>${cip}</td><td><span class="pill">${grado}</span></td><td><b>${nombres}</b></td><td>${esc(firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN']))}</td><td>${unidad}</td>
-              <td><span class="pill">${situacion}</span></td><td>${esc(firstValue(r, ['documento_referencia', 'DOCUMENTO DE REFERENCIA']))}</td><td>${esc(firstValue(r, ['doc_pone_a_disposicion', 'DOC PONE A DISPOSICION', 'DOC PONE DISPOSICION', 'numero_oficio_pone_disposición']))}</td><td>${esc(formatDateDisplay(firstValue(r, ['fecha_doc', 'FECHA DOC', 'fecha_de_oficio'])))}</td>
+              <td>${renderSituacionBadge(situacion)}</td><td>${esc(firstValue(r, ['documento_referencia', 'DOCUMENTO DE REFERENCIA']))}</td><td>${esc(firstValue(r, ['doc_pone_a_disposicion', 'DOC PONE A DISPOSICION', 'DOC PONE DISPOSICION', 'numero_oficio_pone_disposición']))}</td><td>${esc(formatDateDisplay(firstValue(r, ['fecha_doc', 'FECHA DOC', 'fecha_de_oficio'])))}</td>
             </tr>`;
         }
 
@@ -9935,7 +9968,7 @@
               <td><b>${nombres}</b></td>
               <td>${unidad}</td>
               <td>${esc(firstValue(r, ['condicion', 'CONDICIÓN']) || '—')}</td>
-              <td><span class="pill">${situacion}</span></td>
+              <td>${renderSituacionBadge(situacion)}</td>
               <td>${descCurso}</td>
               <td>${lugar}</td>
               <td>${numOficio}</td>
@@ -9958,7 +9991,7 @@
               <td><b>${nombres}</b></td>
               <td>${unidad}</td>
               <td>${esc(firstValue(r, ['condicion', 'CONDICIÓN']) || '—')}</td>
-              <td><span class="pill">${situacion}</span></td>
+              <td>${renderSituacionBadge(situacion)}</td>
               <td>${docRef}</td>
               <td>${fIncorpSalida}</td>
               <td><b>${esc(tiempoTrans)}</b></td>
@@ -9990,7 +10023,7 @@
               <td>${uOrigen}</td>
               <td>${lRevista}</td>
               <td>${fIncorp}</td>
-              <td><span class="pill">${situacion}</span></td>
+              <td>${renderSituacionBadge(situacion)}</td>
               <td>${resMemo}</td>
               <td>${motivo}</td>
               <td>${fSalida}</td>
@@ -10015,7 +10048,7 @@
               <td><b>${nombres}</b></td>
               <td>${listaRevista}</td>
               <td>${condicion}</td>
-              <td><span class="pill">${situacion}</span></td>
+              <td>${renderSituacionBadge(situacion)}</td>
               <td>${fechaSituacion}</td>
               <td>${observacionButton(obs)}</td>
             </tr>`;
@@ -10035,7 +10068,7 @@
               <td><b>${nombres}</b></td>
               <td>${listaRevista}</td>
               <td>${condicion}</td>
-              <td><span class="pill">${situacion}</span></td>
+              <td>${renderSituacionBadge(situacion)}</td>
               <td>${docRef}</td>
               <td>${fechaExclusion}</td>
               <td>${observacionButton(obs)}</td>
@@ -10068,7 +10101,7 @@
               <td>${listaRevista}</td>
               <td>${fIncorp}</td>
               <td>${condicion}</td>
-              <td><span class="pill">${situacion}</span></td>
+              <td>${renderSituacionBadge(situacion)}</td>
               <td>${docRef}</td>
               <td>${fechaDoc}</td>
               <td>${fechaReinc}</td>
@@ -10087,7 +10120,7 @@
               <td><span class="pill">${grado}</span></td>
               <td><b>${nombres}</b></td>
               <td>${esc(firstValue(r, ['lista_revista_anterior', 'LISTA REVISTA ANTERIOR']) || '—')}</td>
-              <td><span class="pill">${esc(firstValue(r, ['situacion', 'SITUACION', 'situacion_actual']) || '—')}</span></td>
+              <td>${renderSituacionBadge(firstValue(r, ['situacion', 'SITUACION', 'situacion_actual']))}</td>
               <td>${esc(formatDateDisplay(firstValue(r, ['fecha_incorporacion_regpol', 'FECHA INCORPORACION REGPOL', 'fecha_incorporacion'])))}</td>
               <td>${esc(firstValue(r, ['tipo_incorporacion', 'TIPO INCORPORACION']) || '—')}</td>
               <td>${esc(firstValue(r, ['motivo', 'MOTIVO']) || '—')}</td>
@@ -10112,7 +10145,7 @@
               <td>${esc(firstValue(r, ['unidad_origen_actual']) || '—')}</td>
               <td>${esc(firstValue(r, ['lista_revista_anterior']) || '—')}</td>
               <td>${esc(firstValue(r, ['condicion']) || '—')}</td>
-              <td><span class="pill">${situacion}</span></td>
+              <td>${renderSituacionBadge(situacion)}</td>
               <td>${esc(formatDateDisplay(firstValue(r, ['fecha_incorporacion'])))}</td>
               <td>${esc(firstValue(r, ['motivo']) || '—')}</td>
               <td>${esc(firstValue(r, ['documento_referencia']) || '—')}</td>
@@ -10449,20 +10482,20 @@
           });
 
           const labelsMap = [
-            ['PRESENTE', 'PRESENTES', '#065f46', '#d1fae5'],
-            ['CURSO', 'CURSO', '#1e40af', '#dbeafe'],
-            ['REFERIDO', 'REFERIDOS', '#9a3412', '#ffedd5'],
-            ['DESTACADO', 'DESTACADOS', '#5b21b6', '#ede9fe'],
-            ['REASIGNADO', 'REASIGNADOS', '#0f766e', '#ccfbf1'],
-            ['DISPONIBILIDAD', 'DISPONIBILIDAD', '#854d0e', '#fef9c3'],
-            ['RETIRO', 'RETIRO', '#475569', '#f1f5f9'],
-            ['SOMETIDO A LEY', 'SOMETIDO A LEY', '#991b1b', '#fee2e2'],
-            ['DETENIDO', 'DETENIDOS', '#7f1d1d', '#fecaca']
+            ['PRESENTE', 'PRESENTES', '#065f46', '#d1fae5', '#a7f3d0'],
+            ['CURSO', 'CURSO', '#ffffff', '#dc2626', '#b91c1c'],
+            ['REFERIDO', 'REFERIDOS', '#000000', '#ff9800', '#f57c00'],
+            ['DESTACADO', 'DESTACADOS', '#5b21b6', '#ede9fe', '#ddd6fe'],
+            ['REASIGNADO', 'REASIGNADOS', '#0f766e', '#ccfbf1', '#99f6e4'],
+            ['DISPONIBILIDAD', 'DISPONIBILIDAD', '#854d0e', '#fef9c3', '#fef08a'],
+            ['RETIRO', 'RETIRO', '#475569', '#f1f5f9', '#e2e8f0'],
+            ['SOMETIDO A LEY', 'SOMETIDO A LEY', '#991b1b', '#fee2e2', '#fecaca'],
+            ['DETENIDO', 'DETENIDOS', '#7f1d1d', '#fecaca', '#fca5a5']
           ];
 
           const pillsHtml = labelsMap
             .filter(([key]) => counts[key] > 0 || key === 'CURSO' || key === 'REFERIDO' || key === 'PRESENTE')
-            .map(([key, label, color, bg]) => `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:800;color:${color};background:${bg};border:1px solid ${color}25;">${label}: ${counts[key]}</span>`)
+            .map(([key, label, color, bg, border]) => `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:800;color:${color};background:${bg};border:1px solid ${border || (color + '25')};">${label}: ${counts[key]}</span>`)
             .join(' ');
 
           const extraHtml = Object.entries(otherCounts)
@@ -10511,7 +10544,7 @@
             <tr class="data-row" onclick="openForm('${esc(rawId)}')">
               <td>${esc(firstValue(r, ['cip', 'CIP']))}</td><td>${esc(firstValue(r, ['dni', 'DNI']))}</td><td><span class="pill">${esc(firstValue(r, ['grado', 'GRADO']))}</span></td><td><b>${esc(firstValue(r, ['apellidos_y_nombres', 'APELLIDOS Y NOMBRES']))}</b></td>
               <td>${esc(firstValue(r, ['unidad_de_origen', 'UNIDAD DE ORIGEN']))}</td><td>${esc(firstValue(r, ['lista_de_revista', 'LISTA DE REVISTA']))}</td><td>${esc(formatDateDisplay(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN'])))}</td>
-              <td>${esc(tiempoTranscurrido(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN'])))}</td><td>${esc(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL']))}</td><td>${esc(firstValue(r, ['condicion', 'CONDICIÓN']))}</td><td>${observacionButton(getObservacionEfectivo(r))}</td>
+              <td>${esc(tiempoTranscurrido(firstValue(r, ['fecha_de_incorporacion', 'FECHA INCORPORACIÓN'])))}</td><td>${renderSituacionBadge(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL']), true)}</td><td>${esc(firstValue(r, ['condicion', 'CONDICIÓN']))}</td><td>${observacionButton(getObservacionEfectivo(r))}</td>
             </tr>`;
           }).join('');
         }
@@ -10649,7 +10682,7 @@
             <h3>${esc(firstValue(r, ['grado', 'GRADO']) || '')} ${nombres}</h3>
             <div class="meta">
               <div><b>CIP</b>${esc(firstValue(r, ['cip', 'CIP']) || '—')}</div><div><b>DNI</b>${esc(firstValue(r, ['dni', 'DNI']) || '—')}</div>
-              <div><b>Unidad</b>${unidad}</div><div><b>Situación</b>${esc(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL']) || '—')}</div>
+              <div><b>Unidad</b>${unidad}</div><div><b>Situación</b>${renderSituacionBadge(firstValue(r, ['situacion_actual', 'SITUACIÓN ACTUAL']))}</div>
             </div>
             <div class="actions">
               <button class="secondary" onclick="openFicha('${id}')">Ver ficha</button>
